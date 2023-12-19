@@ -11,10 +11,13 @@ class CreateArrivalsTable extends Migration
 {
     public function up()
     {
-        Schema::create('app_arrival_arrivals', function (Blueprint $table) {
-            $table->increments('id');
-            $table->timestamps();
-        });
+        Schema::create('app_arrival_arrivals', function ( $table) 
+            {
+                $table->engine = 'InnoDB';
+                $table->increments('id')->unsigned();
+                $table->text('name');
+                $table->dateTime('timestamp');
+            });
     }
 
     public function down()

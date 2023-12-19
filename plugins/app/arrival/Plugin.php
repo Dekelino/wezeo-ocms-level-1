@@ -17,9 +17,12 @@ class Plugin extends PluginBase
     {
         return [
             'name'        => 'Arrival',
-            'description' => 'No description provided yet...',
+            'description' => 'Manage arrivals and timestamps.',
             'author'      => 'App',
-            'icon'        => 'icon-leaf'
+            'icon'        => 'icon-hand-spock-o',
+            'permissions' => ['app.arrival.*'],
+            'url'         => Backend::url('app/arrival/arrivals'), // Corrected URL
+            'order'       => 500,
         ];
     }
 
@@ -52,7 +55,7 @@ class Plugin extends PluginBase
     {
 
         return [
-            'App\Arrival\Controllers\Arrivals' => 'arrivals',
+            'App\Arrival\Components\MyComponent' => 'myComponent',
         ];
     }
 
@@ -63,7 +66,6 @@ class Plugin extends PluginBase
      */
     public function registerPermissions()
     {
-        return []; // Remove this line to activate
 
         return [
             'app.arrival.some_permission' => [
@@ -80,13 +82,12 @@ class Plugin extends PluginBase
      */
     public function registerNavigation()
     {
-        return []; // Remove this line to activate
 
         return [
             'arrival' => [
                 'label'       => 'Arrival',
-                'url'         => Backend::url('app/arrival/mycontroller'),
-                'icon'        => 'icon-leaf',
+                'url'         => Backend::url('app/arrival/arrivals'),
+                'icon'        => 'icon-hand-spock-o',
                 'permissions' => ['app.arrival.*'],
                 'order'       => 500,
             ],

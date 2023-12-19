@@ -4,5 +4,11 @@
 
 columns:
     id:
-        label: ID
-        searchable: true
+        label: id
+        type: number
+    name:
+        label: name
+        type: text
+    timestamp:
+        label: timestamp
+        type: text

@@ -1,6 +1,5 @@
 <?php namespace App\Arrival\Controllers;
 
-use BackendMenu;
 use Backend\Classes\Controller;
 
 /**
@@ -29,7 +28,6 @@ class Arrivals extends Controller
     public function __construct()
     {
         parent::__construct();
-
-        BackendMenu::setContext('App.Arrival', 'arrival', 'arrivals');
     }
+
 }

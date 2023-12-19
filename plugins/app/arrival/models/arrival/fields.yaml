@@ -4,5 +4,14 @@
 
 fields:
     id:
-        label: ID
-        disabled: true
+        label: Id
+        span: auto
+        type: number
+    name:
+        label: Name
+        span: auto
+        type: textarea
+    timestamp:
+        label: Timestamp
+        span: auto
+        type: datepicker

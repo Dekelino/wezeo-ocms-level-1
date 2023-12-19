@@ -9,10 +9,13 @@ class Arrival extends Model
 {
     use \October\Rain\Database\Traits\Validation;
 
+    public $timestamps = false;
+
+   
     /**
      * @var string table associated with the model
      */
-    public $table = 'app_arrival_arrivals';
+    public $table = 'app_arrival_';
 
     /**
      * @var array guarded attributes aren't mass assignable
@@ -22,12 +25,13 @@ class Arrival extends Model
     /**
      * @var array fillable attributes are mass assignable
      */
-    protected $fillable = [];
+    protected $fillable = ["name"];
 
     /**
      * @var array rules for validation
      */
-    public $rules = [];
+    public $rules = [
+    ];
 
     /**
      * @var array Attributes to be cast to native types
