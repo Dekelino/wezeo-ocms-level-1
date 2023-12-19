@@ -1,4 +1,6 @@
-<?php namespace App\Arrival;
+<?php
+
+namespace App\Arrival;
 
 use Backend;
 use System\Classes\PluginBase;
@@ -33,7 +35,6 @@ class Plugin extends PluginBase
      */
     public function register()
     {
-
     }
 
     /**
@@ -43,7 +44,6 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-
     }
 
     /**

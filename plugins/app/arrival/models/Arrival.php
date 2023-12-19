@@ -25,7 +25,7 @@ class Arrival extends Model
     /**
      * @var array fillable attributes are mass assignable
      */
-    protected $fillable = ["name"];
+    protected $fillable = ['id', 'name','timestamp'];
 
     /**
      * @var array rules for validation
