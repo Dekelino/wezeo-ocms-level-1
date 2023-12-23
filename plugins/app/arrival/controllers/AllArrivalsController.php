@@ -6,7 +6,7 @@ use Backend\Classes\Controller;
 use App\Arrival\Models\Arrival;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-
+use Event;
 
 
 
@@ -31,12 +31,13 @@ class AllArrivalsController extends Controller
         // Set the timezone to 'Europe/Bratislava'
         $timestamp = Carbon::now('Europe/Bratislava');
 
-        // Create a new arrival with an incremented ID and set the timestamp explicitly
         $newArrival = Arrival::create([
             'id' => $lastId + 1,
             'name' => $data['name'],
-            'timestamp' => $timestamp, // Explicitly set the timestamp
+            'timestamp' => $timestamp, 
         ]);
+
+        Event::fire('app.arrival.created', [$newArrival]); //Using Event::listen doesnt work 
 
         return response()->json($newArrival);
     }

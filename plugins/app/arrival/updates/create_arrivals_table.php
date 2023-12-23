@@ -14,7 +14,7 @@ class CreateArrivalsTable extends Migration
     {
         Schema::create('app_arrival_arrivals', function ($table) {
             $table->engine = 'InnoDB';
-            $table->increments('id')->unsigned();
+            $table->increments('id')->unsigned(); //Unsigned - only positive integers in id
             $table->text('name');
             $table->timestamps(); // This will automatically add created_at and updated_at columns
 
