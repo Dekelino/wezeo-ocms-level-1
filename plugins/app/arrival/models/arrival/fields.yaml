@@ -15,3 +15,10 @@ fields:
         label: Timestamp
         span: auto
         type: datepicker
+    user:
+        label: User
+        type: relation
+        nameFrom: name
+        emptyOption: 'Select User'
+        tab: 'User'
+

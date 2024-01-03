@@ -1,4 +1,6 @@
-<?php namespace App\Arrival\Models;
+<?php
+
+namespace App\Arrival\Models;
 
 use Model;
 
@@ -11,11 +13,11 @@ class Arrival extends Model
 
     public $timestamps = false;
 
-   
+
     /**
      * @var string table associated with the model
      */
-    public $table = 'app_arrival_';
+    public $table = 'app_arrivals';
 
     /**
      * @var array guarded attributes aren't mass assignable
@@ -25,13 +27,12 @@ class Arrival extends Model
     /**
      * @var array fillable attributes are mass assignable
      */
-    protected $fillable = ['id', 'name','timestamp'];
+    protected $fillable = ['id', 'name', 'timestamp'];
 
     /**
      * @var array rules for validation
      */
-    public $rules = [
-    ];
+    public $rules = [];
 
     /**
      * @var array Attributes to be cast to native types
@@ -66,7 +67,10 @@ class Arrival extends Model
      */
     public $hasOne = [];
     public $hasMany = [];
-    public $belongsTo = [];
+    public $belongsTo = [
+        'user' => ['RainLab\User\Models\User']
+    ];
+
     public $belongsToMany = [];
     public $morphTo = [];
     public $morphOne = [];

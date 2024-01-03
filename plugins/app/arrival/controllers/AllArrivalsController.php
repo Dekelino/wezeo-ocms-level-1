@@ -13,7 +13,9 @@ use Event;
 //documentation Eloquent : https://laravel.com/docs/10.x/eloquent-resources
 
 class AllArrivalsController extends Controller
-{
+{   
+    
+    
     public function getAllDatas()
     {
         $arrivals = Arrival::all(); //Eloquent

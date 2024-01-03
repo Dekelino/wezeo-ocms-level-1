@@ -7,4 +7,8 @@ Route::group(['prefix' => 'api'], function () {
     Route::get('/hello', function () {
         return 'Hello, World!';
     });
+
+    //users 
+    Route::post('/createUser', 'App\Arrival\Controllers\UsersController@createUser');
+    
 });

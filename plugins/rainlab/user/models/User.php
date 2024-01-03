@@ -8,7 +8,6 @@ use Config;
 use Carbon\Carbon;
 use October\Rain\Auth\Models\User as UserBase;
 use RainLab\User\Models\Settings as UserSettings;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 use October\Rain\Auth\AuthException;
 
 class User extends UserBase
@@ -275,25 +274,31 @@ class User extends UserBase
          * Apply rules Settings
          */
         $minPasswordLength = Settings::get('min_password_length', static::getMinPasswordLength());
-        $passwordRule = PasswordRule::min($minPasswordLength);
-        if (Settings::get('require_mixed_case')) {
-            $passwordRule->mixedCase();
-        }
+        if (class_exists('\Illuminate\Validation\Rules\Password')) {
+            $passwordRule = \Illuminate\Validation\Rules\Password::min($minPasswordLength);
+            if (Settings::get('require_mixed_case')) {
+                $passwordRule->mixedCase();
+            }
 
-        if (Settings::get('require_uncompromised')) {
-            $passwordRule->uncompromised();
-        }
+            if (Settings::get('require_uncompromised')) {
+                $passwordRule->uncompromised();
+            }
 
-        if (Settings::get('require_number')) {
-            $passwordRule->numbers();
-        }
+            if (Settings::get('require_number')) {
+                $passwordRule->numbers();
+            }
 
-        if (Settings::get('require_symbol')) {
-            $passwordRule->symbols();
-        }
+            if (Settings::get('require_symbol')) {
+                $passwordRule->symbols();
+            }
 
-        $this->addValidationRule('password', $passwordRule);
-        $this->addValidationRule('password_confirmation', $passwordRule);
+            $this->addValidationRule('password', $passwordRule);
+            $this->addValidationRule('password_confirmation', $passwordRule);
+        }
+        else {
+            $this->addValidationRule('password', 'between:' . $minPasswordLength .',255');
+            $this->addValidationRule('password_confirmation', 'between:' . $minPasswordLength . ',255');
+        }
     }
 
     /**
