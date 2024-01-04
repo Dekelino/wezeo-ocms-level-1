@@ -27,7 +27,7 @@ class Arrival extends Model
     /**
      * @var array fillable attributes are mass assignable
      */
-    protected $fillable = ['id', 'name', 'timestamp'];
+    protected $fillable = ['id','user_id', 'name', 'timestamp'];
 
     /**
      * @var array rules for validation
@@ -68,7 +68,7 @@ class Arrival extends Model
     public $hasOne = [];
     public $hasMany = [];
     public $belongsTo = [
-        'user' => ['RainLab\User\Models\User']
+        'user' => ['RainLab\User\Models\User', 'key' => 'user_id']
     ];
 
     public $belongsToMany = [];

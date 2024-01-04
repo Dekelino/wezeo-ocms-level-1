@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use October\Rain\Auth\Models\User as UserBase;
 use RainLab\User\Models\Settings as UserSettings;
 use October\Rain\Auth\AuthException;
+use App\Arrival\Models\Arrival;
 
 class User extends UserBase
 {
@@ -34,7 +35,11 @@ class User extends UserBase
      * @var array Relations
      */
     public $belongsToMany = [
-        'groups' => [UserGroup::class, 'table' => 'users_groups']
+        'groups' => [UserGroup::class, 'table' => 'users_groups'],
+    ];
+
+    public $hasMany = [
+        'arrivals' => ['App\Arrival\Models\Arrival', 'key' => 'user_id'],
     ];
 
     public $attachOne = [

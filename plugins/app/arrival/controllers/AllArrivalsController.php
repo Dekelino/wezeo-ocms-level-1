@@ -35,6 +35,7 @@ class AllArrivalsController extends Controller
 
         $newArrival = Arrival::create([
             'id' => $lastId + 1,
+            'user_id'=> $data['user_id'],
             'name' => $data['name'],
             'timestamp' => $timestamp, 
         ]);

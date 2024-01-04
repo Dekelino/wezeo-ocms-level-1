@@ -5,7 +5,10 @@ namespace App\Arrival\Controllers;
 use Backend\Classes\Controller;
 use RainLab\User\Models\User;
 use Illuminate\Http\Request;
+use RainLab\User\Facades\Auth as RainLabAuth;
+use Illuminate\Support\Facades\Validator;
 use Backend\Facades\BackendAuth;
+use Illuminate\Validation\ValidationException;
 use Exception;
 
 class UsersController extends Controller
@@ -24,6 +27,36 @@ class UsersController extends Controller
             $user]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+    public function loginUser(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                throw ValidationException::withMessages(['Invalid credentials']);
+            }
+
+            $credentials = request(['email', 'password']);
+
+            // Trying to authenticate the user
+            if (!RainLabAuth::attempt($credentials)) {
+                throw ValidationException::withMessages(['Invalid credentials']);
+            }
+
+            $authenticatedUser = RainLabAuth::getUser();
+
+            // You can generate a custom token here if needed
+            // For example, you can create a 'token' field in your users table
+            // and generate a token like $token = $authenticatedUser->token;
+
+            return response()->json(['message' => 'User logged in successfully', 'user' => $authenticatedUser]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 401);
         }
     }
 }
