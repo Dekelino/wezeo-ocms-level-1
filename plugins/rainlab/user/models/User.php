@@ -9,9 +9,8 @@ use Carbon\Carbon;
 use October\Rain\Auth\Models\User as UserBase;
 use RainLab\User\Models\Settings as UserSettings;
 use October\Rain\Auth\AuthException;
-use App\Arrival\Models\Arrival;
-
-class User extends UserBase
+use Tymon\JWTAuth\Contracts\JWTSubject;
+class User extends UserBase implements JWTSubject
 {
     use \October\Rain\Database\Traits\SoftDelete;
 
@@ -152,6 +151,26 @@ class User extends UserBase
     //
     // Getters
     //
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 
     /**
      * clearPersistCode will forcibly sign the user out

@@ -7,31 +7,26 @@ use App\Arrival\Models\Arrival;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Event;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 
 
 //documentation Eloquent : https://laravel.com/docs/10.x/eloquent-resources
 
 class AllArrivalsController extends Controller
-{   
-    
-    
+{
+
+
     public function getAllDatas()
     {   //Check if user is authenticated
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
         $arrivals = Arrival::all(); //Eloquent
 
         return response()->json($arrivals);
     }
 
     public function addArrival(Request $request)
-    {   
-        if (!JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+    {
+        $user = auth()->user();
+
         $data = $request->json()->all();
 
         // Get the last ID
@@ -42,13 +37,21 @@ class AllArrivalsController extends Controller
 
         $newArrival = Arrival::create([
             'id' => $lastId + 1,
-            'user_id'=> $data['user_id'],
+            'user_id' => $user->id,
             'name' => $data['name'],
-            'timestamp' => $timestamp, 
+            'timestamp' => $timestamp,
         ]);
 
         Event::fire('app.arrival.created', [$newArrival]); //Using Event::listen doesnt work 
 
-        return response()->json($newArrival);
+        // Build the response data
+        $responseData = [
+            'id' => $newArrival->id,
+            'user_id' => $newArrival->user_id,
+            'name' => $newArrival->name,
+            'timestamp' => $newArrival->timestamp,
+        ];
+
+        return response()->json($responseData);
     }
 }
