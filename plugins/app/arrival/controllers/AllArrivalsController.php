@@ -7,6 +7,7 @@ use App\Arrival\Models\Arrival;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Event;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 
 
@@ -17,14 +18,20 @@ class AllArrivalsController extends Controller
     
     
     public function getAllDatas()
-    {
+    {   //Check if user is authenticated
+        if (!JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
         $arrivals = Arrival::all(); //Eloquent
 
         return response()->json($arrivals);
     }
 
     public function addArrival(Request $request)
-    {
+    {   
+        if (!JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
         $data = $request->json()->all();
 
         // Get the last ID

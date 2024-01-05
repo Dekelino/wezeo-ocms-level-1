@@ -9,6 +9,7 @@ use RainLab\User\Facades\Auth as RainLabAuth;
 use Illuminate\Support\Facades\Validator;
 use Backend\Facades\BackendAuth;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Exception;
 
 class UsersController extends Controller
@@ -47,14 +48,15 @@ class UsersController extends Controller
             if (!RainLabAuth::attempt($credentials)) {
                 throw ValidationException::withMessages(['Invalid credentials']);
             }
-
             $authenticatedUser = RainLabAuth::getUser();
 
-            // You can generate a custom token here if needed
-            // For example, you can create a 'token' field in your users table
-            // and generate a token like $token = $authenticatedUser->token;
+            //TOken generator
+            $token = JWTAuth::fromUser($authenticatedUser);
 
-            return response()->json(['message' => 'User logged in successfully', 'user' => $authenticatedUser]);
+            return response()->json(['message' => 'User logged in successfully',
+             'user' => $authenticatedUser,
+             'token' => $token
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 401);
         }
