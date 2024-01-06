@@ -5,6 +5,7 @@ namespace App\Arrival\Controllers;
 use Backend\Classes\Controller;
 use App\Arrival\Models\Arrival;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Event;
 
@@ -25,7 +26,7 @@ class AllArrivalsController extends Controller
 
     public function addArrival(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $data = $request->json()->all();
 
@@ -38,7 +39,8 @@ class AllArrivalsController extends Controller
         $newArrival = Arrival::create([
             'id' => $lastId + 1,
             'user_id' => $user->id,
-            'name' => $data['name'],
+            'arrivalName' => $data['arrivalName'],
+            'userName' => $user->name.$user->surname,
             'timestamp' => $timestamp,
         ]);
 
@@ -46,9 +48,10 @@ class AllArrivalsController extends Controller
 
         // Build the response data
         $responseData = [
-            'id' => $newArrival->id,
+            'id'=>$newArrival->id,
             'user_id' => $newArrival->user_id,
-            'name' => $newArrival->name,
+            'arrivalName' => $newArrival->arrivalName,
+            'userName' => $newArrival->userName,
             'timestamp' => $newArrival->timestamp,
         ];
 

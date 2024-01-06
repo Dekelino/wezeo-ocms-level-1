@@ -1,65 +1,46 @@
-<?php
-
-namespace LibUser\Userapi\Http\Controllers;
+<?php namespace LibUser\Userapi\Http\Controllers;
 
 use LibUser\Userapi\Http\Resources\UserResource;
 use Exception;
 use RainLab\User\Facades\Auth;
-use RainLab\User\Models\User as RainLabUser;
 
-class UserController
-{
+class UserController {
 
     // register user
-    function register()
-    {
-        try {
-            $credentials = [
-                "name" => post("name"),
-                "surname" => post("surname"),
-                "email" => post("email"),
-                "password" => post("password"),
-                "password_confirmation" => post("password_confirmation")
-            ];
+    function register() {
+        $creds = [
+            "name" => post("name"),
+            "surname" => post("surname"),
+            "email" => post("email"),
+            "password" => post("password"),
+            "password_confirmation" => post("password_confirmation")
+        ];
+        $user = Auth::register($creds);
 
-            // Use RainLab User model for registration
-            $user = RainLabUser::create($credentials);
-
-            return new UserResource($user);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()]);
-        }
+        return new UserResource($user);
     }
 
     // login user
-    function login()
-    {
-        try {
-            $credentials = [
-                "email" => post("email"),
-                "password" => post("password")
-            ];
+    function login() {
+        $creds = [
+            "email"    => post("email"),
+            "password" => post("password")
+        ];
 
-            if (!$token = Auth::attempt($credentials)) {
-                throw new Exception("Wrong email or password");
-            }
-
-            $user = Auth::getUser();
-
-            return $this->respondWithToken($token, $user);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 401);
+        if (!$token = auth()->attempt($creds)) {
+            throw new Exception("Wrong email or password");
         }
+
+        return $this->respondWithToken($token);
     }
 
     // respond json array with jwt info
-    private function respondWithToken($token, $user)
-    {
+    private function respondWithToken($token) {
         return response()->json([
             "token" => $token,
             "token_type" => "bearer",
-            "expires_in" => config("jwt.ttl"),
-            "user" => new UserResource($user)
+            "expires_in" => config("jwt.ttl")
         ]);
     }
+    
 }
