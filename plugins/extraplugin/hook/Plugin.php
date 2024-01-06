@@ -42,9 +42,11 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-        Event::listen('app.arrival.created', function ($newArrival) {
-            Log::info('Arrival created:', $newArrival->toArray());
+        Event::listen('app.user.arrival_requested', function ($user_id) {
+            Log::info('User with user_id: ' . $user_id . ' opened his arrivals');
+
         });
+
     }
 
     /**

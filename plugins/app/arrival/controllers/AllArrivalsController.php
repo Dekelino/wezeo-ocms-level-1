@@ -24,6 +24,20 @@ class AllArrivalsController extends Controller
         return response()->json($arrivals);
     }
 
+    public function getUserArrivals()
+    // https://docs.octobercms.com/1.x/database/query.html#retrieving-results
+    {
+        $user = Auth::user();
+
+        $arrivals = Arrival::where('user_id', $user->id)->get(); //get() - getting all datas, first() only first
+
+        Event::fire('app.user.arrival_requested', ['user_id' => $user->id]);
+
+        return response()->json($arrivals);
+
+
+    }
+
     public function addArrival(Request $request)
     {
         $user = Auth::user();
