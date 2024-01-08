@@ -5,7 +5,6 @@ namespace App\Arrival\Controllers;
 use Backend\Classes\Controller;
 use App\Arrival\Models\Arrival;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Event;
 
@@ -27,7 +26,7 @@ class AllArrivalsController extends Controller
     public function getUserArrivals()
     // https://docs.octobercms.com/1.x/database/query.html#retrieving-results
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         $arrivals = Arrival::where('user_id', $user->id)->get(); //get() - getting all datas, first() only first
 
@@ -40,7 +39,7 @@ class AllArrivalsController extends Controller
 
     public function addArrival(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         $data = $request->json()->all();
 
