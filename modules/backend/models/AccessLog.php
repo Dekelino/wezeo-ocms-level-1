@@ -4,7 +4,7 @@ use Model;
 use Request;
 
 /**
- * AccessLog for logging access to the backend
+ * Model for logging access to the back-end
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -12,7 +12,7 @@ use Request;
 class AccessLog extends Model
 {
     /**
-     * @var string table associated with the model
+     * @var string The database table used by the model.
      */
     protected $table = 'backend_access_log';
 
@@ -48,8 +48,7 @@ class AccessLog extends Model
         $records = static::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->limit(2)
-            ->get()
-        ;
+            ->get();
 
         if (!count($records)) {
             return null;

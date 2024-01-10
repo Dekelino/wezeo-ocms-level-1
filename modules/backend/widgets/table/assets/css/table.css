@@ -41,12 +41,13 @@
   left: 1px;
   right: 1px;
   margin-top: -1px;
-  border-bottom: 1px solid #95A5A6;
+  border-bottom: 1px solid #e0e0e0;
 }
 .control-table table.headers th {
   padding: 7px 10px;
   font-weight: normal;
-  font-size: 14px;
+  text-transform: uppercase;
+  font-size: 11px;
   color: #333333;
   background: white;
   border-right: 1px solid #ecf0f1;
@@ -71,30 +72,43 @@
   padding: 1px;
 }
 .control-table table.data td.active {
-  border-bottom-color: #72809d !important;
+  border-color: #34495e !important;
 }
-.control-table table.data td.active .content-container:before {
+.control-table table.data td.active .content-container {
+  padding: 0;
+  border: 1px solid #34495e;
+}
+.control-table table.data td.active .content-container:before,
+.control-table table.data td.active .content-container:after {
   content: ' ';
-  background: #72809d;
+  background: #34495e;
   position: absolute;
   left: -2px;
   top: -2px;
+}
+.control-table table.data td.active .content-container:before {
+  width: 1px;
+  bottom: -2px;
+}
+.control-table table.data td.active .content-container:after {
+  right: -2px;
+  height: 1px;
 }
 .control-table table.data tr {
   background-color: white;
 }
 .control-table table.data tr.error {
-  background-color: #fbecec !important;
+  background-color: #fbecec!important;
 }
 .control-table table.data tr.error td.active.error {
-  border-color: #ec0000 !important;
+  border-color: #ec0000!important;
 }
 .control-table table.data tr.error td.active.error .content-container {
-  border-color: #ec0000 !important;
+  border-color: #ec0000!important;
 }
 .control-table table.data tr.error td.active.error .content-container:before,
 .control-table table.data tr.error td.active.error .content-container:after {
-  background-color: #ec0000 !important;
+  background-color: #ec0000!important;
 }
 .control-table table.data tr:nth-child(2n) {
   background-color: #fbfbfb;
@@ -122,83 +136,23 @@
 .control-table .toolbar {
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  padding: 3px;
-  font-size: 0;
-  white-space: nowrap;
 }
 .control-table .toolbar a.btn {
-  line-height: inherit;
-  display: inline-block;
-  color: inherit;
-  padding: 0 6px;
-  min-width: 40px;
-  text-align: center;
-  text-decoration: none !important;
-  border-radius: 4px;
-  outline: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  box-shadow: none;
-  line-height: 30px;
-  vertical-align: top;
-}
-.control-table .toolbar a.btn.control-button {
-  color: #536061;
-  font-size: 14px;
-  margin-right: 8px;
-  line-height: 30px;
-}
-.control-table .toolbar a.btn.icon-only {
-  min-width: 30px;
-}
-.control-table .toolbar a.btn[disabled] {
-  cursor: default;
-}
-.control-table .toolbar a.btn[disabled] > i,
-.control-table .toolbar a.btn[disabled] > span,
-.control-table .toolbar a.btn[disabled]:after {
+  color: #323e50;
+  padding: 8px 10px;
   opacity: 0.5;
+  filter: alpha(opacity=50);
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+  text-shadow: none;
 }
-.control-table .toolbar a.btn i {
-  display: inline-block;
-  position: relative;
-  top: 2px;
-  font-size: 16px;
-}
-.control-table .toolbar a.btn i + span {
-  margin-left: 2px;
-}
-.control-table .toolbar a.btn:not([disabled]):hover {
-  background: rgba(215, 225, 234, 0.7);
-}
-.control-table .toolbar a.btn.has-menu:after {
-  font-family: 'octo-icon' !important;
-  speak: none;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  content: "\e90a";
-  font-size: 16px;
-  vertical-align: middle;
-  margin-left: 0;
-  margin-right: -3px;
-  position: relative;
-  top: -1px;
-}
-.control-table .toolbar a.btn,
-.control-table .toolbar button {
-  color: #536061;
-  margin: 1px 0;
+.control-table .toolbar a.btn:hover {
+  opacity: 1;
+  filter: alpha(opacity=100);
 }
 .control-table .toolbar .table-search {
   float: right;
-  margin: 0 3px 0 0;
+  margin: 3px 3px 0 0;
 }
 .control-table .toolbar .table-search .table-search-input {
   height: auto;
@@ -250,7 +204,7 @@
 .control-table .pagination ul li.active a {
   color: #ffffff;
 }
-@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 1.5), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-devicepixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
+@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-devicepixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
   .control-table .toolbar a:before {
     background-position: 0px -9px;
     background-size: 16px auto;
@@ -273,6 +227,10 @@
   outline: none;
   border: none;
   padding: 6px 10px 7px;
+}
+html.chrome .control-table td[data-column-type=string] input[type=text],
+html.chrome .control-table td[data-column-type=autocomplete] input[type=text] {
+  padding: 6px 10px 7px!important;
 }
 html.safari .control-table td[data-column-type=string] input[type=text],
 html.gecko .control-table td[data-column-type=string] input[type=text],
@@ -298,7 +256,7 @@ ul.table-widget-autocomplete li a {
 .control-table td[data-column-type=checkbox] div[data-checkbox-element] {
   width: 16px;
   height: 16px;
-  border-radius: 4px;
+  border-radius: 3px;
   background-color: #FFFFFF;
   border: 1px solid #999999;
   margin: 5px 5px 5px 10px;
@@ -321,6 +279,7 @@ ul.table-widget-autocomplete li a {
   font-style: normal;
   text-decoration: inherit;
   -webkit-font-smoothing: antialiased;
+  *margin-right: .3em;
   content: "\f00c";
   font-size: 10px;
   position: relative;
@@ -328,7 +287,7 @@ ul.table-widget-autocomplete li a {
   top: -4px;
 }
 .control-table td[data-column-type=checkbox] div[data-checkbox-element]:focus {
-  border-color: #72809d;
+  border-color: #34495e;
   outline: none;
 }
 /*
@@ -351,6 +310,7 @@ ul.table-widget-autocomplete li a {
   font-style: normal;
   text-decoration: inherit;
   -webkit-font-smoothing: antialiased;
+  *margin-right: .3em;
   content: "\f107";
   font-size: 13px;
   line-height: 100%;
@@ -360,7 +320,7 @@ ul.table-widget-autocomplete li a {
   right: 10px;
 }
 .control-table td[data-column-type=dropdown] [data-view-container]:hover:after {
-  color: #3498db;
+  color: #0181b9;
 }
 .control-table td[data-column-type=dropdown] [data-dropdown-open=true] {
   background: white;
@@ -371,6 +331,7 @@ ul.table-widget-autocomplete li a {
   font-style: normal;
   text-decoration: inherit;
   -webkit-font-smoothing: antialiased;
+  *margin-right: .3em;
   content: "\f106";
 }
 .control-table td[data-column-type=dropdown] .content-container {
@@ -434,9 +395,7 @@ html.cssanimations .control-table td[data-column-type=dropdown] [data-view-conta
   cursor: pointer;
   outline: none;
 }
-.table-control-dropdown-list li:hover,
-.table-control-dropdown-list li:focus,
-.table-control-dropdown-list li.selected {
-  background: #72809d;
+.table-control-dropdown-list li:focus {
+  background: #34495e;
   color: white;
 }

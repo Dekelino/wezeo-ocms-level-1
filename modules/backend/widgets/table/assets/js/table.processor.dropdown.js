@@ -2,6 +2,10 @@
  * Drop-down cell processor for the table control.
  */
 
+/*
+ * TODO: implement the search
+ */
+
 +function ($) { "use strict";
 
     // NAMESPACE CHECK
@@ -57,7 +61,8 @@
     }
 
     DropdownProcessor.prototype.unregisterListHandlers = function() {
-        if (this.itemListElement) {
+        if (this.itemListElement)
+        {
             // This processor binds custom click handler to the item list,
             // the standard registerHandlers/unregisterHandlers functionality
             // can't be used here because the element belongs to the document
@@ -129,7 +134,7 @@
         this.itemListElement.addEventListener('mousemove', this.itemMouseMoveHandler)
 
         this.itemListElement.setAttribute('class', 'table-control-dropdown-list')
-        this.itemListElement.style.width = cellContentContainer.offsetWidth + 2 + 'px'
+        this.itemListElement.style.width = cellContentContainer.offsetWidth + 'px'
         this.itemListElement.style.left = containerPosition.left + 'px'
         this.itemListElement.style.top = containerPosition.top - 2 + cellContentContainer.offsetHeight + 'px'
 
@@ -223,13 +228,11 @@
                 this.cachedOptionPromises[cachingKey] = this.tableObj.$el.request(handlerName, {data: requestData})
             }
 
-            this.cachedOptionPromises[cachingKey]
-                .done(function onDropDownLoadOptionsSuccess(data){
-                    onSuccess(data.options)
-                })
-                .always(function onDropDownLoadOptionsAlways(){
-                    viewContainer.setAttribute('class', '')
-                })
+            this.cachedOptionPromises[cachingKey].done(function onDropDownLoadOptionsSuccess(data){
+                onSuccess(data.options)
+            }).always(function onDropDownLoadOptionsAlways(){
+                viewContainer.setAttribute('class', '')
+            })
         }
     }
 
@@ -239,13 +242,10 @@
 
         if (dependsOn) {
             if (typeof dependsOn == 'object') {
-                for (var i = 0, len = dependsOn.length; i < len; i++) {
+                for (var i = 0, len = dependsOn.length; i < len; i++ )
                     cachingKey += dependsOn[i] + this.tableObj.getRowCellValueByColumnName(row, dependsOn[i])
-                }
-            }
-            else {
+            } else
                 cachingKey = dependsOn + this.tableObj.getRowCellValueByColumnName(row, dependsOn)
-            }
         }
 
         return cachingKey
@@ -274,7 +274,6 @@
         if (!focusedItem) {
             focusedItem = this.findFocusedItem();
         }
-
         this.setSelectedItem(focusedItem);
     }
 
@@ -287,13 +286,12 @@
 
     DropdownProcessor.prototype.setSelectedItem = function(item) {
         if (!this.itemListElement)
-            return null
+            return null;
 
         if (item.tagName == 'LI' && this.itemListElement.contains(item)) {
             this.itemListElement.querySelectorAll('ul li').forEach(function (option) {
-                option.removeAttribute('class')
-            })
-
+                option.removeAttribute('class');
+            });
             item.setAttribute('class', 'selected');
         }
 
@@ -312,7 +310,7 @@
         var target = this.tableObj.getEventTarget(ev)
 
         if (target.tagName == 'LI') {
-            target.focus()
+            target.focus();
             this.updateCellFromFocusedItem(target)
             this.hideDropdown()
         }
@@ -322,7 +320,8 @@
         if (!this.itemListElement)
             return
 
-        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')
+        {
             // Up or down keys - find previous/next list item and select it
             var focused = this.findFocusedItem(),
                 newFocusedItem = focused.nextElementSibling
@@ -371,7 +370,7 @@
         var target = this.tableObj.getEventTarget(ev)
 
         if (target.tagName == 'LI') {
-            target.focus()
+            target.focus();
         }
     }
 
@@ -385,8 +384,7 @@
 
         if ((ev.key === '(Space character)' || ev.key === 'Spacebar' || ev.key === ' ') && !this.searching) { // Spacebar
             this.showDropdown()
-        }
-        else if (ev.key === 'ArrowDown'  || ev.key === 'ArrowUp') { // Up and down arrow keys
+        } else if (ev.key === 'ArrowDown'  || ev.key === 'ArrowUp') { // Up and down arrow keys
             var selected = this.findSelectedItem(),
                 newSelectedItem;
 
@@ -396,8 +394,7 @@
                     return false
                 }
                 newSelectedItem = this.itemListElement.querySelector('ul li:first-child')
-            }
-            else {
+            } else {
                 newSelectedItem = selected.nextElementSibling
 
                 if (ev.key === 'ArrowUp')
@@ -409,8 +406,7 @@
             }
 
             return false // Stop propogation of event
-        }
-        else {
+        } else {
             this.searchByTextInput(ev);
         }
     }
@@ -475,55 +471,53 @@
      */
     DropdownProcessor.prototype.searchByTextInput = function(ev, focusOnly) {
         if (focusOnly === undefined) {
-            focusOnly = false
+            focusOnly = false;
         }
-
-        var character = ev.key
+        var character = ev.key;
 
         if (character.length === 1 || character === 'Space') {
             if (!this.searching) {
-                this.searching = true
-                this.searchQuery = ''
+                this.searching = true;
+                this.searchQuery = '';
             }
 
-            this.searchQuery += (character === 'Space') ? ' ' : character
+            this.searchQuery += (character === 'Space') ? ' ' : character;
 
             // Search for a valid option in dropdown
             var validItem = null;
-            var query = this.searchQuery
+            var query = this.searchQuery;
 
             this.itemListElement.querySelectorAll('ul li').forEach(function(item) {
                 if (validItem === null && item.dataset.value && item.dataset.value.toLowerCase().indexOf(query.toLowerCase()) === 0) {
-                    validItem = item
+                    validItem = item;
                 }
-            })
+            });
 
             if (validItem) {
                 // If a valid item is found, select item and allow for fine-tuning the search query
                 if (focusOnly === true) {
-                    validItem.focus()
-                }
-                else {
-                    this.setSelectedItem(validItem)
+                    validItem.focus();
+                } else {
+                    this.setSelectedItem(validItem);
                 }
 
                 if (this.searchInterval) {
-                    clearTimeout(this.searchInterval)
+                    clearTimeout(this.searchInterval);
                 }
 
-                this.searchInterval = setTimeout(this.cancelTextSearch.bind(this), 1000)
-            }
-            else {
-                this.cancelTextSearch()
+                this.searchInterval = setTimeout(this.cancelTextSearch.bind(this), 1000);
+            } else {
+                this.cancelTextSearch();
             }
         }
     }
 
     DropdownProcessor.prototype.cancelTextSearch = function() {
-        this.searching = false
-        this.searchQuery = null
-        this.searchInterval = null
+        this.searching = false;
+        this.searchQuery = null;
+        this.searchInterval = null;
     }
+
 
     $.oc.table.processor.dropdown = DropdownProcessor;
 }(window.jQuery);

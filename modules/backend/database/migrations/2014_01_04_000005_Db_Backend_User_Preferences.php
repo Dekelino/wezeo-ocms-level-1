@@ -8,6 +8,7 @@ class DbBackendUserPreferences extends Migration
     public function up()
     {
         Schema::create('backend_user_preferences', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->string('namespace', 100);

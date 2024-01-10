@@ -5,25 +5,17 @@
 columns:
 
     name:
-        # Name
         label: system::lang.updates.plugin_name
         sortable: false
 
     description:
-        # Description
         label: system::lang.updates.plugin_description
         sortable: false
 
     version:
-        # Version
         label: system::lang.updates.plugin_version
         sortable: false
-        type: partial
-        path: column_version
 
-    latest:
-        # Latest
-        label: system::lang.updates.plugin_latest
+    author:
+        label: system::lang.updates.plugin_author
         sortable: false
-        type: partial
-        path: column_latest

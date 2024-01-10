@@ -3,40 +3,36 @@
 use Backend\Classes\FormWidgetBase;
 
 /**
- * Sensitive widget renders a password field that can be optionally made visible
+ * Sensitive widget.
+ *
+ * Renders a password field that can be optionally made visible
  *
  * @package october\backend
- * @author Alexey Bobkov, Samuel Georges
  */
 class Sensitive extends FormWidgetBase
 {
     /**
-     * @var bool readOnly if the sensitive field cannot be edited, but can be toggled
+     * @var bool If true, the sensitive field cannot be edited, but can be toggled.
      */
     public $readOnly = false;
 
     /**
-     * @var bool disabled if the sensitive field is disabled
+     * @var bool If true, the sensitive field is disabled.
      */
     public $disabled = false;
 
     /**
-     * @var bool allowCopy if a button will be available to copy the value
+     * @var bool If true, a button will be available to copy the value.
      */
     public $allowCopy = false;
 
     /**
-     * @var string displayMode determines how the widget is displayed. Modes: text, textarea
-     */
-    public $displayMode = 'text';
-
-    /**
-     * @var string hiddenPlaceholder string used as a placeholder for an unrevealed sensitive value
+     * @var string The string that will be used as a placeholder for an unrevealed sensitive value.
      */
     public $hiddenPlaceholder = '__hidden__';
 
     /**
-     * @var bool hideOnTabChange if the sensitive input will be hidden if the user changes to another tab
+     * @var bool If true, the sensitive input will be hidden if the user changes to another tab in their browser.
      */
     public $hideOnTabChange = true;
 
@@ -58,10 +54,6 @@ class Sensitive extends FormWidgetBase
             'hideOnTabChange',
         ]);
 
-        $this->displayMode = isset($this->config->mode) && in_array($this->config->mode, ['text', 'textarea'])
-            ? $this->config->mode
-            : 'text';
-
         if ($this->formField->disabled || $this->formField->readOnly) {
             $this->previewMode = true;
         }
@@ -78,7 +70,7 @@ class Sensitive extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the view data for the widget partial.
      */
     public function prepareVars()
     {
@@ -88,11 +80,12 @@ class Sensitive extends FormWidgetBase
         $this->vars['allowCopy'] = $this->allowCopy;
         $this->vars['hiddenPlaceholder'] = $this->hiddenPlaceholder;
         $this->vars['hideOnTabChange'] = $this->hideOnTabChange;
-        $this->vars['displayMode'] = $this->displayMode;
     }
 
     /**
-     * onShowValue reveals the value of a hidden, unmodified sensitive field
+     * Reveals the value of a hidden, unmodified sensitive field.
+     *
+     * @return array
      */
     public function onShowValue()
     {

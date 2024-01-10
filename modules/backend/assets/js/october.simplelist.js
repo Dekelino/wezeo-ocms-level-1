@@ -19,25 +19,21 @@
         this.options = options || {}
 
         if ($el.hasClass('is-sortable')) {
+
             /*
              * Make each list inside sortable
              */
             var sortableOptions = {
                 distance: 10
             }
-
-            if (this.options.sortableHandle) {
-                sortableOptions.handle = this.options.sortableHandle
-            }
-
-            if ($el.find('.drag-handle').length > 0) {
-                sortableOptions.handle = '.drag-handle'
-            }
+            if (this.options.sortableHandle)
+                sortableOptions[handle] = this.options.sortableHandle
 
             $el.find('> ul, > ol').sortable(sortableOptions)
         }
 
         if ($el.hasClass('is-scrollable')) {
+
             /*
              * Inject a scrollbar container
              */

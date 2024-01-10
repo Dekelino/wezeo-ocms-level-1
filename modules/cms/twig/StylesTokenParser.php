@@ -4,7 +4,7 @@ use Twig\Token as TwigToken;
 use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 
 /**
- * StylesTokenParser for the `{% styles %}` Twig tag.
+ * Parser for the `{% styles %}` Twig tag.
  *
  *     {% styles %}
  *
@@ -14,7 +14,9 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 class StylesTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
      * @return Twig\Node\Node A Twig\Node\Node instance
      */
     public function parse(TwigToken $token)
@@ -25,7 +27,8 @@ class StylesTokenParser extends TwigTokenParser
     }
 
     /**
-     * getTag name associated with this token parser.
+     * Gets the tag name associated with this token parser.
+     *
      * @return string The tag name
      */
     public function getTag()

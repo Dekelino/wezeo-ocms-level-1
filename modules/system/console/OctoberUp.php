@@ -1,32 +1,38 @@
 <?php namespace System\Console;
 
 use Illuminate\Console\Command;
+use System\Classes\UpdateManager;
 
 /**
- * OctoberUp is deprecated
+ * Console command to migrate the database.
+ *
+ * This builds up all database tables that are registered for October and all plugins.
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
- * @deprecated
- * @see System\Console\OctoberMigrate
  */
 class OctoberUp extends Command
 {
     /**
-     * @var string name of console command
+     * The console command name.
      */
     protected $name = 'october:up';
 
     /**
-     * @var string description of the console command
+     * The console command description.
      */
-    protected $description = '[Deprecated] Builds database tables for October and all plugins.';
+    protected $description = 'Builds database tables for October and all plugins.';
 
     /**
-     * handle executes the console command
+     * Execute the console command.
      */
     public function handle()
     {
-        $this->error('Command october:up is deprecated, please use october:migrate instead');
+        $this->output->writeln('<info>Migrating application and plugins...</info>');
+
+        UpdateManager::instance()
+            ->setNotesOutput($this->output)
+            ->update()
+        ;
     }
 }

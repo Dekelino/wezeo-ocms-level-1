@@ -3,7 +3,6 @@
     data-size="huge"
     data-handler="onRelationButtonLink"
     href="javascript:;"
-    class="btn btn-sm btn-secondary"
->
-    <i class="octo-icon-link"></i> <?= e($this->relationGetMessage('buttonLink')) ?>
+    class="btn btn-sm btn-secondary oc-icon-link">
+    <?= e(trans($text, ['name' => trans($relationLabel)])) ?>
 </a>

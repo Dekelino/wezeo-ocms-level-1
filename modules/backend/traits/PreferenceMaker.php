@@ -13,6 +13,7 @@ trait PreferenceMaker
 {
     /**
      * Cache for retrieved user preferences.
+     *
      * @var array
      */
     protected static $preferenceCache = [];
@@ -36,6 +37,7 @@ trait PreferenceMaker
 
     /**
      * Retrieves a widget related key/value pair from the user preferences
+     *
      * @param string $key Unique key for the data store.
      * @param mixed $default A default value to use when value is not found.
      * @return mixed
@@ -49,6 +51,7 @@ trait PreferenceMaker
 
     /**
      * Retrieves and caches all user preferences for this particular controller/widget.
+     *
      * @return array
      */
     public function getUserPreferences()
@@ -67,10 +70,11 @@ trait PreferenceMaker
 
     /**
      * Clears a single preference key from the user preferences for this controller/widget.
+     *
      * @param string $key Unique key for the data store.
      * @return void
      */
-    public function resetUserPreference(string $key)
+    public function clearUserPreference(string $key)
     {
         $preferences = $this->getUserPreferences();
 
@@ -85,18 +89,18 @@ trait PreferenceMaker
 
             // Re-cache user preferences
             self::$preferenceCache[$this->getPreferenceKey()] = $preferences;
-        }
-        else {
+        } else {
             // Remove record from user preferences
-            $this->resetUserPreferences();
+            $this->clearUserPreferences();
         }
     }
 
     /**
      * Clears all user preferences for this controller/widget.
+     *
      * @return void
      */
-    public function resetUserPreferences()
+    public function clearUserPreferences()
     {
         $this->getPreferenceStorage()->reset($this->getPreferenceKey());
 
@@ -105,17 +109,16 @@ trait PreferenceMaker
 
     /**
      * Returns a unique identifier for this widget and controller action for preference storage.
+     *
      * @return string
      */
     protected function getPreferenceKey()
     {
-        $controller = property_exists($this, 'controller') && $this->controller
+        $controller = (property_exists($this, 'controller') && $this->controller)
             ? $this->controller
             : $this;
 
-        $uniqueId = method_exists($this, 'getId')
-            ? $this->getId()
-            : $controller->getId();
+        $uniqueId = (method_exists($this, 'getId')) ? $this->getId() : $controller->getId();
 
         // Removes Class name and "Controllers" directory
         $rootNamespace = Str::getClassId(Str::getClassNamespace(Str::getClassNamespace($controller)));
@@ -126,6 +129,7 @@ trait PreferenceMaker
 
     /**
      * Specifies the model used for storing the user preferences.
+     *
      * @return October\Rain\Database\Model
      */
     protected function getPreferenceStorage()

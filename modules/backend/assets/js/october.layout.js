@@ -1,5 +1,6 @@
 (function($){
     var OctoberLayout = function() {
+        this.$accountMenuOverlay = null
     }
 
     OctoberLayout.prototype.setPageTitle = function(title) {
@@ -35,6 +36,33 @@
                 $(this).trigger('oc.widthFixed')
             }
         })
+    }
+
+    OctoberLayout.prototype.toggleAccountMenu = function(el) {
+        var self = this,
+            $el = $(el),
+            $parent = $(el).parent(),
+            $menu = $el.next()
+
+        $el.tooltip('hide')
+
+        if ($menu.hasClass('active')) {
+            self.$accountMenuOverlay.remove()
+            $parent.removeClass('highlight')
+            $menu.removeClass('active')
+        }
+        else {
+            self.$accountMenuOverlay = $('<div />').addClass('popover-overlay')
+            $(document.body).append(self.$accountMenuOverlay)
+            $parent.addClass('highlight')
+            $menu.addClass('active')
+
+            self.$accountMenuOverlay.one('click', function(){
+                self.$accountMenuOverlay.remove()
+                $menu.removeClass('active')
+                $parent.removeClass('highlight')
+            })
+        }
     }
 
     if ($.oc === undefined)

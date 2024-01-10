@@ -39,21 +39,22 @@
     }
 
     TextEditor.prototype.getPopupContent = function() {
-        return '<form>                                                                                   \
-                <div class="modal-header">                                                               \
-                    <button type="button" class="close" data-dismiss="popup">&times;</button>            \
-                    <h4 class="modal-title">{{property}}</h4>                                            \
-                </div>                                                                                   \
-                <div class="modal-body">                                                                 \
-                    <div class="form-group">                                                             \
-                        <p class="inspector-field-comment"></p>                                          \
-                        <textarea class="form-control size-small field-textarea" name="name"></textarea> \
-                    </div>                                                                               \
-                </div>                                                                                   \
-                <div class="modal-footer">                                                               \
-                    <button type="submit" class="btn btn-primary">OK</button>                            \
-                    <button type="button" class="btn btn-default" data-dismiss="popup">Cancel</button>   \
-                </div>                                                                                   \
+        return '<form>                                                                                  \
+                <div class="modal-header">                                                              \
+                    <button type="button" class="close" data-dismiss="popup">&times;</button>           \
+                    <h4 class="modal-title">{{property}}</h4>                                           \
+                </div>                                                                                  \
+                <div class="modal-body">                                                                \
+                    <div class="form-group">                                                            \
+                        <p class="inspector-field-comment"></p>                                         \
+                        <textarea class="form-control size-small field-textarea" name="name">           \
+                        </textarea>                                                                     \
+                    </div>                                                                              \
+                </div>                                                                                  \
+                <div class="modal-footer">                                                              \
+                    <button type="submit" class="btn btn-primary">OK</button>                           \
+                    <button type="button" class="btn btn-default" data-dismiss="popup">Cancel</button>  \
+                </div>                                                                                  \
                 </form>'
     }
 

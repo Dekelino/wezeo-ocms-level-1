@@ -2,7 +2,6 @@
 
 use October\Rain\Database\Model;
 use October\Rain\Html\Helper as HtmlHelper;
-use October\Rain\Element\Lists\ColumnDefinition;
 
 /**
  * List Columns definition
@@ -11,25 +10,56 @@ use October\Rain\Element\Lists\ColumnDefinition;
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  */
-class ListColumn extends ColumnDefinition
+class ListColumn
 {
     /**
-     * @var string valueFrom is a model attribute to use for the accessed value
+     * @var string List column name.
+     */
+    public $columnName;
+
+    /**
+     * @var string List column label.
+     */
+    public $label;
+
+    /**
+     * @var string Display mode. Text, number
+     */
+    public $type = 'text';
+
+    /**
+     * @var bool Specifies if this column can be searched.
+     */
+    public $searchable = false;
+
+    /**
+     * @var bool Specifies if this column is hidden by default.
+     */
+    public $invisible = false;
+
+    /**
+     * @var bool Specifies if this column can be sorted.
+     */
+    public $sortable = true;
+
+    /**
+     * @var bool If set to false, disables the default click behavior when the column is clicked.
+     */
+    public $clickable = true;
+
+    /**
+     * @var string Model attribute to use for the display value, this will
+     * override any `$sqlSelect` definition.
      */
     public $valueFrom;
 
     /**
-     * @var string displayFrom is a model attribute to use for the displayed value
-     */
-    public $displayFrom;
-
-    /**
-     * @var string defaults specifies a default value when value is empty
+     * @var string Specifies a default value when value is empty.
      */
     public $defaults;
 
     /**
-     * @var string sqlSelect is a custom SQL for selecting this record display value,
+     * @var string Custom SQL for selecting this record display value,
      * the `@` symbol is replaced with the table name.
      */
     public $sqlSelect;
@@ -38,11 +68,6 @@ class ListColumn extends ColumnDefinition
      * @var string Relation name, if this column represents a model relationship.
      */
     public $relation;
-
-    /**
-     * @var bool Count mode to display the number of related records.
-     */
-    public $relationCount = false;
 
     /**
      * @var string sets the column width, can be specified in percents (10%) or pixels (50px).
@@ -72,23 +97,46 @@ class ListColumn extends ColumnDefinition
     public $path;
 
     /**
-     * __construct the column
-     * @todo remove this method if year >= 2023
+     * @var string Specifies the alignment of this column.
+     */
+    public $align;
+
+    /**
+     * @var array Raw field configuration.
+     */
+    public $config;
+
+    /**
+     * Constructor.
+     * @param string $columnName
+     * @param string $label
      */
     public function __construct($columnName, $label)
     {
-        parent::__construct((string) $columnName);
-
-        $this->label((string) $label);
+        $this->columnName = $columnName;
+        $this->label = $label;
     }
 
     /**
-     * evalConfig from an array and apply them to the object
+     * Specifies a list column rendering mode. Supported modes are:
+     * - text - text column, aligned left
+     * - number - numeric column, aligned right
+     * @param string $type Specifies a render mode as described above
      */
-    protected function evalConfig(array $config): void
+    public function displayAs($type, $config)
     {
-        parent::evalConfig($config);
+        $this->type = strtolower($type) ?: $this->type;
+        $this->config = $this->evalConfig($config);
+        return $this;
+    }
 
+    /**
+     * Process options and apply them to this object.
+     * @param array $config
+     * @return array
+     */
+    protected function evalConfig($config)
+    {
         if (isset($config['width'])) {
             $this->width = $config['width'];
         }
@@ -98,11 +146,20 @@ class ListColumn extends ColumnDefinition
         if (isset($config['headCssClass'])) {
             $this->headCssClass = $config['headCssClass'];
         }
+        if (isset($config['searchable'])) {
+            $this->searchable = $config['searchable'];
+        }
+        if (isset($config['sortable'])) {
+            $this->sortable = $config['sortable'];
+        }
+        if (isset($config['clickable'])) {
+            $this->clickable = $config['clickable'];
+        }
+        if (isset($config['invisible'])) {
+            $this->invisible = $config['invisible'];
+        }
         if (isset($config['valueFrom'])) {
             $this->valueFrom = $config['valueFrom'];
-        }
-        if (isset($config['displayFrom'])) {
-            $this->displayFrom = $config['displayFrom'];
         }
         if (isset($config['default'])) {
             $this->defaults = $config['default'];
@@ -113,19 +170,21 @@ class ListColumn extends ColumnDefinition
         if (isset($config['relation'])) {
             $this->relation = $config['relation'];
         }
-        if (isset($config['relationCount'])) {
-            $this->relationCount = (bool) $config['relationCount'];
-        }
         if (isset($config['format'])) {
             $this->format = $config['format'];
         }
         if (isset($config['path'])) {
             $this->path = $config['path'];
         }
+        if (isset($config['align']) && \in_array($config['align'], ['left', 'right', 'center'])) {
+            $this->align = $config['align'];
+        }
+
+        return $config;
     }
 
     /**
-     * getName returns a HTML valid name for the column name.
+     * Returns a HTML valid name for the column name.
      * @return string
      */
     public function getName()
@@ -134,7 +193,7 @@ class ListColumn extends ColumnDefinition
     }
 
     /**
-     * getId returns a value suitable for the column id property.
+     * Returns a value suitable for the column id property.
      * @param  string $suffix Specify a suffix string
      * @return string
      */
@@ -152,7 +211,7 @@ class ListColumn extends ColumnDefinition
     }
 
     /**
-     * getAlignClass returns the column specific aligment css class.
+     * Returns the column specific aligment css class.
      * @return string
      */
     public function getAlignClass()
@@ -161,24 +220,7 @@ class ListColumn extends ColumnDefinition
     }
 
     /**
-     * useRelationCount
-     */
-    public function useRelationCount(): bool
-    {
-        if (!$this->relation) {
-            return false;
-        }
-
-        // @deprecated use relationCount instead
-        if (($value = $this->getConfig('useRelationCount')) !== null) {
-            return $value;
-        }
-
-        return $this->relationCount;
-    }
-
-    /**
-     * getConfig returns a raw config item value
+     * Returns a raw config item value.
      * @param  string $value
      * @param  string $default
      * @return mixed
@@ -189,7 +231,7 @@ class ListColumn extends ColumnDefinition
     }
 
     /**
-     * getValueFromData returns this columns value from a supplied data set, which can be
+     * Returns this columns value from a supplied data set, which can be
      * an array or a model or another generic collection.
      * @param mixed $data
      * @param mixed $default
@@ -198,7 +240,6 @@ class ListColumn extends ColumnDefinition
     public function getValueFromData($data, $default = null)
     {
         $columnName = $this->valueFrom ?: $this->columnName;
-
         return $this->getColumnNameFromData($columnName, $data, $default);
     }
 
@@ -229,11 +270,9 @@ class ListColumn extends ColumnDefinition
             else {
                 if (is_array($result) && array_key_exists($key, $result)) {
                     $result = $result[$key];
-                }
-                elseif (!isset($result->{$key})) {
+                } elseif (!isset($result->{$key})) {
                     return $default;
-                }
-                else {
+                } else {
                     $result = $result->{$key};
                 }
             }

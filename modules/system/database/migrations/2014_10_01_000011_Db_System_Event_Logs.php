@@ -8,6 +8,7 @@ class DbSystemEventLogs extends Migration
     public function up()
     {
         Schema::create('system_event_logs', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->increments('id');
             $table->string('level')->nullable()->index();
             $table->text('message')->nullable();

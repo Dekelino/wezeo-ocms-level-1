@@ -5,7 +5,7 @@ use October\Rain\Extension\Extendable;
 use stdClass;
 
 /**
- * WidgetBase class
+ * Widget base class.
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -41,7 +41,7 @@ abstract class WidgetBase extends Extendable
     protected $defaultAlias = 'widget';
 
     /**
-     * __construct the widget
+     * Constructor
      * @param \Backend\Classes\Controller $controller
      * @param array $configuration Proactive configuration definition.
      */
@@ -148,7 +148,7 @@ abstract class WidgetBase extends Extendable
     {
         $id = class_basename(get_called_class());
 
-        if ($this->alias !== $this->defaultAlias) {
+        if ($this->alias != $this->defaultAlias) {
             $id .= '-' . $this->alias;
         }
 
@@ -170,18 +170,40 @@ abstract class WidgetBase extends Extendable
     }
 
     /**
-     * getConfig is a safe accessor for configuration values
+     * Safe accessor for configuration values.
      * @param string $name Config name, supports array names like "field[key]"
-     * @param mixed $default Default value if nothing is found
+     * @param string $default Default value if nothing is found
      * @return string
      */
-    public function getConfig($name = null, $default = null)
+    public function getConfig($name, $default = null)
     {
-        if (!$this->config) {
+        /*
+         * Array field name, eg: field[key][key2][key3]
+         */
+        $keyParts = HtmlHelper::nameToArray($name);
+
+        /*
+         * First part will be the field name, pop it off
+         */
+        $fieldName = array_shift($keyParts);
+        if (!isset($this->config->{$fieldName})) {
             return $default;
         }
 
-        return $this->getConfigValueFrom($this->config, $name, $default);
+        $result = $this->config->{$fieldName};
+
+        /*
+         * Loop the remaining key parts and build a result
+         */
+        foreach ($keyParts as $key) {
+            if (!array_key_exists($key, $result)) {
+                return $default;
+            }
+
+            $result = $result[$key];
+        }
+
+        return $result;
     }
 
     /**

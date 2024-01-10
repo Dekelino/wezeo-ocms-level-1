@@ -1,14 +1,14 @@
 <?php namespace Backend\Models;
 
+use Backend\Behaviors\ImportExportController\TranscodeFilter;
 use Str;
 use Lang;
 use Model;
 use League\Csv\Reader as CsvReader;
 use League\Csv\Statement as CsvStatement;
-use Backend\Behaviors\ImportExportController\TranscodeFilter;
 
 /**
- * ImportModel for importing data
+ * Model used for importing data
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -123,7 +123,7 @@ abstract class ImportModel extends Model
 
         if (
             $options['encoding'] !== null &&
-            $reader->supportsStreamFilterOnRead()
+            $reader->supportsStreamFilter()
         ) {
             $reader->addStreamFilter(sprintf(
                 '%s%s:%s',
@@ -138,8 +138,7 @@ abstract class ImportModel extends Model
             ->where(function (array $row) {
                 // Filter out empty rows
                 return count($row) > 1 || reset($row) !== null;
-            })
-        ;
+            });
 
         if ($options['firstRowTitles']) {
             $stmt = $stmt->offset(1);
@@ -147,7 +146,6 @@ abstract class ImportModel extends Model
 
         $result = [];
         $contents = $stmt->process($reader);
-
         foreach ($contents as $row) {
             $result[] = $this->processImportRow($row, $matches);
         }
@@ -156,7 +154,7 @@ abstract class ImportModel extends Model
     }
 
     /**
-     * processImportRow converts a single row of CSV data to the column map
+     * Converts a single row of CSV data to the column map.
      * @return array
      */
     protected function processImportRow($rowData, $matches)
@@ -174,7 +172,7 @@ abstract class ImportModel extends Model
     }
 
     /**
-     * decodeArrayValue explodes a string using pipes (|) to a single dimension array
+     * Explodes a string using pipes (|) to a single dimension array
      * @return array
      */
     protected function decodeArrayValue($value, $delimeter = '|')
@@ -194,7 +192,7 @@ abstract class ImportModel extends Model
     }
 
     /**
-     * getImportFilePath returns an attached imported file local path, if available
+     * Returns an attached imported file local path, if available.
      * @return string
      */
     public function getImportFilePath($sessionKey = null)
@@ -214,7 +212,7 @@ abstract class ImportModel extends Model
     }
 
     /**
-     * getFormatEncodingOptions returns all available encodings values from the localization config
+     * Returns all available encodings values from the localization config
      * @return array
      */
     public function getFormatEncodingOptions()
@@ -252,9 +250,6 @@ abstract class ImportModel extends Model
     // Result logging
     //
 
-    /**
-     * getResultStats
-     */
     public function getResultStats()
     {
         $this->resultStats['errorCount'] = count($this->resultStats['errors']);
@@ -270,41 +265,26 @@ abstract class ImportModel extends Model
         return (object) $this->resultStats;
     }
 
-    /**
-     * logUpdated
-     */
     protected function logUpdated()
     {
         $this->resultStats['updated']++;
     }
 
-    /**
-     * logCreated
-     */
     protected function logCreated()
     {
         $this->resultStats['created']++;
     }
 
-    /**
-     * logError
-     */
     protected function logError($rowIndex, $message)
     {
         $this->resultStats['errors'][$rowIndex] = $message;
     }
 
-    /**
-     * logWarning
-     */
     protected function logWarning($rowIndex, $message)
     {
         $this->resultStats['warnings'][$rowIndex] = $message;
     }
 
-    /**
-     * logSkipped
-     */
     protected function logSkipped($rowIndex, $message)
     {
         $this->resultStats['skipped'][$rowIndex] = $message;

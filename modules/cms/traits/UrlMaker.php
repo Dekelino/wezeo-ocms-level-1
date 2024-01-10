@@ -144,10 +144,9 @@ trait UrlMaker
         /*
          * Cache
          */
-        $cache = Cache::driver(Config::get('cms.template_cache_driver', 'file'));
-        $key = 'cms_url_maker_'.$this->urlComponentName.crc32(get_class($this));
+        $key = 'urlMaker'.$this->urlComponentName.crc32(get_class($this));
 
-        $cached = $cache->get($key, false);
+        $cached = Cache::get($key, false);
         if ($cached !== false && ($cached = @unserialize($cached)) !== false) {
             $filePath = array_get($cached, 'path');
             $mtime = array_get($cached, 'mtime');
@@ -186,13 +185,13 @@ trait UrlMaker
         $filePath = $page->getFilePath();
 
         $cached = [
-            'path' => $filePath,
+            'path'     => $filePath,
             'fileName' => $baseFileName,
-            'mtime' => @File::lastModified($filePath)
+            'mtime'    => @File::lastModified($filePath)
         ];
 
-        $expiresAt = now()->addMinutes(Config::get('cms.template_cache_ttl', 1440));
-        $cache->put($key, serialize($cached), $expiresAt);
+        $expiresAt = now()->addMinutes(Config::get('cms.parsedPageCacheTTL', 1440));
+        Cache::put($key, serialize($cached), $expiresAt);
 
         return static::$urlPageName = $baseFileName;
     }

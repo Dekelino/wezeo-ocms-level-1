@@ -1,14 +1,12 @@
 <?php namespace System\Classes;
 
 /**
- * ComposerManager
+ * Composer manager
  *
  * This class manages composer packages introduced by plugins. Each loaded
  * package is added to a global pool to ensure a package is not loaded
  * twice by the composer instance introduced by a plugin. This class
  * is used as a substitute for the vendor/autoload.php file.
- *
- * @method static ComposerManager instance()
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges

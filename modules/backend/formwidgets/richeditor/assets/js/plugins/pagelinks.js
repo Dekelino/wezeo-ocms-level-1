@@ -60,14 +60,14 @@ $.FroalaEditor.DEFAULTS.key = 'JA6B2B5A1qB1F1F4D3I1A15A11D3E6B5dVh1VCQWa1EOQFe1N
         }
 
         function insertLink() {
-            richeditorPageLinksPlugin = this;
+            richeditorPageLinksPlugin = this
 
             editor.$el.popup({
                 handler: editor.opts.pageLinksHandler
             }).one('shown.oc.popup.pageLinks', function () {
                 // Save the current selection so it can be restored after popup is closed.
                 editor.selection.save()
-            });
+            })
         }
 
         /**

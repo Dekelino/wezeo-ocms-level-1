@@ -4,7 +4,7 @@ use Backend\Classes\AuthManager;
 use October\Rain\Auth\Models\Role as RoleBase;
 
 /**
- * UserRole for an administrator
+ * Administrator role
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -15,12 +15,12 @@ class UserRole extends RoleBase
     const CODE_PUBLISHER = 'publisher';
 
     /**
-     * @var string table associated with the model
+     * @var string The database table used by the model.
      */
     protected $table = 'backend_user_roles';
 
     /**
-     * @var array rules for validation
+     * @var array Validation rules
      */
     public $rules = [
         'name' => 'required|between:2,128|unique:backend_user_roles',
@@ -28,15 +28,13 @@ class UserRole extends RoleBase
     ];
 
     /**
-     * @var array hasMany relationship
+     * @var array Relations
      */
     public $hasMany = [
-        'users' => [User::class, 'key' => 'role_id']
+        'users' => [User::class, 'key' => 'role_id'],
+        'users_count' => [User::class, 'key' => 'role_id', 'count' => true]
     ];
 
-    /**
-     * filterFields used by the form controller
-     */
     public function filterFields($fields)
     {
         if ($this->is_system) {
@@ -45,9 +43,6 @@ class UserRole extends RoleBase
         }
     }
 
-    /**
-     * afterFetch event
-     */
     public function afterFetch()
     {
         if ($this->is_system) {
@@ -55,9 +50,6 @@ class UserRole extends RoleBase
         }
     }
 
-    /**
-     * beforeSave event
-     */
     public function beforeSave()
     {
         if ($this->isSystemRole()) {
@@ -66,10 +58,7 @@ class UserRole extends RoleBase
         }
     }
 
-    /**
-     * isSystemRole checks if a role is locked by the system
-     */
-    public function isSystemRole(): bool
+    public function isSystemRole()
     {
         if (!$this->code || !strlen(trim($this->code))) {
             return false;
@@ -85,9 +74,6 @@ class UserRole extends RoleBase
         return AuthManager::instance()->hasPermissionsForRole($this->code);
     }
 
-    /**
-     * getDefaultPermissions returns default permissions for a role
-     */
     public function getDefaultPermissions()
     {
         return AuthManager::instance()->listPermissionsForRole($this->code);

@@ -21,6 +21,7 @@ tabs:
 
         editor_preview:
             type: partial
+            label: backend::lang.editor.preview
             tab: backend::lang.backend_preferences.code_editor
             path: field_editor_preview
 
@@ -100,12 +101,6 @@ tabs:
             type: checkbox
             span: auto
 
-        editor_auto_closing:
-            label: backend::lang.editor.auto_closing
-            tab: backend::lang.backend_preferences.code_editor
-            type: checkbox
-            span: auto
-
         editor_use_hard_tabs:
             label: backend::lang.editor.use_hard_tabs
             tab: backend::lang.backend_preferences.code_editor
@@ -126,6 +121,12 @@ tabs:
 
         editor_show_print_margin:
             label: backend::lang.editor.show_print_margin
+            tab: backend::lang.backend_preferences.code_editor
+            type: checkbox
+            span: auto
+
+        editor_auto_closing:
+            label: backend::lang.editor.auto_closing
             tab: backend::lang.backend_preferences.code_editor
             type: checkbox
             span: auto

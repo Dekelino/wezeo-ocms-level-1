@@ -4,17 +4,14 @@ use Twig\Node\Node as TwigNode;
 use Twig\Compiler as TwigCompiler;
 
 /**
- * PlaceholderNode represents a "placeholder" node
+ * Represents a placeholder node
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class PlaceholderNode extends TwigNode
 {
-    /**
-     * __construct
-     */
-    public function __construct(?TwigNode $body, $name, $paramValues, $lineno, $tag = 'placeholder')
+    public function __construct($name, $paramValues, $body, $lineno, $tag = 'placeholder')
     {
         $nodes = [];
 
@@ -29,7 +26,9 @@ class PlaceholderNode extends TwigNode
     }
 
     /**
-     * compile the node to PHP
+     * Compiles the node to PHP.
+     *
+     * @param TwigCompiler $compiler A TwigCompiler instance
      */
     public function compile(TwigCompiler $compiler)
     {
@@ -55,10 +54,10 @@ class PlaceholderNode extends TwigNode
 
         $compiler->addDebugInfo($this);
         if (!$isText) {
-            $compiler->write("echo \$this->env->getExtension(\Cms\Twig\Extension::class)->displayBlock(");
+            $compiler->write("echo \$this->env->getExtension('Cms\Twig\Extension')->displayBlock(");
         }
         else {
-            $compiler->write("echo twig_escape_filter(\$this->env, \$this->env->getExtension(\Cms\Twig\Extension::class)->displayBlock(");
+            $compiler->write("echo twig_escape_filter(\$this->env, \$this->env->getExtension('Cms\Twig\Extension')->displayBlock(");
         }
 
         $compiler

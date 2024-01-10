@@ -6,234 +6,84 @@
  */
 +function ($) { "use strict";
 
-    var Base = $.oc.foundation.base,
-        BaseProto = Base.prototype;
-
     var ListWidget = function (element, options) {
-        this.$el = $(element);
+
+        var $el = this.$el = $(element);
+
         this.options = options || {};
 
-        this.$head = $('thead', this.$el);
-        this.$body = $('tbody', this.$el);
-        this.$lastCheckbox = null;
-        this.isLastChecked = true;
+        var scrollClassContainer = options.scrollClassContainer !== undefined
+            ? options.scrollClassContainer
+            : $el.parent()
 
-        $.oc.foundation.controlUtils.markDisposable(element);
-        Base.call(this);
-
-        this.init();
-    }
-
-    ListWidget.prototype = Object.create(BaseProto);
-    ListWidget.prototype.constructor = ListWidget;
-
-    ListWidget.DEFAULTS = {
-        checkboxSelector: '.list-checkbox input[type="checkbox"]'
-    }
-
-    ListWidget.prototype.init = function() {
-        var scrollClassContainer = this.options.scrollClassContainer !== undefined
-            ? this.options.scrollClassContainer
-            : this.$el.parent();
-
-        this.$el.dragScroll({
+        $el.dragScroll({
             scrollClassContainer: scrollClassContainer,
             scrollSelector: 'thead',
             dragSelector: 'thead'
-        });
+        })
 
-        this.$el.on('ajaxSetup', this.proxy(this.beforeAjaxRequest));
-        this.$body.on('click', '.list-checkbox > .checkbox', this.proxy(this.clickBodyCheckbox));
-        this.$body.on('change', this.options.checkboxSelector, this.proxy(this.toggleBodyCheckbox));
-        this.$head.on('change', this.options.checkboxSelector, this.proxy(this.toggleHeadCheckbox));
-
-        this.$el.one('dispose-control', this.proxy(this.dispose));
-
-        this.updateUi();
+        this.update()
     }
 
-    ListWidget.prototype.dispose = function() {
-        this.$el.off('ajaxSetup', this.proxy(this.beforeAjaxRequest));
-        this.$body.off('click', '.list-checkbox > .checkbox', this.proxy(this.clickBodyCheckbox));
-        this.$body.off('change', this.options.checkboxSelector, this.proxy(this.toggleBodyCheckbox));
-        this.$head.off('change', this.options.checkboxSelector, this.proxy(this.toggleHeadCheckbox));
-
-        this.$el.off('dispose-control', this.proxy(this.dispose));
-        this.$el.removeData('oc.listwidget');
-
-        this.$el = null;
-
-        // In some cases options could contain callbacks,
-        // so it's better to clean them up too.
-        this.options = null;
-
-        BaseProto.dispose.call(this);
+    ListWidget.DEFAULTS = {
     }
 
-    ListWidget.prototype.updateUi = function() {
-        $(this.options.checkboxSelector, this.$body).each(function(){
-            var $el = $(this);
-            if ($el.is(':checked')) {
-                $el.closest('tr').addClass('active');
+    ListWidget.prototype.update = function() {
+        var
+            list = this.$el,
+            head = $('thead', list),
+            body = $('tbody', list),
+            foot = $('tfoot', list)
+
+        /*
+         * Bind check boxes
+         */
+        $('.list-checkbox input[type="checkbox"]', body).each(function(){
+            var $el = $(this)
+            if ($el.is(':checked'))
+                $el.closest('tr').addClass('active')
+        })
+
+        head.on('change', '.list-checkbox input[type="checkbox"]', function(){
+            var $el = $(this),
+                checked = $el.is(':checked')
+
+            $('.list-checkbox input[type="checkbox"]', body).prop('checked', checked)
+            if (checked)
+                $('tr', body).addClass('active')
+            else
+                $('tr', body).removeClass('active')
+        })
+
+        body.on('change', '.list-checkbox input[type="checkbox"]', function(){
+            var $el = $(this),
+                checked = $el.is(':checked')
+
+            if (checked) {
+                $el.closest('tr').addClass('active')
             }
-        });
-
-        this.checkIndeterminate();
-    }
-
-    ListWidget.prototype.checkIndeterminate = function() {
-        var $all = $(this.options.checkboxSelector, this.$body),
-            $headCb = $(this.options.checkboxSelector, this.$head),
-            checkedCount = $all.filter(':checked').length;
-
-        if (checkedCount && $all.length !== checkedCount) {
-            $headCb
-                .addClass('is-indeterminate')
-                .prop('indeterminate', true);
-        }
-        else {
-            $headCb
-                .removeClass('is-indeterminate')
-                .prop('indeterminate', false);
-        }
-
-        $headCb.prop('checked', !!checkedCount);
-    }
-
-    ListWidget.prototype.toggleHeadCheckbox = function(ev) {
-        var $el = $(ev.target),
-            checked = $el.is(':checked');
-
-        $(this.options.checkboxSelector, this.$body)
-            .prop('checked', checked)
-            .trigger('change');
-
-        if (checked) {
-            $('tr', this.$body).addClass('active');
-        }
-        else {
-            $('tr', this.$body).removeClass('active');
-        }
-    }
-
-    ListWidget.prototype.toggleBodyCheckbox = function(ev) {
-        var $el = $(ev.target),
-            checked = $el.is(':checked');
-
-        if (checked) {
-            $el.closest('tr').addClass('active');
-        }
-        else {
-            $(this.options.checkboxSelector, this.$head).prop('checked', false);
-            $el.closest('tr').removeClass('active');
-        }
-
-        this.$lastCheckbox = $el;
-        this.isLastChecked = checked;
-
-        this.checkIndeterminate();
-    }
-
-    ListWidget.prototype.clickBodyCheckbox = function(ev) {
-        var $el = $(ev.target);
-
-        if (this.$lastCheckbox && this.$lastCheckbox.length && ev.shiftKey) {
-            this.selectCheckboxRange($el, this.$lastCheckbox);
-        }
-    }
-
-    ListWidget.prototype.selectCheckboxesIn = function(rows, isChecked) {
-        var self = this;
-        $.each(rows, function() {
-            $(self.options.checkboxSelector, this)
-                .prop('checked', isChecked)
-                .trigger('change');
-        });
-    }
-
-    ListWidget.prototype.selectCheckboxRange = function($el, $prevEl) {
-        var $tr = $el.closest('tr'),
-            $prevTr = $prevEl.closest('tr'),
-            toSelect = [];
-
-        var $nextRow = $tr;
-        while ($nextRow.length) {
-            if ($nextRow.get(0) === $prevTr.get(0)) {
-                this.selectCheckboxesIn(toSelect, this.isLastChecked);
-                return;
+            else {
+                $('.list-checkbox input[type="checkbox"]', head).prop('checked', false)
+                $el.closest('tr').removeClass('active')
             }
-
-            toSelect.push($nextRow);
-            $nextRow = $nextRow.next();
-        }
-
-        toSelect = [];
-        var $prevRow = $tr;
-        while ($prevRow.length) {
-            if ($prevRow.get(0) === $prevTr.get(0)) {
-                this.selectCheckboxesIn(toSelect, this.isLastChecked);
-                return;
-            }
-
-            toSelect.push($prevRow);
-            $prevRow = $prevRow.prev();
-        }
-    }
-
-    ListWidget.prototype.getAllChecked = function() {
-        return this.getChecked().concat(this.getCheckedFromLocker());
+        })
     }
 
     ListWidget.prototype.getChecked = function() {
-        return $(this.options.checkboxSelector, this.$body)
-            .map(function(){
-                var $el = $(this)
-                if ($el.is(':checked')) {
-                    return $el.val();
-                }
-            })
-            .get();
-    }
+        var
+            list = this.$el,
+            body = $('tbody', list)
 
-    ListWidget.prototype.getUnchecked = function() {
-        return $(this.options.checkboxSelector, this.$body)
-            .map(function(){
-                var $el = $(this)
-                if (!$el.is(':checked')) {
-                    return $el.val();
-                }
-            })
-            .get();
-    }
-
-    ListWidget.prototype.getCheckedFromLocker = function() {
-        try {
-            var locker = JSON.parse($('[data-list-datalocker-checked]', this.$el).val());
-
-            $.each(this.getUnchecked(), function(k, value) {
-                var index = locker.indexOf(value);
-                if (index > -1) {
-                    locker.splice(index, 1);
-                }
-            });
-
-            return locker;
-        }
-        catch(err) {
-            return [];
-        }
+        return  $('.list-checkbox input[type="checkbox"]', body).map(function(){
+            var $el = $(this)
+            if ($el.is(':checked'))
+                return $el.val()
+        }).get();
     }
 
     ListWidget.prototype.toggleChecked = function(el) {
-        var $checkbox = $(this.options.checkboxSelector, $(el).closest('tr'));
-
-        $checkbox
-            .prop('checked', !$checkbox.is(':checked'))
-            .trigger('change');
-    }
-
-    ListWidget.prototype.beforeAjaxRequest = function(ev, context) {
-        context.options.data.allChecked = this.getAllChecked();
+        var $checkbox = $('.list-checkbox input[type="checkbox"]', $(el).closest('tr'))
+        $checkbox.prop('checked', !$checkbox.is(':checked')).trigger('change')
     }
 
     // LIST WIDGET PLUGIN DEFINITION
@@ -251,9 +101,9 @@
             if (!data) $this.data('oc.listwidget', (data = new ListWidget(this, options)))
             if (typeof option == 'string') result = data[option].apply(data, args)
             if (typeof result != 'undefined') return false
-        });
+        })
 
-        return result ? result : this;
+        return result ? result : this
       }
 
     $.fn.listWidget.Constructor = ListWidget
@@ -262,27 +112,26 @@
     // =================
 
     $.fn.listWidget.noConflict = function () {
-        $.fn.listWidget = old;
-        return this;
+        $.fn.listWidget = old
+        return this
     }
 
     // LIST WIDGET HELPERS
     // =================
 
-    if ($.oc === undefined) {
-        $.oc = {};
-    }
+    if ($.oc === undefined)
+        $.oc = {}
 
     $.oc.listToggleChecked = function(el) {
         $(el)
             .closest('[data-control="listwidget"]')
-            .listWidget('toggleChecked', el);
+            .listWidget('toggleChecked', el)
     }
 
     $.oc.listGetChecked = function(el) {
         return $(el)
             .closest('[data-control="listwidget"]')
-            .listWidget('getChecked');
+            .listWidget('getChecked')
     }
 
     // LIST WIDGET DATA-API
@@ -290,57 +139,6 @@
 
     $(document).render(function(){
         $('[data-control="listwidget"]').listWidget();
-    });
-
-    // LIST HELPER DATA-API
-    // ==============
-
-    $.fn.listCheckedTriggerOn = function() {
-        this.each(function() {
-            var $buttonEl = $(this),
-                listId = $buttonEl.closest('[data-list-linkage]').data('list-linkage');
-
-            // No list or already bound
-            if (!listId || $buttonEl.data('oc.listCheckedTriggerOn')) {
-                $buttonEl.trigger('oc.triggerOn.update');
-                return;
-            }
-
-            $buttonEl.triggerOn({
-                triggerAction: 'enable',
-                triggerCondition: 'checked',
-                trigger: '#' + listId + ' > .control-list:first .list-checkbox input[type=checkbox]'
-            });
-
-            $buttonEl.data('oc.listCheckedTriggerOn', true);
-        });
-
-        return this;
-    }
-
-    $.fn.listCheckedRequest = function() {
-        this.each(function() {
-            var $buttonEl = $(this),
-                listId = $buttonEl.closest('[data-list-linkage]').data('list-linkage');
-
-            // No list or already bound
-            if (!listId || $buttonEl.data('oc.listCheckedRequest')) {
-                return;
-            }
-
-            $buttonEl.on('ajaxSetup', function (ev, context) {
-                context.options.data.checked = $.oc.listGetChecked('#' + listId + ' > .control-list:first');
-            });
-
-            $buttonEl.data('oc.listCheckedRequest', true);
-        });
-
-        return this;
-    }
-
-    $(document).render(function(){
-        $('[data-list-checked-trigger]').listCheckedTriggerOn();
-        $('[data-list-checked-request]').listCheckedRequest();
-    });
+    })
 
 }(window.jQuery);

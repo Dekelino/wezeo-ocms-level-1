@@ -20,7 +20,7 @@ use ApplicationException;
 use DateTime;
 
 /**
- * CombineAssets is used for combining JavaScript and StyleSheet files
+ * Combiner class used for combining JavaScript and StyleSheet files.
  *
  * This works by taking a collection of asset locations, serializing them,
  * then storing them in the session with a unique ID. The ID is then used
@@ -34,15 +34,12 @@ use DateTime;
  *
  * The functionality of this class is controlled by these config items:
  *
- * - cms.enable_asset_cache - Cache untouched assets
- * - cms.enable_asset_minify - Compress assets using minification
- * - cms.enable_asset_deep_hashing - Advanced caching of imports
- *
- * @method static CombineAssets instance()
+ * - cms.enableAssetCache - Cache untouched assets
+ * - cms.enableAssetMinify - Compress assets using minification
+ * - cms.enableAssetDeepHashing - Advanced caching of imports
  *
  * @see System\Classes\SystemController System controller
  * @see https://octobercms.com/docs/services/session Session service
- *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
  */
@@ -107,16 +104,17 @@ class CombineAssets
     private static $callbacks = [];
 
     /**
-     * init is a singleton constructor
+     * Constructor
      */
     public function init()
     {
-        // Default config
-        $this->useCache = Config::get('cms.enable_asset_cache', false);
-        $this->useMinify = Config::get('cms.enable_asset_minify', false);
-        $this->useDeepHashing = Config::get('cms.enable_asset_deep_hashing', null);
+        /*
+         * Register preferences
+         */
+        $this->useCache = Config::get('cms.enableAssetCache', false);
+        $this->useMinify = Config::get('cms.enableAssetMinify', null);
+        $this->useDeepHashing = Config::get('cms.enableAssetDeepHashing', null);
 
-        // @deprecated
         if ($this->useMinify === null) {
             $this->useMinify = !Config::get('app.debug', false);
         }
@@ -125,30 +123,40 @@ class CombineAssets
             $this->useDeepHashing = Config::get('app.debug', false);
         }
 
-        // Default JavaScript filters
+        /*
+         * Register JavaScript filters
+         */
         $this->registerFilter('js', new \October\Rain\Assetic\Filter\JavascriptImporter);
 
-        // Default StyleSheet filters
+        /*
+         * Register CSS filters
+         */
         $this->registerFilter('css', new \October\Rain\Assetic\Filter\CssImportFilter);
         $this->registerFilter(['css', 'less', 'scss'], new \October\Rain\Assetic\Filter\CssRewriteFilter);
         $this->registerFilter('less', new \October\Rain\Assetic\Filter\LessCompiler);
         $this->registerFilter('scss', new \October\Rain\Assetic\Filter\ScssCompiler);
 
-        // Minifcation filters
+        /*
+         * Minification filters
+         */
         if ($this->useMinify) {
             $this->registerFilter('js', new \October\Rain\Assetic\Filter\JSMinFilter);
             $this->registerFilter(['css', 'less', 'scss'], new \October\Rain\Assetic\Filter\StylesheetMinify);
         }
 
-        // Default Aliases
-        $this->registerAlias('jquery', '~/modules/backend/assets/js/vendor/jquery.min.js');
+        /*
+         * Common Aliases
+         */
+        $this->registerAlias('jquery', '~/modules/backend/assets/js/vendor/jquery-and-migrate.min.js');
         $this->registerAlias('framework', '~/modules/system/assets/js/framework.js');
         $this->registerAlias('framework.extras', '~/modules/system/assets/js/framework.extras.js');
         $this->registerAlias('framework.extras.js', '~/modules/system/assets/js/framework.extras.js');
         $this->registerAlias('framework.extras', '~/modules/system/assets/css/framework.extras.css');
         $this->registerAlias('framework.extras.css', '~/modules/system/assets/css/framework.extras.css');
 
-        // Deferred registration logic
+        /*
+         * Deferred registration
+         */
         foreach (static::$callbacks as $callback) {
             $callback($this);
         }
@@ -212,7 +220,7 @@ class CombineAssets
             }, $assets);
         }
 
-        [$assets, $extension] = $this->prepareAssets($assets);
+        list($assets, $extension) = $this->prepareAssets($assets);
 
         $rewritePath = File::localToPublic(dirname($destination));
 
@@ -243,7 +251,7 @@ class CombineAssets
          */
         $lastModifiedTime = gmdate("D, d M Y H:i:s \G\M\T", array_get($cacheInfo, 'lastMod'));
         $etag = array_get($cacheInfo, 'etag');
-        $mime = (array_get($cacheInfo, 'extension') === 'css')
+        $mime = (array_get($cacheInfo, 'extension') == 'css')
             ? 'text/css'
             : 'application/javascript';
 
@@ -293,7 +301,7 @@ class CombineAssets
             /*
              * Allow aliases to go through without an extension
              */
-            if (substr($asset, 0, 1) === '@') {
+            if (substr($asset, 0, 1) == '@') {
                 $combineJs[] = $asset;
                 $combineCss[] = $asset;
                 continue;
@@ -352,14 +360,14 @@ class CombineAssets
      */
     protected function prepareRequest(array $assets, $localPath = null)
     {
-        if (substr($localPath, -1) !== '/') {
+        if (substr($localPath, -1) != '/') {
             $localPath = $localPath.'/';
         }
 
         $this->localPath = $localPath;
         $this->storagePath = storage_path('cms/combiner/assets');
 
-        [$assets, $extension] = $this->prepareAssets($assets);
+        list($assets, $extension) = $this->prepareAssets($assets);
 
         /*
          * Cache and process
@@ -399,13 +407,14 @@ class CombineAssets
      * Returns the combined contents from a prepared cache identifier.
      * @param array $assets List of asset files.
      * @param string $rewritePath
-     * @return \October\Rain\Assetic\Asset\AssetInterface
+     * @return string Combined file contents.
      */
     protected function prepareCombiner(array $assets, $rewritePath = null)
     {
         /**
          * @event cms.combiner.beforePrepare
          * Provides an opportunity to interact with the asset combiner before assets are combined.
+         * >**NOTE**: Plugin's must be elevated (`$elevated = true` on Plugin.php) to be run on the /combine route and thus listen to this event
          *
          * Example usage:
          *
@@ -419,9 +428,9 @@ class CombineAssets
         $files = [];
         $filesSalt = null;
         foreach ($assets as $asset) {
-            $filters = $this->getFilters(File::extension($asset));
+            $filters = $this->getFilters(File::extension($asset)) ?: [];
             $path = file_exists($asset) ? $asset : (File::symbolizePath($asset, null) ?: $this->localPath . $asset);
-            $files[] = new FileAsset($path, $filters, base_path());
+            $files[] = new FileAsset($path, $filters, public_path());
             $filesSalt .= $this->localPath . $asset;
         }
         $filesSalt = md5($filesSalt);
@@ -446,7 +455,6 @@ class CombineAssets
 
         $cachedCollection = new AssetCollection($cachedFiles, [], $filesSalt);
         $cachedCollection->setTargetPath($this->getTargetPath($rewritePath));
-
         return $cachedCollection;
     }
 
@@ -498,7 +506,7 @@ class CombineAssets
      */
     protected function getCombinedUrl($outputFilename = 'undefined.css')
     {
-        $combineAction = \System\Classes\SystemController::class.'@combine';
+        $combineAction = 'System\Classes\Controller@combine';
         $actionExists = Route::getRoutes()->getByAction($combineAction) !== null;
 
         if ($actionExists) {
@@ -604,15 +612,21 @@ class CombineAssets
     }
 
     /**
-     * getFilters returns all defined filters for a given extension
+     * Returns filters.
+     * @param string $extension Extension name. Eg: css
+     * @return self
      */
-    public function getFilters(string $extension = null): array
+    public function getFilters($extension = null)
     {
         if ($extension === null) {
             return $this->filters;
         }
 
-        return $this->filters[$extension] ?? [];
+        if (isset($this->filters[$extension])) {
+            return $this->filters[$extension];
+        }
+
+        return null;
     }
 
     //
@@ -804,6 +818,8 @@ class CombineAssets
             $cacheKey .= $this->getDeepHashFromAssets($assets);
         }
 
+        $dataHolder = (object) ['key' => $cacheKey];
+
         /**
          * @event cms.combiner.getCacheKey
          * Provides an opportunity to modify the asset combiner's cache key
@@ -815,7 +831,6 @@ class CombineAssets
          *     });
          *
          */
-        $dataHolder = (object) ['key' => $cacheKey];
         Event::fire('cms.combiner.getCacheKey', [$this, $dataHolder]);
         $cacheKey = $dataHolder->key;
 

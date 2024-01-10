@@ -10,7 +10,7 @@ use Backend\Classes\Controller;
 use Exception;
 
 /**
- * ThemeOptions customization controller
+ * Theme customization controller
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -19,24 +19,24 @@ use Exception;
 class ThemeOptions extends Controller
 {
     /**
-     * @var array implement extensions for this controller
+     * @var array Extensions implemented by this controller.
      */
     public $implement = [
         \Backend\Behaviors\FormController::class
     ];
 
     /**
-     * @var array formConfig `FormController` configuration.
+     * @var array `FormController` configuration.
      */
     public $formConfig = 'config_form.yaml';
 
     /**
-     * @var array requiredPermissions to view this page
+     * @var array Permissions required to view this page.
      */
     public $requiredPermissions = ['cms.manage_themes', 'cms.manage_theme_options'];
 
     /**
-     * __construct
+     * Constructor.
      */
     public function __construct()
     {
@@ -48,17 +48,6 @@ class ThemeOptions extends Controller
         SettingsManager::setContext('October.Cms', 'theme');
     }
 
-    /**
-     * formCreateModelObject
-     */
-    public function formCreateModelObject()
-    {
-        return ThemeData::createThemeDataModel();
-    }
-
-    /**
-     * update
-     */
     public function update($dirName = null)
     {
         $dirName = $this->getDirName($dirName);
@@ -75,9 +64,6 @@ class ThemeOptions extends Controller
         }
     }
 
-    /**
-     * update_onSave
-     */
     public function update_onSave($dirName = null)
     {
         $model = $this->getThemeData($this->getDirName($dirName));
@@ -92,9 +78,6 @@ class ThemeOptions extends Controller
         return $result;
     }
 
-    /**
-     * update_onResetDefault
-     */
     public function update_onResetDefault($dirName = null)
     {
         $model = $this->getThemeData($this->getDirName($dirName));
@@ -104,7 +87,7 @@ class ThemeOptions extends Controller
     }
 
     /**
-     * formExtendFieldsBefore will add form fields defined in theme.yaml
+     * Add form fields defined in theme.yaml
      */
     public function formExtendFieldsBefore($form)
     {
@@ -119,9 +102,12 @@ class ThemeOptions extends Controller
     //
 
     /**
-     * getDirName defaults to the active theme if user doesn't have access to manage all themes
+     * Default to the active theme if user doesn't have access to manage all themes
+     *
+     * @param string $dirName
+     * @return string
      */
-    protected function getDirName($dirName = null)
+    protected function getDirName(string $dirName = null)
     {
         /*
          * Only the active theme can be managed without this permission
@@ -137,27 +123,17 @@ class ThemeOptions extends Controller
         return $dirName;
     }
 
-    /**
-     * hasThemeData
-     */
     protected function hasThemeData($dirName)
     {
         return $this->findThemeObject($dirName)->hasCustomData();
     }
 
-    /**
-     * getThemeData
-     */
     protected function getThemeData($dirName)
     {
         $theme = $this->findThemeObject($dirName);
-
         return ThemeData::forTheme($theme);
     }
 
-    /**
-     * findThemeObject
-     */
     protected function findThemeObject($name = null)
     {
         if ($name === null) {

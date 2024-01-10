@@ -4,14 +4,14 @@
 
 columns:
     id:
-        label: id
+        label: Id
         type: number
-    name:
+    arrival_Name:
         label: Arrival Name
         type: text
     user_id:
         label : User ID
         type: text
     timestamp:
-        label: timestamp
+        label: Timestamp
         type: text

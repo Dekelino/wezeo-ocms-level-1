@@ -11,7 +11,7 @@
 // --------------------------------------------------
 
 @color-filter-bg:                            #ECF0F1;
-@color-filter-bg-active:                     @brand-success;
+@color-filter-bg-active:                     #6AAB55;
 @color-filter-border:                        #D7DBDD;
 @color-filter-text:                          rgba(0,0,0,.6);
 @color-filter-text-active:                   #000000;
@@ -29,10 +29,10 @@
     border-top: 1px solid @color-filter-border;
     border-bottom: 1px solid @color-filter-border;
 
-    font-size: @font-size-base;
+    font-size: @font-size-base - 1;
 
     .custom-checkbox label {
-        font-size: @font-size-base;
+        font-size: @font-size-base - 1;
         color: @color-filter-text;
     }
 
@@ -93,17 +93,13 @@
         }
 
         &.checkbox {
-            padding-left: 29px;
+            padding-left: 35px;
             &, label {
                 margin-bottom: 0;
             }
 
             label {
-                padding-left: 20px;
-
-                &:before {
-                    top: 2px;
-                }
+                padding-left: 25px;
             }
 
             &:after {
@@ -112,6 +108,8 @@
         }
 
         &.text {
+            padding: 0 10px;
+
             &, label {
                 margin: 0;
             }
@@ -120,9 +118,7 @@
                 display: inline;
                 width: auto;
                 height: 30px;
-                margin: -5px 0 -5px 5px;
-                padding-left: 6px;
-                padding-right: 6px;
+                margin-left: 10px;
             }
 
             &:after {
@@ -131,7 +127,7 @@
 
             .loading-indicator {
                 top: -2px;
-                right: 12px;
+                right: 7px;
                 left: auto;
             }
         }
@@ -146,7 +142,7 @@
             }
 
             &.active .filter-setting {
-                background-color: @color-filter-bg-active;
+                background-color: darken(@color-filter-bg-active, 5%);
             }
         }
     }
@@ -184,43 +180,22 @@
     }
 }
 
-.layout-row > .control-filter {
-    margin: 0 @padding-standard;
-    background-color: transparent;
-    border-top: none;
-}
-
-@media (max-width: @screen-xs-max) {
-    .layout-row > .control-filter {
-        margin: 0;
-    }
-}
-
 .control-filter-popover {
     min-width: 275px;
 
     .filter-search {
         min-height: 36px;
-        position: relative;
-
-        // &:after {
-        //     .icon-OctoFont();
-        //     position: absolute;
-        //     width: 16px;
-        //     height: 16px;
-        //     content: @octo-icon-search;
-        //     right: 10px;
-        //     top: 10px;
-        //     font-size: 16px;
-        // }
-
         input {
             min-height: 36px;
             border: none;
             border-bottom: 1px solid @color-filter-border;
             .border-bottom-radius(0);
             .box-shadow(none);
-            background: transparent !important;
+            background-color: transparent;
+        }
+
+        .form-control.icon.search {
+            background-position: right -81px;
         }
 
         .close {
@@ -230,7 +205,7 @@
 
     .filter-items, .filter-active-items {
         color: @color-filter-text;
-        font-size: @font-size-base;
+        font-size: @font-size-base - 1;
         ul, li {
             list-style-type: none;
             margin:0;
@@ -243,13 +218,10 @@
             text-decoration: none;
             color: @color-filter-text;
             display: block;
-            padding: 7px 9px;
+            padding: 7px 15px;
 
             &:before {
-                .icon-OctoFont();
-                margin-right: 4px;
-                position: relative;
-                top: 1px;
+                margin-right: 8px;
                 display: inline-block;
                 vertical-align: baseline;
             }
@@ -267,9 +239,7 @@
 
         background-color: @color-filter-items-bg;
         border-bottom: 1px solid @color-filter-border;
-        a:before {
-            content: @octo-icon-plus;
-        }
+        a:before { .icon(@plus); }
 
         li.loading {
             padding: 7px;
@@ -288,10 +258,7 @@
     }
 
     .filter-active-items {
-        a:before {
-            content: @octo-icon-cross;
-            left: -1px;
-        }
+        a:before { .icon(@times); }
         li.animate-enter { .animation(fadeInDown .5s); }
     }
 
@@ -317,7 +284,7 @@
             }
         }
 
-        &.is-range {
+        &.--range {
             .filter-buttons .btn {
                 width: 50%;
             }
@@ -334,6 +301,9 @@
             input {
                 padding-left: 36px;
                 padding-right: 36px;
+            }
+            .form-control.icon.search {
+                background-position: 0 -81px;
             }
             .close {
                 width: 30px;

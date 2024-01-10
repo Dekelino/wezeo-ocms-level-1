@@ -4,23 +4,22 @@ use Twig\Node\Node as TwigNode;
 use Twig\Compiler as TwigCompiler;
 
 /**
- * ContentNode represents a "content" node
+ * Represents a content node
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class ContentNode extends TwigNode
 {
-    /**
-     * __construct
-     */
     public function __construct(TwigNode $nodes, $paramNames, $lineno, $tag = 'content')
     {
         parent::__construct(['nodes' => $nodes], ['names' => $paramNames], $lineno, $tag);
     }
 
     /**
-     * compile the node to PHP.
+     * Compiles the node to PHP.
+     *
+     * @param TwigCompiler $compiler A TwigCompiler instance
      */
     public function compile(TwigCompiler $compiler)
     {
@@ -37,10 +36,9 @@ class ContentNode extends TwigNode
         }
 
         $compiler
-            ->write("echo \$this->env->getExtension(\Cms\Twig\Extension::class)->contentFunction(")
+            ->write("echo \$this->env->getExtension('Cms\Twig\Extension')->contentFunction(")
             ->subcompile($this->getNode('nodes')->getNode(0))
             ->write(", \$context['__cms_content_params']")
-            ->write(", true")
             ->write(");\n")
         ;
 

@@ -1,10 +1,9 @@
 <div
-    class="control-filter"
+    id="<?= $this->getId(); ?>"
+    class="control-filter <?= $cssClasses ?>"
     data-control="filterwidget"
     data-options-handler="<?= $this->getEventHandler('onFilterGetOptions') ?>"
-    data-update-handler="<?= $this->getEventHandler('onFilterUpdate') ?>"
-    <?php if ($extraData): ?>data-extra-data="<?= e(json_encode($extraData)) ?>"<?php endif ?>
->
+    data-update-handler="<?= $this->getEventHandler('onFilterUpdate') ?>">
 
     <?= $this->makePartial('filter_scopes') ?>
 

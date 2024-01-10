@@ -6,8 +6,20 @@ use ApplicationException;
 use Backend\Classes\ControllerBehavior;
 
 /**
- * ReorderController is deprecated
- * @deprecated see ListController with structure config
+ * Used for reordering and sorting records.
+ *
+ * This behavior is implemented in the controller like so:
+ *
+ *     public $implement = [
+ *         'Backend.Behaviors.ReorderController',
+ *     ];
+ *
+ *     public $reorderConfig = 'config_reorder.yaml';
+ *
+ * The `$reorderConfig` property makes reference to the configuration
+ * values as either a YAML file, located in the controller view directory,
+ * or directly as a PHP array.
+ *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  */
@@ -44,7 +56,7 @@ class ReorderController extends ControllerBehavior
     protected $showTree = false;
 
     /**
-     * @var string Reordering mode.
+     * @var string Reordering mode:
      * - simple: October\Rain\Database\Traits\Sortable
      * - nested: October\Rain\Database\Traits\NestedTree
      */
@@ -56,7 +68,7 @@ class ReorderController extends ControllerBehavior
     protected $toolbarWidget;
 
     /**
-     * __construct the behavior
+     * Behavior constructor
      * @param Backend\Classes\Controller $controller
      */
     public function __construct($controller)
@@ -66,25 +78,19 @@ class ReorderController extends ControllerBehavior
         /*
          * Build configuration
          */
-        $this->config = $this->makeConfig($this->controller->reorderConfig, $this->requiredConfig);
+        $this->config = $this->makeConfig($controller->reorderConfig, $this->requiredConfig);
 
-        /*
-         * Populate from config
-         */
-        $this->nameFrom = $this->getConfig('nameFrom', $this->nameFrom);
-    }
-
-    /**
-     * beforeDisplay fires before the page is displayed and AJAX is executed.
-     */
-    public function beforeDisplay()
-    {
         /*
          * Widgets
          */
         if ($this->toolbarWidget = $this->makeToolbarWidget()) {
             $this->toolbarWidget->bindToController();
         }
+
+        /*
+         * Populate from config
+         */
+        $this->nameFrom = $this->getConfig('nameFrom', $this->nameFrom);
     }
 
     //
@@ -208,7 +214,10 @@ class ReorderController extends ControllerBehavior
         $model = $this->controller->reorderGetModel();
         $modelTraits = class_uses($model);
 
-        if (isset($modelTraits[\October\Rain\Database\Traits\Sortable::class])) {
+        if (
+            isset($modelTraits[\October\Rain\Database\Traits\Sortable::class]) ||
+            $model->isClassExtendedWith(\October\Rain\Database\Behaviors\Sortable::class)
+        ) {
             $this->sortMode = 'simple';
         }
         elseif (isset($modelTraits[\October\Rain\Database\Traits\NestedTree::class])) {
@@ -216,7 +225,7 @@ class ReorderController extends ControllerBehavior
             $this->showTree = true;
         }
         else {
-            throw new ApplicationException('The model must implement the NestedTree or Sortable traits.');
+            throw new ApplicationException('The model must implement the Sortable trait/behavior or the NestedTree trait.');
         }
 
         return $model;
@@ -265,7 +274,7 @@ class ReorderController extends ControllerBehavior
     {
         if ($toolbarConfig = $this->getConfig('toolbar')) {
             $toolbarConfig = $this->makeConfig($toolbarConfig);
-            $toolbarWidget = $this->makeWidget(\Backend\Widgets\Toolbar::class, $toolbarConfig);
+            $toolbarWidget = $this->makeWidget('Backend\Widgets\Toolbar', $toolbarConfig);
         }
         else {
             $toolbarWidget = null;

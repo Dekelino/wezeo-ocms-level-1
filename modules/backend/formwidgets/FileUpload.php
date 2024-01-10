@@ -1,25 +1,26 @@
 <?php namespace Backend\FormWidgets;
 
+use Db;
 use Input;
+use Request;
 use Response;
 use Validator;
 use Backend\Widgets\Form;
 use Backend\Classes\FormField;
 use Backend\Classes\FormWidgetBase;
-use System\Models\File as FileModel;
 use October\Rain\Filesystem\Definitions as FileDefinitions;
 use ApplicationException;
 use ValidationException;
 use Exception;
 
 /**
- * FileUpload renders a form file uploader field.
+ * File upload field
+ * Renders a form file uploader field.
  *
  * Supported options:
- *
-  *    file:
- *        label: Some file
- *        type: fileupload
+ * - mode: image-single, image-multi, file-single, file-multi
+ * - upload-label: Add file
+ * - empty-label: No file uploaded
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -34,68 +35,55 @@ class FileUpload extends FormWidgetBase
     //
 
     /**
-     * @var int imageWidth for preview
+     * @var string Prompt text to display for the upload button.
      */
-    public $imageWidth = 190;
+    public $prompt;
 
     /**
-     * @var int imageHeight for preview
+     * @var int Preview image width
      */
-    public $imageHeight = 190;
+    public $imageWidth;
 
     /**
-     * @var mixed fileTypes accpetd
+     * @var int Preview image height
+     */
+    public $imageHeight;
+
+    /**
+     * @var mixed Collection of acceptable file types.
      */
     public $fileTypes = false;
 
     /**
-     * @var mixed mimeTypes accepted
+     * @var mixed Collection of acceptable mime types.
      */
     public $mimeTypes = false;
 
     /**
-     * @var mixed maxFilesize allowed (MB)
+     * @var mixed Max file size.
      */
     public $maxFilesize;
 
     /**
-     * @var mixed maxFiles allowed
+     * @var integer|null Max files number.
      */
     public $maxFiles;
 
     /**
-     * @var string Defines a mount point for the editor toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::stateElementName
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarAppState = null;
-
-    /**
-     * @var string Defines an event bus for an external toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::eventBus
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarEventBus = null;
-
-    /**
-     * @var array thumbOptions used for generating thumbnails
+     * @var array Options used for generating thumbnails.
      */
     public $thumbOptions = [
-        'mode' => 'crop',
+        'mode'      => 'crop',
         'extension' => 'auto'
     ];
 
     /**
-     * @var boolean useCaption allows the user to set a caption
+     * @var boolean Allow the user to set a caption.
      */
     public $useCaption = true;
 
     /**
-     * @var boolean attachOnUpload automatically attaches the uploaded file on upload
-     * if the parent record exists instead of using deferred binding to attach on save
-     * of the parent record. Defaults to false.
+     * @var boolean Automatically attaches the uploaded file on upload if the parent record exists instead of using deferred binding to attach on save of the parent record. Defaults to false.
      */
     public $attachOnUpload = false;
 
@@ -109,8 +97,7 @@ class FileUpload extends FormWidgetBase
     protected $defaultAlias = 'fileupload';
 
     /**
-     * @var Backend\Widgets\Form configFormWidget is the embedded form for modifying the
-     * properties of the selected file.
+     * @var Backend\Widgets\Form The embedded form for modifying the properties of the selected file
      */
     protected $configFormWidget;
 
@@ -122,6 +109,7 @@ class FileUpload extends FormWidgetBase
         $this->maxFilesize = $this->getUploadMaxFilesize();
 
         $this->fillFromConfig([
+            'prompt',
             'imageWidth',
             'imageHeight',
             'fileTypes',
@@ -131,8 +119,6 @@ class FileUpload extends FormWidgetBase
             'thumbOptions',
             'useCaption',
             'attachOnUpload',
-            'externalToolbarAppState',
-            'externalToolbarEventBus'
         ]);
 
         if ($this->formField->disabled) {
@@ -152,7 +138,7 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * prepareVars for the view data
+     * Prepares the view data
      */
     protected function prepareVars()
     {
@@ -164,29 +150,28 @@ class FileUpload extends FormWidgetBase
             $this->useCaption = false;
         }
 
-        $maxPhpSetting = $this->getUploadMaxFilesize();
-        if ($maxPhpSetting && $this->maxFilesize > $maxPhpSetting) {
-            throw new ApplicationException('Maximum allowed size for uploaded files: ' . $maxPhpSetting);
+        if ($this->maxFilesize > $this->getUploadMaxFilesize()) {
+            throw new ApplicationException('Maximum allowed size for uploaded files: ' . $this->getUploadMaxFilesize());
         }
 
-        $this->vars['size'] = $this->formField->size;
         $this->vars['fileList'] = $fileList = $this->getFileList();
         $this->vars['singleFile'] = $fileList->first();
         $this->vars['displayMode'] = $this->getDisplayMode();
         $this->vars['emptyIcon'] = $this->getConfig('emptyIcon', 'icon-upload');
-        $this->vars['imageHeight'] = $this->imageHeight;
-        $this->vars['imageWidth'] = $this->imageWidth;
+        $this->vars['imageHeight'] = (is_int($this->imageHeight)) ? $this->imageHeight : null;
+        $this->vars['imageWidth'] = (is_int($this->imageWidth)) ? $this->imageWidth : null;
         $this->vars['acceptedFileTypes'] = $this->getAcceptedFileTypes(true);
-        $this->vars['maxFilesize'] = $this->maxFilesize;
-        $this->vars['maxFiles'] = $this->maxFiles;
+        $this->vars['maxFilesize'] = (is_int($this->maxFilesize)) ? $this->maxFilesize : null;
         $this->vars['cssDimensions'] = $this->getCssDimensions();
+        $this->vars['cssBlockDimensions'] = $this->getCssDimensions('block');
         $this->vars['useCaption'] = $this->useCaption;
-        $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
+        $this->vars['maxFiles'] = (is_int($this->maxFiles)) ? $this->maxFiles : null;
+        $this->vars['prompt'] = $this->getPromptText();
     }
 
     /**
-     * getFileRecord for this request, returns false if none available
+     * Get the file record for this request, returns false if none available
+     *
      * @return System\Models\File|false
      */
     protected function getFileRecord()
@@ -201,7 +186,9 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * getConfigFormWidget for the instantiated Form widget
+     * Get the instantiated config Form widget
+     *
+     * @return void
      */
     public function getConfigFormWidget()
     {
@@ -220,14 +207,11 @@ class FileUpload extends FormWidgetBase
         return $this->configFormWidget = $widget;
     }
 
-    /**
-     * getFileList returns a list of associated files
-     */
     protected function getFileList()
     {
         $list = $this
             ->getRelationObject()
-            ->withDeferred($this->getSessionKey())
+            ->withDeferred($this->sessionKey)
             ->orderBy('sort_order')
             ->get()
         ;
@@ -243,7 +227,7 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * getDisplayMode for the file upload. Eg: file-multi, image-single, etc
+     * Returns the display mode for the file upload. Eg: file-multi, image-single, etc.
      * @return string
      */
     protected function getDisplayMode()
@@ -261,10 +245,28 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * getCssDimensions returns the CSS dimensions for the uploaded image,
-     * uses auto where no dimension is provided.
+     * Returns the escaped and translated prompt text to display according to the type.
+     * @return string
      */
-    protected function getCssDimensions(): string
+    protected function getPromptText()
+    {
+        if ($this->prompt === null) {
+            $isMulti = ends_with($this->getDisplayMode(), 'multi');
+            $this->prompt = $isMulti
+                ? 'backend::lang.fileupload.upload_file'
+                : 'backend::lang.fileupload.default_prompt';
+        }
+
+        return str_replace('%s', '<i class="icon-upload"></i>', e(trans($this->prompt)));
+    }
+
+    /**
+     * Returns the CSS dimensions for the uploaded image,
+     * uses auto where no dimension is provided.
+     * @param string $mode
+     * @return string
+     */
+    protected function getCssDimensions($mode = null)
     {
         if (!$this->imageWidth && !$this->imageHeight) {
             return '';
@@ -272,20 +274,31 @@ class FileUpload extends FormWidgetBase
 
         $cssDimensions = '';
 
-        if ($this->imageWidth && !$this->imageHeight) {
-            $cssDimensions .= 'width: '.$this->imageWidth.'px;';
-        }
+        if ($mode == 'block') {
+            $cssDimensions .= $this->imageWidth
+                ? 'width: '.$this->imageWidth.'px;'
+                : 'width: '.$this->imageHeight.'px;';
 
-        if ($this->imageHeight && !$this->imageWidth) {
-            $cssDimensions .= 'height: '.$this->imageHeight.'px;';
+            $cssDimensions .= ($this->imageHeight)
+                ? 'max-height: '.$this->imageHeight.'px;'
+                : 'height: auto;';
+        }
+        else {
+            $cssDimensions .= $this->imageWidth
+                ? 'width: '.$this->imageWidth.'px;'
+                : 'width: auto;';
+
+            $cssDimensions .= ($this->imageHeight)
+                ? 'max-height: '.$this->imageHeight.'px;'
+                : 'height: auto;';
         }
 
         return $cssDimensions;
     }
 
     /**
-     * getAcceptedFileTypes returns the specified accepted file types, or the
-     * default based on the mode. Image mode will return:
+     * Returns the specified accepted file types, or the default
+     * based on the mode. Image mode will return:
      * - jpg,jpeg,bmp,png,gif,svg
      * @return string
      */
@@ -294,14 +307,11 @@ class FileUpload extends FormWidgetBase
         $types = $this->fileTypes;
 
         if ($types === false) {
-            $definitionCode = starts_with($this->getDisplayMode(), 'image')
-                ? 'image_extensions'
-                : 'default_extensions';
-
-            $types = implode(',', FileDefinitions::get($definitionCode));
+            $isImage = starts_with($this->getDisplayMode(), 'image');
+            $types = implode(',', FileDefinitions::get($isImage ? 'imageExtensions' : 'defaultExtensions'));
         }
 
-        if (!$types || $types === '*') {
+        if (!$types || $types == '*') {
             return null;
         }
 
@@ -327,18 +337,18 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * onRemoveAttachment removes a file attachment
+     * Removes a file attachment.
      */
     public function onRemoveAttachment()
     {
         $fileModel = $this->getRelationModel();
         if (($fileId = post('file_id')) && ($file = $fileModel::find($fileId))) {
-            $this->getRelationObject()->remove($file, $this->getSessionKey());
+            $this->getRelationObject()->remove($file, $this->sessionKey);
         }
     }
 
     /**
-     * onSortAttachments sorts file attachments
+     * Sorts file attachments.
      */
     public function onSortAttachments()
     {
@@ -352,44 +362,45 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * onLoadAttachmentConfig loads the configuration form for an attachment,
-     * allowing title and description to be set
+     * Loads the configuration form for an attachment, allowing title and description to be set.
      */
     public function onLoadAttachmentConfig()
     {
-        $file = $this->getFileRecord();
-        if (!$file) {
-            throw new ApplicationException('Unable to find file, it may no longer exist');
+        $fileModel = $this->getRelationModel();
+        if ($file = $this->getFileRecord()) {
+            $file = $this->decorateFileAttributes($file);
+
+            $this->vars['file'] = $file;
+            $this->vars['displayMode'] = $this->getDisplayMode();
+            $this->vars['cssDimensions'] = $this->getCssDimensions();
+            $this->vars['relationManageId'] = post('manage_id');
+            $this->vars['relationField'] = post('_relation_field');
+
+            return $this->makePartial('config_form');
         }
 
-        $file = $this->decorateFileAttributes($file);
-
-        $this->vars['file'] = $file;
-        $this->vars['displayMode'] = $this->getDisplayMode();
-        $this->vars['cssDimensions'] = $this->getCssDimensions();
-
-        return $this->makePartial('config_form');
+        throw new ApplicationException('Unable to find file, it may no longer exist');
     }
 
     /**
-     * onSaveAttachmentConfig commits the changes of the attachment configuration form
+     * Commit the changes of the attachment configuration form.
      */
     public function onSaveAttachmentConfig()
     {
         try {
             $formWidget = $this->getConfigFormWidget();
+            if ($file = $formWidget->model) {
+                $modelsToSave = $this->prepareModelsToSave($file, $formWidget->getSaveData());
+                Db::transaction(function () use ($modelsToSave, $formWidget) {
+                    foreach ($modelsToSave as $modelToSave) {
+                        $modelToSave->save(null, $formWidget->getSessionKey());
+                    }
+                });
 
-            $file = $formWidget->model;
-            if (!$file) {
-                throw new ApplicationException('Unable to find file, it may no longer exist');
+                return ['displayName' => $file->title ?: $file->file_name];
             }
 
-            $this->performSaveOnModel($file, $formWidget->getSaveData(), $formWidget->getSessionKey());
-
-            return [
-                'displayName' => $file->title ?: $file->file_name,
-                'description' => trim($file->description)
-            ];
+            throw new ApplicationException('Unable to find file, it may no longer exist');
         }
         catch (Exception $ex) {
             return json_encode(['error' => $ex->getMessage()]);
@@ -414,7 +425,7 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * onUpload handler for the server-side processing of uploaded files
+     * Upload handler for the server-side processing of uploaded files
      */
     public function onUpload()
     {
@@ -426,7 +437,7 @@ class FileUpload extends FormWidgetBase
             $fileModel = $this->getRelationModel();
             $uploadedFile = Input::file('file_data');
 
-            $validationRules = ['max:'.($this->maxFilesize * 1024)];
+            $validationRules = ['max:'.$fileModel::getMaxFilesize()];
             if ($fileTypes = $this->getAcceptedFileTypes()) {
                 $validationRules[] = 'extensions:'.$fileTypes;
             }
@@ -464,7 +475,7 @@ class FileUpload extends FormWidgetBase
                 $fileRelation->add($file);
             }
             else {
-                $fileRelation->add($file, $this->getSessionKey());
+                $fileRelation->add($file, $this->sessionKey);
             }
 
             $file = $this->decorateFileAttributes($file);
@@ -485,8 +496,7 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * decorateFileAttributes adds the bespoke attributes used
-     * internally by this widget. Added attributes are:
+     * Adds the bespoke attributes used internally by this widget.
      * - thumbUrl
      * - pathUrl
      * @return System\Models\File
@@ -506,10 +516,18 @@ class FileUpload extends FormWidgetBase
     }
 
     /**
-     * getUploadMaxFilesize returns max upload filesize in MB
+     * Return max upload filesize in Mb
+     * @return integer
      */
-    protected function getUploadMaxFilesize(): float
+    protected function getUploadMaxFilesize()
     {
-        return FileModel::getMaxFilesize() / 1024;
+        $size = ini_get('upload_max_filesize');
+        if (preg_match('/^([\d\.]+)([KMG])$/i', $size, $match)) {
+            $pos = array_search($match[2], ['K', 'M', 'G']);
+            if ($pos !== false) {
+                $size = $match[1] * pow(1024, $pos + 1);
+            }
+        }
+        return floor($size / 1024 / 1024);
     }
 }

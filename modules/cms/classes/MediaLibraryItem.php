@@ -1,19 +1,19 @@
 <?php namespace Cms\Classes;
 
-use Media\Classes\MediaLibraryItem as MediaMediaLibrary;
+use System\Classes\MediaLibraryItem as SystemMediaLibraryItem;
 
 /**
  * Represents a file or folder in the Media Library.
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
- * @deprecated Use Media\Classes\MediaLibraryItem. Remove if year >= 2023.
+ * @deprecated Use System\Classes\MediaLibraryItem. Remove if year >= 2020.
  */
-class MediaLibraryItem extends MediaMediaLibrary
+class MediaLibraryItem extends SystemMediaLibraryItem
 {
     public function __construct()
     {
-        traceLog('Class Cms\Classes\MediaLibraryItem has been deprecated, use ' . MediaMediaLibrary::class . ' instead.');
+        traceLog('Class Cms\Classes\MediaLibraryItem has been deprecated, use ' . SystemMediaLibraryItem::class . ' instead.');
         parent::__construct(...func_get_args());
     }
 }

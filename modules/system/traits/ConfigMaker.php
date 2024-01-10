@@ -4,19 +4,20 @@ use Yaml;
 use File;
 use Lang;
 use Event;
-use System;
-use stdClass;
 use SystemException;
-use October\Rain\Html\Helper as HtmlHelper;
+use stdClass;
+use Config;
 
 /**
- * ConfigMaker trait adds configuration based methods to a class
+ * Config Maker Trait
+ * Adds configuration based methods to a class
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
  */
 trait ConfigMaker
 {
+
     /**
      * @var string Specifies a path to the config directory.
      */
@@ -24,9 +25,9 @@ trait ConfigMaker
 
     /**
      * Reads the contents of the supplied file and applies it to this object.
-     * @param mixed $configFile
+     * @param array $configFile
      * @param array $requiredConfig
-     * @return object
+     * @return array|stdClass
      */
     public function makeConfig($configFile = [], $requiredConfig = [])
     {
@@ -64,7 +65,7 @@ trait ConfigMaker
                 ));
             }
 
-            $config = Yaml::parseFileCached($configFile);
+            $config = Yaml::parseFile($configFile);
 
             /**
              * @event system.extendConfigFile
@@ -130,7 +131,7 @@ trait ConfigMaker
     }
 
     /**
-     * getConfigPath locates a file based on it's definition. If the file starts with
+     * Locates a file based on it's definition. If the file starts with
      * the ~ symbol it will be returned in context of the application base path,
      * otherwise it will be returned in context of the config path.
      * @param string $fileName File to load.
@@ -149,7 +150,9 @@ trait ConfigMaker
 
         $fileName = File::symbolizePath($fileName);
 
-        if (System::checkBaseDir($fileName)) {
+        if (File::isLocalPath($fileName) ||
+            (!Config::get('cms.restrictBaseDir', true) && realpath($fileName) !== false)
+        ) {
             return $fileName;
         }
 
@@ -205,46 +208,5 @@ trait ConfigMaker
         $configB = $this->makeConfig($configB);
 
         return (object) array_merge((array) $configA, (array) $configB);
-    }
-
-    /**
-     * getConfigValueFrom will apply the config getter convention
-     */
-    protected function getConfigValueFrom(object $configObj, string $name = null, $default = null)
-    {
-        /*
-         * Return all config
-         */
-        if ($name === null) {
-            return $configObj;
-        }
-
-        /*
-         * Array field name, eg: field[key][key2][key3]
-         */
-        $keyParts = HtmlHelper::nameToArray($name);
-
-        /*
-         * First part will be the field name, pop it off
-         */
-        $fieldName = array_shift($keyParts);
-        if (!isset($configObj->{$fieldName})) {
-            return $default;
-        }
-
-        $result = $configObj->{$fieldName};
-
-        /*
-         * Loop the remaining key parts and build a result
-         */
-        foreach ($keyParts as $key) {
-            if (!is_array($result) || !array_key_exists($key, $result)) {
-                return $default;
-            }
-
-            $result = $result[$key];
-        }
-
-        return $result;
     }
 }

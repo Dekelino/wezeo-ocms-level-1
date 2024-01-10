@@ -1,29 +1,33 @@
-<?php
-
-namespace App\Arrival\Updates;
+<?php namespace App\Arrival\Updates;
 
 use Schema;
+use October\Rain\Database\Schema\Blueprint;
 use October\Rain\Database\Updates\Migration;
 
-/**
- * CreateArrivalsTable Migration
- */
 class CreateArrivalsTable extends Migration
 {
     public function up()
     {
-        Schema::create('app_arrival_arrivals', function ($table) {
+        dd('Before creating table');  // Debug statement
+        
+        Schema::create('app_arrivals', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->increments('id')->unsigned(); //Unsigned - only positive integers in id
-            $table->string('user_id', 20); // 20 char max
-            $table->text('name');
-            $table->timestamps(); // This will automatically add created_at and updated_at columns
-
+            $table->increments('id')->unsigned();
+            $table->integer('user_id');
+            $table->text('userName')->nullable();
+            $table->text('arrivalName')->nullable();
+            $table->timestamp('timestamp')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
+
+        dd('After creating table');  // Debug statement
     }
 
     public function down()
     {
-        Schema::dropIfExists('app_arrival_arrivals');
+        dd('Before dropping table');  // Debug statement
+
+        Schema::dropIfExists('app_arrivals');
+
+        dd('After dropping table');  // Debug statement
     }
 }

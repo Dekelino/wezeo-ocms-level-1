@@ -65,13 +65,6 @@ class MailSetting extends Model
         $this->smtp_password = $config->get('mail.password');
         $this->smtp_authorization = !!strlen($this->smtp_user);
         $this->smtp_encryption = $config->get('mail.encryption');
-        $this->mailgun_domain = $config->get('services.mailgun.domain');
-        $this->mailgun_secret = $config->get('services.mailgun.secret');
-        $this->mandrill_secret = $config->get('services.mandrill.secret');
-        $this->ses_key = $config->get('services.ses.key');
-        $this->ses_secret = $config->get('services.ses.secret');
-        $this->ses_region = $config->get('services.ses.region');
-        $this->sparkpost_secret = $config->get('services.sparkpost.secret');
     }
 
     public function getSendModeOptions()
@@ -151,5 +144,33 @@ class MailSetting extends Model
             'tls' => 'system::lang.mail.smtp_encryption_tls',
             'ssl' => 'system::lang.mail.smtp_encryption_ssl',
         ];
+    }
+
+    /**
+     * Filter fields callback.
+     *
+     * We use this to automatically set the SMTP port to the encryption type's corresponding port, if it was originally
+     * using a default port.
+     *
+     * @param array $fields
+     * @param string|null $context
+     * @return void
+     */
+    public function filterFields($fields, $context = null)
+    {
+        if (in_array($fields->smtp_port->value ?? 25, [25, 465, 587])) {
+            switch ($fields->smtp_encryption->value ?? '') {
+                case 'tls':
+                    $fields->smtp_port->value = 587;
+                    break;
+                case 'ssl':
+                    $fields->smtp_port->value = 465;
+                    break;
+                case '':
+                default:
+                    $fields->smtp_port->value = 25;
+                    break;
+            }
+        }
     }
 }

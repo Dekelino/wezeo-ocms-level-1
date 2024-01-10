@@ -23,9 +23,9 @@
 @popup-size-tiny: 300px;
 
 .modal-content {
-    border: @popup-border;
-    border-radius: 8px;
-    box-shadow: @box-shadow-z2;
+    .box-shadow(@popup-box-shadow);
+    .border-radius(@border-radius-base);
+    border: none;
     background: @color-popup-content-bg;
 }
 
@@ -41,41 +41,11 @@
     color: @color-popup-header-text;
     .border-top-radius(@border-radius-base);
     padding: @modal-title-padding @padding-standard;
-    border-bottom: @popup-border;
+    border: none;
 
     h4 {
         font-weight: normal;
         font-size: 18px;
-    }
-
-    button.close {
-        width: 19px;
-        height: 19px;
-        border-radius: 20px;
-        position: relative;
-        top: 5px;
-        .opacity(1);
-        font-size: 0;
-        color: transparent;
-
-        &:after {
-            .icon-OctoFont();
-            content: @octo-icon-cross;
-            color: @color-grey-1;
-            font-size: 16px;
-            position: relative;
-            top: -1px;
-        }
-
-        &:hover:after {
-            color: @brand-danger;
-        }
-
-        &:focus {
-            outline: none;
-            background-color: @background-color-focus;
-        }
-
     }
 }
 
@@ -87,7 +57,7 @@
 }
 
 .modal-body {
-    padding-top: 15px;
+    padding-top: 0;
     padding-bottom: 0;
 
     > p:last-child {
@@ -148,7 +118,7 @@
         }
 
         .modal-dialog {
-            opacity: 0;
+            .opacity(0);
             .transition(~'all 0.3s, width 0s');
             .transform(~'scale(0.7)');
         }
@@ -156,7 +126,7 @@
 
     &.fade.in {
         .modal-dialog {
-            opacity: 1;
+            .opacity(1);
             .transform( ~'scale(1)');
         }
     }
@@ -170,7 +140,7 @@
     left: 0;
     z-index: (@zindex-modal-background - 10);
     background-color: @modal-backdrop-bg;
-    opacity: 1;
+    .opacity(1);
 
     .popup-loading-indicator {
         display: block;
@@ -182,7 +152,7 @@
         margin-left: -50px;
         .transition(~'all 0.3s, width 0s');
         .transform(~'scale(0.7)');
-        opacity: 0;
+        .opacity(0);
 
         &:after {
             content: ' ';
@@ -199,7 +169,7 @@
     }
 
     &.loading .popup-loading-indicator {
-        opacity: 1;
+        .opacity(1);
         .transform(~'scale(1)');
     }
 

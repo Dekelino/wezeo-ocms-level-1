@@ -4,14 +4,14 @@ use File;
 use Lang;
 use Config;
 use Request;
-use Cms\Helpers\File as FileHelper;
-use October\Rain\Extension\Extendable;
 use ApplicationException;
 use ValidationException;
-use DirectoryIterator;
+use Cms\Helpers\File as FileHelper;
+use October\Rain\Extension\Extendable;
+use October\Rain\Filesystem\PathResolver;
 
 /**
- * Asset for CMS asset files
+ * The CMS theme asset file class.
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
@@ -24,12 +24,12 @@ class Asset extends Extendable
     protected $theme;
 
     /**
-     * @var string dirName for the container name inside the theme
+     * @var string The container name inside the theme.
      */
     protected $dirName = 'assets';
 
     /**
-     * @var string fileName specifies the file name corresponding the CMS object
+     * @var string Specifies the file name corresponding the CMS object.
      */
     public $fileName;
 
@@ -49,7 +49,7 @@ class Asset extends Extendable
     public $content;
 
     /**
-     * @var array fillable attributes that are mass assignable
+     * @var array The attributes that are mass assignable.
      */
     protected $fillable = [
         'fileName',
@@ -57,17 +57,18 @@ class Asset extends Extendable
     ];
 
     /**
-     * @var array allowedExtensions for template files
+     * @var array Allowable file extensions.
      */
     protected $allowedExtensions = [];
 
     /**
-     * @var bool exists indicates if the model exists.
+     * @var bool Indicates if the model exists.
      */
     public $exists = false;
 
     /**
-     * __construct creates an instance of the object and associates it with a CMS theme
+     * Creates an instance of the object and associates it with a CMS theme.
+     * @param \Cms\Classes\Theme $theme Specifies the theme the object belongs to.
      */
     public function __construct(Theme $theme)
     {
@@ -79,7 +80,7 @@ class Asset extends Extendable
     }
 
     /**
-     * load the object from a file
+     * Loads the object from a file.
      * This method is used in the CMS back-end. It doesn't use any caching.
      * @param \Cms\Classes\Theme $theme Specifies the theme the object belongs to.
      * @param string $fileName Specifies the file name, with the extension.
@@ -92,136 +93,11 @@ class Asset extends Extendable
     }
 
     /**
-     * listInTheme
+     * Prepares the theme datasource for the model.
+     * @param \Cms\Classes\Theme|string $theme Specifies a parent theme.
+     * @return $this
      */
-    public static function listInTheme($theme, array $options = [])
-    {
-        return static::inTheme($theme)->get($options);
-    }
-
-    /**
-     * get all assets in a theme and uses simple objects
-     *
-     * Available options:
-     * - recursive: search subfolders and place in 'assets' key
-     * - flatten: produce a flat array instead of a recursive array
-     * - filterPath: only include within an inner path
-     * - filterFiles: only include files
-     * - filterFolders: only include folders
-     * - filterEditable: only show editable assets
-     */
-    public function get(array $options = []): array
-    {
-        extract(array_merge([
-            'recursive' => true,
-            'flatten' => false,
-            'filterPath' => '',
-            'filterFiles' => false,
-            'filterFolders' => false,
-            'filterEditable' => false,
-        ], $options));
-
-        $assets = [];
-
-        $pathSuffix = $filterPath ? '/'.$filterPath : '';
-        $path = $this->theme->getPath().'/'.$this->dirName.$pathSuffix;
-        $files = $this->getInternal($path, $this->theme);
-
-        // Splice in assets of parent theme
-        if ($parentTheme = $this->theme->getParentTheme()) {
-            $parentPath = $parentTheme->getPath().'/'.$this->dirName.$pathSuffix;
-            $files = array_merge($files, $this->getInternal($parentPath, $parentTheme));
-        }
-
-        foreach ($files as $asset) {
-            if ($recursive && $asset['isFolder'] && $asset['filename']) {
-                $newFilter = $pathSuffix ? $pathSuffix.'/'.$asset['filename'] : $asset['filename'];
-
-                if ($flatten) {
-                    $assets = array_merge($assets, $this->get(['filterPath' => $newFilter] + $options));
-                }
-                else {
-                    $asset['assets'] = $this->get(['filterPath' => $newFilter] + $options);
-                }
-            }
-
-            if ($filterFolders && !$asset['isFolder']) {
-                continue;
-            }
-
-            if ($filterEditable && !$asset['isEditable']) {
-                continue;
-            }
-
-            if ($filterFiles && $asset['isFolder']) {
-                continue;
-            }
-
-            $assets[] = $asset;
-        }
-
-        return collect($assets)->keyBy('path')->all();
-    }
-
-    /**
-     * getInternal helps the get method
-     */
-    protected function getInternal(string $path, Theme $theme): array
-    {
-        if (!file_exists($path)) {
-            return [];
-        }
-
-        $result = [];
-        $iterator = new DirectoryIterator($path);
-        $editableAssetTypes = Asset::getEditableExtensions();
-
-        foreach ($iterator as $fileInfo) {
-            $fileName = $fileInfo->getFileName();
-            if (substr($fileName, 0, 1) === '.') {
-                continue;
-            }
-
-            if (!$fileInfo->isDir() && !$fileInfo->isFile()) {
-                continue;
-            }
-
-            $fileName = $fileInfo->getFileName();
-            $isFolder = $fileInfo->isDir();
-            $filePath = $this->getRelativePath($fileInfo->getPathname(), $theme);
-            $isEditable = in_array(strtolower($fileInfo->getExtension()), $editableAssetTypes);
-
-            $asset = [
-                'filename' => $fileName,
-                'isFolder' => $isFolder ? 1 : 0,
-                'isEditable' => $isEditable,
-                'path' => ltrim(File::normalizePath($filePath), '/')
-            ];
-
-            $result[] = $asset;
-        }
-
-        return $result;
-    }
-
-    /**
-     * getRelativePath returns path relative to the theme asset directory
-     */
-    protected function getRelativePath(string $path, Theme $theme): string
-    {
-        $prefix = $theme->getPath().'/'.$this->dirName;
-
-        if (substr($path, 0, strlen($prefix)) === $prefix) {
-            $path = substr($path, strlen($prefix));
-        }
-
-        return $path;
-    }
-
-    /**
-     * inTheme prepares the theme datasource for the model.
-     */
-    public static function inTheme($theme): Asset
+    public static function inTheme($theme)
     {
         if (is_string($theme)) {
             $theme = Theme::load($theme);
@@ -231,37 +107,17 @@ class Asset extends Extendable
     }
 
     /**
-     * find a single template by its file name.
+     * Find a single template by its file name.
+     *
+     * @param  string $fileName
+     * @return mixed|static
      */
-    public function find(string $fileName)
+    public function find($fileName)
     {
         $filePath = $this->getFilePath($fileName);
 
-        $foundTheme = $this->theme;
-
         if (!File::isFile($filePath)) {
-            // Look at parent
-            if ($parentTheme = $this->theme->getParentTheme()) {
-
-                $foundTheme = $parentTheme;
-
-                $filePath = $parentTheme->getPath().'/'.$this->dirName.'/'.$fileName;
-
-                if (!File::isFile($filePath)) {
-                    return null;
-                }
-            }
-            else {
-                return null;
-            }
-        }
-
-        if (!FileHelper::validateInTheme($foundTheme, $filePath)) {
-            throw new ValidationException(['fileName' =>
-                Lang::get('cms::lang.cms_object.invalid_file', [
-                    'name' => $fileName
-                ])
-            ]);
+            return null;
         }
 
         if (($content = @File::get($filePath)) === false) {
@@ -273,7 +129,6 @@ class Asset extends Extendable
         $this->mtime = File::lastModified($filePath);
         $this->content = $content;
         $this->exists = true;
-
         return $this;
     }
 
@@ -296,7 +151,7 @@ class Asset extends Extendable
     }
 
     /**
-     * save the object to the disk
+     * Saves the object to the disk.
      */
     public function save()
     {
@@ -355,23 +210,12 @@ class Asset extends Extendable
         $this->exists = true;
     }
 
-    /**
-     * delete the object from disk
-     */
     public function delete()
     {
         $fileName = Request::input('fileName');
         $fullPath = $this->getFilePath($fileName);
 
         $this->validateFileName($fileName);
-
-        if (!FileHelper::validateInTheme($this->theme, $fullPath)) {
-            throw new ValidationException(['fileName' =>
-                Lang::get('cms::lang.cms_object.invalid_file', [
-                    'name' => $fileName
-                ])
-            ]);
-        }
 
         if (File::exists($fullPath)) {
             if (!@File::delete($fullPath)) {
@@ -384,7 +228,7 @@ class Asset extends Extendable
     }
 
     /**
-     * validateFileName supplied with extension and path.
+     * Validate the supplied filename, extension and path.
      * @param string $fileName
      */
     protected function validateFileName($fileName = null)
@@ -423,15 +267,7 @@ class Asset extends Extendable
     }
 
     /**
-     * validate object
-     */
-    public function validate()
-    {
-        $this->validateFileName();
-    }
-
-    /**
-     * getFileName
+     * Returns the file name.
      * @return string
      */
     public function getFileName()
@@ -440,27 +276,37 @@ class Asset extends Extendable
     }
 
     /**
-     * getFilePath returns the absolute file path of an asset
+     * Returns the absolute file path.
+     * @param string $fileName Specifies the file name to return the path to.
+     * @return string
      */
-    public function getFilePath(string $fileName = null): string
+    public function getFilePath($fileName = null)
     {
         if ($fileName === null) {
             $fileName = $this->fileName;
         }
 
-        return $this->theme->getPath().'/'.$this->dirName.'/'.$fileName;
+        $directory = $this->theme->getPath() . '/' . $this->dirName . '/';
+        $filePath = $directory . $fileName;
+
+        // Limit paths to those under the theme's assets directory
+        if (!PathResolver::within($filePath, $directory)) {
+            return false;
+        }
+
+        return PathResolver::resolve($filePath);
     }
 
     /**
-     * getEditableExtensions returns a list of editable asset extensions
-     * The list can be overridden with the cms.editable_asset_types configuration option.
+     * Returns a list of editable asset extensions.
+     * The list can be overridden with the cms.editableAssetTypes configuration option.
      * @return array
      */
     public static function getEditableExtensions()
     {
         $defaultTypes =  ['css', 'js', 'less', 'sass', 'scss'];
 
-        $configTypes = Config::get('cms.editable_asset_types');
+        $configTypes = Config::get('cms.editableAssetTypes');
         if (!$configTypes) {
             return $defaultTypes;
         }

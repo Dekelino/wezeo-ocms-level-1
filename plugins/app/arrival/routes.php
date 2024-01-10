@@ -1,7 +1,8 @@
 <?php
 
+use App\Arrival\Http\Controllers\AllArrivalsController;
 use Illuminate\Support\Facades\Route;
-use App\Arrival\Controllers\AllArrivalsController;
+use LibUser\Userapi\Models\User;
 
 Route::group(["prefix" => "api"], function () {
     Route::middleware(['auth'])->group(function () {

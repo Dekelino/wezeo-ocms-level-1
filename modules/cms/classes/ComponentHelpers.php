@@ -3,7 +3,7 @@
 use Lang;
 
 /**
- * ComponentHelpers defines some component helpers for the CMS UI.
+ * Defines some component helpers for the CMS UI.
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
@@ -11,7 +11,7 @@ use Lang;
 class ComponentHelpers
 {
     /**
-     * getComponentsPropertyConfig returns a component property configuration as a JSON string or array.
+     * Returns a component property configuration as a JSON string or array.
      * @param mixed $component The component object
      * @param boolean $addAliasProperty Determines if the Alias property should be added to the result.
      * @param boolean $returnArray Determines if the method should return an array.
@@ -23,14 +23,14 @@ class ComponentHelpers
 
         if ($addAliasProperty) {
             $property = [
-                'property' => 'oc.alias',
-                'title' => Lang::get('cms::lang.component.alias'),
-                'description' => Lang::get('cms::lang.component.alias_description'),
-                'type' => 'string',
-                'validationPattern' => '^[a-zA-Z]+[0-9a-z\_]*$',
-                'validationMessage' => Lang::get('cms::lang.component.validation_message'),
-                'required' => true,
-                'showExternalParam' => false
+                'property'              => 'oc.alias',
+                'title'                 => Lang::get('cms::lang.component.alias'),
+                'description'           => Lang::get('cms::lang.component.alias_description'),
+                'type'                  => 'string',
+                'validationPattern'     => '^(@)?[a-zA-Z]+[0-9a-z\_]*$',
+                'validationMessage'     => Lang::get('cms::lang.component.validation_message'),
+                'required'              => true,
+                'showExternalParam'     => false
             ];
             $result[] = $property;
         }
@@ -39,10 +39,10 @@ class ComponentHelpers
         if (is_array($properties)) {
             foreach ($properties as $name => $params) {
                 $property = [
-                    'property' => $name,
-                    'title' => array_get($params, 'title', $name),
-                    'type' => array_get($params, 'type', 'string'),
-                    'showExternalParam' => array_get($params, 'showExternalParam', true)
+                    'property'              => $name,
+                    'title'                 => array_get($params, 'title', $name),
+                    'type'                  => array_get($params, 'type', 'string'),
+                    'showExternalParam'     => array_get($params, 'showExternalParam', true)
                 ];
 
                 foreach ($params as $name => $value) {
@@ -83,33 +83,26 @@ class ComponentHelpers
     }
 
     /**
-     * getComponentPropertyValues returns a component property values.
+     * Returns a component property values.
      * @param mixed $component The component object
-     * @param boolean $returnArray Returns array if TRUE. Returns JSON string otherwise.
      * @return mixed
      */
-    public static function getComponentPropertyValues($component, $returnArray = false)
+    public static function getComponentPropertyValues($component)
     {
         $result = [];
 
         $result['oc.alias'] = $component->alias;
 
         $properties = $component->defineProperties();
-        if (is_array($properties)) {
-            foreach ($properties as $name => $params) {
-                $result[$name] = $component->property($name);
-            }
-        }
-
-        if ($returnArray) {
-            return $result;
+        foreach ($properties as $name => $params) {
+            $result[$name] = $component->property($name);
         }
 
         return json_encode($result);
     }
 
     /**
-     * getComponentName returns a component name.
+     * Returns a component name.
      * @param mixed $component The component object
      * @return string
      */
@@ -122,7 +115,7 @@ class ComponentHelpers
     }
 
     /**
-     * getComponentDescription returns a component description.
+     * Returns a component description.
      * @param mixed $component The component object
      * @return string
      */

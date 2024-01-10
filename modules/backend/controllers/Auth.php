@@ -1,25 +1,22 @@
 <?php namespace Backend\Controllers;
 
-use App;
-use Log;
 use Mail;
 use Flash;
-use System;
-use Config;
 use Backend;
 use Request;
 use Validator;
 use BackendAuth;
 use Backend\Models\AccessLog;
 use Backend\Classes\Controller;
-use Backend\Models\User as UserModel;
 use System\Classes\UpdateManager;
 use ApplicationException;
 use ValidationException;
 use Exception;
+use Config;
+use October\Rain\Foundation\Http\Middleware\CheckForTrustedHost;
 
 /**
- * Auth is the backend authentication controller
+ * Authentication controller
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -28,20 +25,12 @@ use Exception;
 class Auth extends Controller
 {
     /**
-     * @var array publicActions defines controller actions visible to unauthenticated users
+     * @var array Public controller actions
      */
-    protected $publicActions = [
-        'index',
-        'signin',
-        'signout',
-        'restore',
-        'reset',
-        'migrate',
-        'setup'
-    ];
+    protected $publicActions = ['index', 'signin', 'signout', 'restore', 'reset'];
 
     /**
-     * __construct is the constructor
+     * Constructor.
      */
     public function __construct()
     {
@@ -51,20 +40,15 @@ class Auth extends Controller
     }
 
     /**
-     * index is the default route, redirects to signin or migrate
+     * Default route, redirects to signin.
      */
     public function index()
     {
-        if ($this->checkAdminAccounts()) {
-            return Backend::redirect('backend/auth/migrate');
-        }
-        else {
-            return Backend::redirect('backend/auth/signin');
-        }
+        return Backend::redirect('backend/auth/signin');
     }
 
     /**
-     * signin displays the log in page
+     * Displays the log in page.
      */
     public function signin()
     {
@@ -74,22 +58,20 @@ class Auth extends Controller
         $this->setResponseHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
         try {
-            if ($this->checkPostbackFlag()) {
-                return $this->handleSubmitSignin();
+            if (post('postback')) {
+                return $this->signin_onSubmit();
             }
-        }
-        catch (Exception $ex) {
+
+            $this->bodyClass .= ' preload';
+        } catch (Exception $ex) {
             Flash::error($ex->getMessage());
         }
     }
 
-    /**
-     * handleSubmitSignin handles the submission of the sign in form
-     */
-    protected function handleSubmitSignin()
+    public function signin_onSubmit()
     {
         $rules = [
-            'login' => 'required|between:2,255',
+            'login'    => 'required|between:2,255',
             'password' => 'required|between:4,255'
         ];
 
@@ -98,7 +80,7 @@ class Auth extends Controller
             throw new ValidationException($validation);
         }
 
-        if (is_null($remember = Config::get('backend.force_remember', true))) {
+        if (is_null($remember = Config::get('cms.backendForceRemember', true))) {
             $remember = (bool) post('remember');
         }
 
@@ -108,6 +90,19 @@ class Auth extends Controller
             'password' => post('password')
         ], $remember);
 
+        if (is_null($runMigrationsOnLogin = Config::get('cms.runMigrationsOnLogin', null))) {
+            $runMigrationsOnLogin = Config::get('app.debug', false);
+        }
+
+        if ($runMigrationsOnLogin) {
+            try {
+                // Load version updates
+                UpdateManager::instance()->update();
+            } catch (Exception $ex) {
+                Flash::error($ex->getMessage());
+            }
+        }
+
         // Log the sign in event
         AccessLog::add($user);
 
@@ -116,43 +111,57 @@ class Auth extends Controller
     }
 
     /**
-     * signout logs out a backend user
+     * Logs out a backend user.
      */
     public function signout()
     {
-        BackendAuth::logout();
+        if (BackendAuth::isImpersonator()) {
+            BackendAuth::stopImpersonate();
+        } else {
+            BackendAuth::logout();
+        }
 
         // Add HTTP Header 'Clear Site Data' to purge all sensitive data upon signout
         if (Request::secure()) {
-            $this->setResponseHeader(
-                'Clear-Site-Data',
-                'cache, cookies, storage, executionContexts'
-            );
+            $this->setResponseHeader('Clear-Site-Data', 'cache, cookies, storage, executionContexts');
         }
 
         return Backend::redirect('backend');
     }
 
     /**
-     * restore displays a page to request a password reset verification code
+     * Request a password reset verification code.
      */
     public function restore()
     {
         try {
-            if ($this->checkPostbackFlag()) {
-                return $this->handleSubmitRestore();
+            if (post('postback')) {
+                return $this->restore_onSubmit();
             }
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             Flash::error($ex->getMessage());
         }
     }
 
     /**
-     * handleSubmitRestore submits the restore form
+     * Submits the restore form.
      */
-    protected function handleSubmitRestore()
+    public function restore_onSubmit()
     {
+        // Force Trusted Host verification on password reset link generation
+        // regardless of config to protect against host header poisoning
+        $trustedHosts = Config::get('app.trustedHosts', false);
+        if ($trustedHosts === false) {
+            $hosts = CheckForTrustedHost::processTrustedHosts(true);
+
+            if (count($hosts)) {
+                Request::setTrustedHosts($hosts);
+
+                // Trigger the host validation logic
+                Request::getHost();
+            }
+        }
+
         $rules = [
             'login' => 'required|between:2,255'
         ];
@@ -163,49 +172,49 @@ class Auth extends Controller
         }
 
         $user = BackendAuth::findUserByLogin(post('login'));
-
         if (!$user) {
-            // For security reasons, only show detailed error when debug mode is on
-            if (System::checkDebugMode()) {
+            if (Config::get('app.debug', false)) {
                 throw new ValidationException([
                     'login' => trans('backend::lang.account.restore_error', ['login' => post('login')])
                 ]);
             }
-        }
-        else {
-            // User found, send reset email
-            $code = $user->getResetPasswordCode();
-            $link = Backend::url('backend/auth/reset/' . $user->id . '/' . $code);
-
-            $data = [
-                'name' => $user->full_name,
-                'link' => $link,
-            ];
-
-            Mail::send('backend::mail.restore', $data, function ($message) use ($user) {
-                $message->to($user->email, $user->full_name)->subject(trans('backend::lang.account.password_reset'));
-            });
+            else {
+                Flash::success(trans('backend::lang.account.restore_success'));
+                return Backend::redirect('backend/auth/signin');
+            }
         }
 
         Flash::success(trans('backend::lang.account.restore_success'));
+
+        $code = $user->getResetPasswordCode();
+        $link = Backend::url('backend/auth/reset/' . $user->id . '/' . $code);
+
+        $data = [
+            'name' => $user->full_name,
+            'link' => $link,
+        ];
+
+        Mail::send('backend::mail.restore', $data, function ($message) use ($user) {
+            $message->to($user->email, $user->full_name)->subject(trans('backend::lang.account.password_reset'));
+        });
+
         return Backend::redirect('backend/auth/signin');
     }
 
     /**
-     * reset backend user password using verification code
+     * Reset backend user password using verification code.
      */
     public function reset($userId = null, $code = null)
     {
         try {
-            if ($this->checkPostbackFlag()) {
-                return $this->handleSubmitReset();
+            if (post('postback')) {
+                return $this->reset_onSubmit();
             }
 
             if (!$userId || !$code) {
                 throw new ApplicationException(trans('backend::lang.account.reset_error'));
             }
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             Flash::error($ex->getMessage());
         }
 
@@ -214,9 +223,9 @@ class Auth extends Controller
     }
 
     /**
-     * handleSubmitReset submits the reset form
+     * Submits the reset form.
      */
-    protected function handleSubmitReset()
+    public function reset_onSubmit()
     {
         if (!post('id') || !post('code')) {
             throw new ApplicationException(trans('backend::lang.account.reset_error'));
@@ -234,13 +243,6 @@ class Auth extends Controller
         $code = post('code');
         $user = BackendAuth::findUserById(post('id'));
 
-        if (!$user) {
-            throw new ApplicationException(trans('backend::lang.account.reset_error'));
-        }
-
-        // Validate password against policy
-        $user->validatePasswordPolicy(post('password'));
-
         if (!$user->checkResetPasswordCode($code)) {
             throw new ApplicationException(trans('backend::lang.account.reset_error'));
         }
@@ -251,130 +253,8 @@ class Auth extends Controller
 
         $user->clearResetPassword();
 
-        BackendAuth::clearThrottleForUserId($user->id);
-
         Flash::success(trans('backend::lang.account.reset_success'));
 
         return Backend::redirect('backend/auth/signin');
-    }
-
-    /**
-     * setup will allow a user to create the first admin account
-     */
-    public function setup()
-    {
-        $this->bodyClass = 'setup';
-
-        if (!$this->checkAdminAccounts()) {
-            return Backend::redirect('backend/auth/signin');
-        }
-
-        try {
-            if ($this->checkPostbackFlag()) {
-                return $this->handleSubmitSetup();
-            }
-        }
-        catch (Exception $ex) {
-            Flash::error($ex->getMessage());
-        }
-    }
-
-    /**
-     * handleSubmitSetup creates a new admin
-     */
-    protected function handleSubmitSetup()
-    {
-        if (!$this->checkAdminAccounts()) {
-            return Backend::redirect('backend/auth/signin');
-        }
-
-        // Validate user input
-        $rules = [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|between:6,255|email|unique:backend_users',
-            'login' => 'required|between:2,255|unique:backend_users',
-            'password' => 'required:create|between:4,255|confirmed',
-            'password_confirmation' => 'required_with:password|between:4,255'
-        ];
-
-        $validation = Validator::make(post(), $rules);
-        if ($validation->fails()) {
-            throw new ValidationException($validation);
-        }
-
-        // Validate password against policy
-        (new UserModel)->validatePasswordPolicy(post('password'));
-
-        // Create user and sign in
-        $user = UserModel::createDefaultAdmin(post());
-        BackendAuth::login($user);
-
-        // Redirect
-        Flash::success(__('Welcome to your Administration Area, :name', ['name' => post('first_name')]));
-        return Backend::redirect('backend');
-    }
-
-    /**
-     * migrate shows a progress bar while the database migrates
-     */
-    public function migrate()
-    {
-        $this->bodyClass = 'setup';
-
-        if (!$this->checkAdminAccounts()) {
-            return Backend::redirect('backend/auth/signin');
-        }
-    }
-
-    /**
-     * migrate_onMigrate migrates the database
-     */
-    public function migrate_onMigrate()
-    {
-        if (!$this->checkAdminAccounts()) {
-            return Backend::redirect('backend/auth/signin');
-        }
-
-        try {
-            UpdateManager::instance()->update();
-        }
-        catch (Exception $ex) {
-            Log::error($ex);
-            Flash::error($ex->getMessage());
-        }
-
-        return Backend::redirect('backend/auth/setup');
-    }
-
-    /**
-     * checkPostbackFlag checks to see if the form has been submitted
-     */
-    protected function checkPostbackFlag(): bool
-    {
-        return Request::method() === 'POST' && post('postback');
-    }
-
-    /**
-     * checkAdminAccounts will determine if this is a new installation
-     */
-    protected function checkAdminAccounts(): bool
-    {
-        // Debug mode must be turned on
-        if (!System::checkDebugMode()) {
-            return false;
-        }
-
-        // There must be no admin accounts, with database migrated
-        if (System::hasDatabase() && UserModel::count() > 0) {
-            return false;
-        }
-
-        // Ensures database hasn't fallen over
-        if (!App::hasDatabase()) {
-            return false;
-        }
-
-        return true;
     }
 }

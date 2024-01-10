@@ -3,11 +3,10 @@
 use File;
 use Artisan;
 use Illuminate\Console\Command;
-use System\Classes\PluginManager;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
- * OctoberFresh is a console command to remove boilerplate.
+ * Console command to remove boilerplate.
  *
  * This removes the demo theme and plugin. A great way to start a fresh project!
  *
@@ -19,41 +18,52 @@ class OctoberFresh extends Command
     use \Illuminate\Console\ConfirmableTrait;
 
     /**
-     * @var string name of console command
+     * The console command name.
      */
     protected $name = 'october:fresh';
 
     /**
-     * @var string description of the console command
+     * The console command description.
      */
     protected $description = 'Removes the demo theme and plugin.';
 
     /**
-     * handle executes the console command
+     * Execute the console command.
      */
     public function handle()
     {
         if (!$this->confirmToProceed('Are you sure?')) {
             return;
         }
+        
+        $themeRemoved = false;
+        $pluginRemoved = false;
 
         $demoThemePath = themes_path().'/demo';
-
         if (File::exists($demoThemePath)) {
             File::deleteDirectory($demoThemePath);
-
-            $manager = PluginManager::instance();
-            $manager->deletePlugin('October.Demo');
-
-            $this->info('Demo has been removed! Enjoy a fresh start.');
+            $themeRemoved = true;
         }
-        else {
-            $this->error('Demo theme is already removed.');
+
+        $demoPluginPath = plugins_path().'/october/demo';
+        if (File::exists($demoPluginPath)) {
+            Artisan::call('plugin:remove', ['name' => 'October.Demo', '--force' => true]);
+            $pluginRemoved = true;
+        }
+
+        if ($themeRemoved && $pluginRemoved) {
+            $this->info('Demo theme and plugin have been removed! Enjoy a fresh start.');
+        } elseif ($themeRemoved) {
+            $this->info('Demo theme has been removed! Enjoy a fresh start.');
+        } elseif ($pluginRemoved) {
+            $this->info('Demo plugin has been removed! Enjoy a fresh start.');
+        } else {
+            $this->info('Demo theme and plugin have already been removed.');
         }
     }
 
     /**
-     * getOptions get the console command options
+     * Get the console command options.
      */
     protected function getOptions()
     {

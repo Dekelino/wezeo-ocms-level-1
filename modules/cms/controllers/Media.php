@@ -1,14 +1,13 @@
 <?php namespace Cms\Controllers;
 
-use Backend;
-use Media\Controllers\Index as MediaController;
+use Backend\Controllers\Media as MediaController;
 
 /**
  * CMS Media Manager
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
- * @deprecated Use Media\Controllers\Index. Remove if year >= 2023.
+ * @deprecated Use Backend\Controllers\Media. Remove if year >= 2020.
  */
 class Media extends MediaController
 {
@@ -18,9 +17,6 @@ class Media extends MediaController
     public function __construct()
     {
         traceLog('Controller Cms\Controllers\Media has been deprecated, use ' . MediaController::class . ' instead.');
-
         parent::__construct();
-
-        $this->setResponse(Backend::redirect('media'));
     }
 }

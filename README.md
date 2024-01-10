@@ -6,10 +6,8 @@
 
 October's mission is to show the world that web development is not rocket science.
 
-[![Build Status](https://travis-ci.org/octobercms/october.svg?branch=develop)](https://travis-ci.org/octobercms/october)
-[![License](https://poser.pugx.org/october/october/license.svg)](./LICENSE.md)
-
-> *Please note*: October is open source but it is not free software. A license with a small fee is required for each website you build with October CMS.
+![Stable Build](https://github.com/octobercms/october/workflows/Tests/badge.svg?branch=1.1)
+[![License](https://poser.pugx.org/october/october/license.svg)](https://packagist.org/packages/october/october)
 
 ## Installing October
 
@@ -27,25 +25,13 @@ If you plan on using a database, run this command inside the application directo
 
 ## Learning October
 
-The best place to learn October CMS is by [reading the documentation](https://octobercms.com/docs) or [following some tutorials](https://octobercms.com/support/articles/tutorials).
+The best place to learn October is by [reading the documentation](https://octobercms.com/docs), [watching some screencasts](https://octobercms.com/support/topic/screencast) or [following some tutorials](https://octobercms.com/support/articles/tutorials).
 
-You may also watch this [introductory video](https://www.youtube.com/watch?v=yLZTOeOS7wI). Make sure to check out our [official YouTube channel](https://www.youtube.com/c/OctoberCMSOfficial). There is also the excellent video series by [Watch & Learn](https://watch-learn.com/series/making-websites-with-october-cms).
-
-## Coding Standards
-
-Please follow the following guides and code standards:
-
-* [PSR 4 Coding Standards](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md)
-* [PSR 2 Coding Style Guide](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)
-* [PSR 1 Coding Standards](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md)
-
-## Security Vulnerabilities
-
-Please review [our security policy](https://github.com/octobercms/october/security/policy) on how to report security vulnerabilities.
+You may also watch these introductory videos for [beginners](https://vimeo.com/79963873) and [advanced users](https://vimeo.com/172202661).
 
 ## Development Team
 
-October CMS was created by [Alexey Bobkov](https://www.linkedin.com/in/alexey-bobkov-232ba02b/) and [Samuel Georges](https://www.linkedin.com/in/samuel-georges-0a964131/), who both continue to develop the platform.
+October was created by [Alexey Bobkov](https://www.linkedin.com/in/alexey-bobkov-232ba02b/) and [Samuel Georges](https://www.linkedin.com/in/samuel-georges-0a964131/), who both continue to develop the platform.
 
 ## Foundation library
 
@@ -53,18 +39,37 @@ The CMS uses [Laravel](https://laravel.com) as a foundation PHP framework.
 
 ## Contact
 
-For announcements and updates:
+You can communicate with us using the following mediums:
 
-* [Contact Us Page](http://octoberdev.test/contact)
-* [Follow us on Twitter](https://twitter.com/octobercms)
-* [Like us on Facebook](https://facebook.com/octobercms)
+* [Follow us on Twitter](https://twitter.com/octobercms) for announcements and updates.
+* [Follow us on Facebook](https://facebook.com/octobercms) for announcements and updates.
+* [Join the Official Forum](https://octobercms.com/forum) to engage with the community.
+* [Join us on Discord](https://octobercms.com/chat) to chat with us.
 
-To chat or hang out:
+### Premium Support
 
-* [Join us on Slack](https://octobercms-slack.herokuapp.com/)
-* [Join us on Discord](https://discord.gg/gEKgwSZ)
-* [Join us on Telegram](https://t.me/octoberchat)
+October CMS can provide premium support for a monthly fee. Find out more via the [Premium Support Program](https://octobercms.com/premium-support).
+
+## Contributing
+
+Before sending a Pull Request, be sure to review the [Contributing Guidelines](.github/CONTRIBUTING.md) first. We are currently operating on a smaller staff and it may take some time to reach your issue. For priority issues, consider purchasing a [premium support plan](https://octobercms.com/premium-support).
+
+### Coding standards
+
+Please follow the following guides and code standards:
+
+* [PSR 4 Autoloader](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md)
+* [PSR 2 Coding Style Guide](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)
+* [PSR 1 Coding Standards](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md)
+
+### Code of Conduct
+
+In order to ensure that the October CMS community is welcoming to all, please review and abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
-The October CMS platform is licensed software, see [End User License Agreement](./LICENSE.md) (EULA) for more details.
+The October CMS platform is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Security Vulnerabilities
+
+Please review [our security policy](https://github.com/octobercms/october/security/policy) on how to report security vulnerabilities.

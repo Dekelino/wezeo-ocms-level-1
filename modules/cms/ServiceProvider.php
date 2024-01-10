@@ -1,34 +1,35 @@
 <?php namespace Cms;
 
 use App;
+use Url;
+use Lang;
+use File;
 use Event;
 use Backend;
+use BackendMenu;
 use BackendAuth;
-use Cms\Models\ThemeLog;
-use Cms\Models\ThemeData;
-use Cms\Classes\CmsObject;
-use Cms\Classes\Page as CmsPage;
-use Cms\Classes\ThemeManager;
-use Cms\Classes\CmsObjectCache;
-use Cms\Classes\ComponentManager;
 use Backend\Models\UserRole;
+use Cms\Classes\Theme as CmsTheme;
 use Backend\Classes\WidgetManager;
-use System\Classes\SettingsManager;
 use October\Rain\Support\ModuleServiceProvider;
+use System\Classes\SettingsManager;
+use Cms\Classes\ComponentManager;
+use Cms\Classes\Page as CmsPage;
+use Cms\Classes\CmsObject;
+use Cms\Models\ThemeData;
+use Cms\Models\ThemeLog;
 
-/**
- * ServiceProvider for CMS module
- */
 class ServiceProvider extends ModuleServiceProvider
 {
     /**
-     * register the service provider.
+     * Register the service provider.
+     *
+     * @return void
      */
     public function register()
     {
         parent::register('cms');
 
-        $this->registerConsole();
         $this->registerComponents();
         $this->registerThemeLogging();
         $this->registerCombinerEvents();
@@ -38,46 +39,33 @@ class ServiceProvider extends ModuleServiceProvider
          * Backend specific
          */
         if (App::runningInBackend()) {
+            $this->registerBackendNavigation();
             $this->registerBackendReportWidgets();
             $this->registerBackendPermissions();
             $this->registerBackendWidgets();
             $this->registerBackendSettings();
         }
-
-        CmsObjectCache::flush();
     }
 
     /**
-     * boot the module events.
+     * Bootstrap the module events.
+     *
+     * @return void
      */
     public function boot()
     {
         parent::boot('cms');
 
-        $this->bootEditorEvents();
         $this->bootMenuItemEvents();
         $this->bootRichEditorEvents();
 
         if (App::runningInBackend()) {
-            $this->bootThemesForBackend();
+            $this->bootBackendLocalization();
         }
     }
 
     /**
-     * registerConsole for command line specifics
-     */
-    protected function registerConsole()
-    {
-        $this->registerConsoleCommand('theme.install', \Cms\Console\ThemeInstall::class);
-        $this->registerConsoleCommand('theme.remove', \Cms\Console\ThemeRemove::class);
-        $this->registerConsoleCommand('theme.list', \Cms\Console\ThemeList::class);
-        $this->registerConsoleCommand('theme.use', \Cms\Console\ThemeUse::class);
-        $this->registerConsoleCommand('theme.copy', \Cms\Console\ThemeCopy::class);
-        $this->registerConsoleCommand('theme.check', \Cms\Console\ThemeCheck::class);
-    }
-
-    /**
-     * registerComponents
+     * Register components.
      */
     protected function registerComponents()
     {
@@ -88,7 +76,7 @@ class ServiceProvider extends ModuleServiceProvider
     }
 
     /**
-     * registerThemeLogging on templates
+     * Registers theme logging on templates.
      */
     protected function registerThemeLogging()
     {
@@ -117,13 +105,100 @@ class ServiceProvider extends ModuleServiceProvider
     }
 
     /*
+     * Register navigation
+     */
+    protected function registerBackendNavigation()
+    {
+        BackendMenu::registerCallback(function ($manager) {
+            $manager->registerMenuItems('October.Cms', [
+                'cms' => [
+                    'label'       => 'cms::lang.cms.menu_label',
+                    'icon'        => 'icon-magic',
+                    'iconSvg'     => 'modules/cms/assets/images/cms-icon.svg',
+                    'url'         => Backend::url('cms'),
+                    'order'       => 100,
+                    'permissions' => [
+                        'cms.manage_content',
+                        'cms.manage_assets',
+                        'cms.manage_pages',
+                        'cms.manage_layouts',
+                        'cms.manage_partials'
+                    ],
+                    'sideMenu' => [
+                        'pages' => [
+                            'label'        => 'cms::lang.page.menu_label',
+                            'icon'         => 'icon-copy',
+                            'url'          => 'javascript:;',
+                            'attributes'   => ['data-menu-item' => 'pages'],
+                            'permissions'  => ['cms.manage_pages'],
+                            'counterLabel' => 'cms::lang.page.unsaved_label'
+                        ],
+                        'partials' => [
+                            'label'        => 'cms::lang.partial.menu_label',
+                            'icon'         => 'icon-tags',
+                            'url'          => 'javascript:;',
+                            'attributes'   => ['data-menu-item' => 'partials'],
+                            'permissions'  => ['cms.manage_partials'],
+                            'counterLabel' => 'cms::lang.partial.unsaved_label'
+                        ],
+                        'layouts' => [
+                            'label'        => 'cms::lang.layout.menu_label',
+                            'icon'         => 'icon-th-large',
+                            'url'          => 'javascript:;',
+                            'attributes'   => ['data-menu-item' => 'layouts'],
+                            'permissions'  => ['cms.manage_layouts'],
+                            'counterLabel' => 'cms::lang.layout.unsaved_label'
+                        ],
+                        'content' => [
+                            'label'        => 'cms::lang.content.menu_label',
+                            'icon'         => 'icon-file-text-o',
+                            'url'          => 'javascript:;',
+                            'attributes'   => ['data-menu-item' => 'content'],
+                            'permissions'  => ['cms.manage_content'],
+                            'counterLabel' => 'cms::lang.content.unsaved_label'
+                        ],
+                        'assets' => [
+                            'label'        => 'cms::lang.asset.menu_label',
+                            'icon'         => 'icon-picture-o',
+                            'url'          => 'javascript:;',
+                            'attributes'   => ['data-menu-item' => 'assets'],
+                            'permissions'  => ['cms.manage_assets'],
+                            'counterLabel' => 'cms::lang.asset.unsaved_label'
+                        ],
+                        'components' => [
+                            'label'       => 'cms::lang.component.menu_label',
+                            'icon'        => 'icon-puzzle-piece',
+                            'url'         => 'javascript:;',
+                            'attributes'  => ['data-menu-item' => 'components'],
+                            'permissions' => ['cms.manage_pages', 'cms.manage_layouts', 'cms.manage_partials']
+                        ]
+                    ]
+                ]
+            ]);
+
+            $manager->registerQuickActions('October.Cms', [
+                'preview' => [
+                    'label'      => 'backend::lang.tooltips.preview_website',
+                    'icon'       => 'icon-crosshairs',
+                    'url'        => Url::to('/'),
+                    'order'      => 10,
+                    'attributes' => [
+                        'target' => '_blank',
+                        'rel'    => 'noopener noreferrer',
+                    ],
+                ],
+            ]);
+        });
+    }
+
+    /*
      * Register report widgets
      */
     protected function registerBackendReportWidgets()
     {
         WidgetManager::instance()->registerReportWidgets(function ($manager) {
             $manager->registerReportWidget(\Cms\ReportWidgets\ActiveTheme::class, [
-                'label' => 'cms::lang.dashboard.active_theme.widget_title_default',
+                'label'   => 'cms::lang.dashboard.active_theme.widget_title_default',
                 'context' => 'dashboard'
             ]);
         });
@@ -181,14 +256,13 @@ class ServiceProvider extends ModuleServiceProvider
         });
     }
 
-    /**
-     * registerBackendWidgets
+    /*
+     * Register widgets
      */
     protected function registerBackendWidgets()
     {
-        // @deprecated
         WidgetManager::instance()->registerFormWidgets(function ($manager) {
-            $manager->registerFormWidget(\Cms\FormWidgets\Components::class);
+            $manager->registerFormWidget(FormWidgets\Components::class);
         });
     }
 
@@ -200,35 +274,53 @@ class ServiceProvider extends ModuleServiceProvider
         SettingsManager::instance()->registerCallback(function ($manager) {
             $manager->registerSettingItems('October.Cms', [
                 'theme' => [
-                    'label' => 'cms::lang.theme.settings_menu',
+                    'label'       => 'cms::lang.theme.settings_menu',
                     'description' => 'cms::lang.theme.settings_menu_description',
-                    'category' => SettingsManager::CATEGORY_CMS,
-                    'icon' => 'octo-icon-text-image',
-                    'url' => Backend::url('cms/themes'),
+                    'category'    => SettingsManager::CATEGORY_CMS,
+                    'icon'        => 'icon-picture-o',
+                    'url'         => Backend::url('cms/themes'),
                     'permissions' => ['cms.manage_themes', 'cms.manage_theme_options'],
-                    'order' => 200
+                    'order'       => 200
                 ],
                 'maintenance_settings' => [
-                    'label' => 'cms::lang.maintenance.settings_menu',
+                    'label'       => 'cms::lang.maintenance.settings_menu',
                     'description' => 'cms::lang.maintenance.settings_menu_description',
-                    'category' => SettingsManager::CATEGORY_CMS,
-                    'icon' => 'octo-icon-power',
-                    'class' => \Cms\Models\MaintenanceSetting::class,
+                    'category'    => SettingsManager::CATEGORY_CMS,
+                    'icon'        => 'icon-plug',
+                    'class'       => Models\MaintenanceSetting::class,
                     'permissions' => ['cms.manage_themes'],
-                    'order' => 300
+                    'order'       => 300
                 ],
                 'theme_logs' => [
-                    'label' => 'cms::lang.theme_log.menu_label',
+                    'label'       => 'cms::lang.theme_log.menu_label',
                     'description' => 'cms::lang.theme_log.menu_description',
-                    'category' => SettingsManager::CATEGORY_LOGS,
-                    'icon' => 'icon-magic',
-                    'url' => Backend::url('cms/themelogs'),
+                    'category'    => SettingsManager::CATEGORY_LOGS,
+                    'icon'        => 'icon-magic',
+                    'url'         => Backend::url('cms/themelogs'),
                     'permissions' => ['system.access_logs'],
-                    'order' => 910,
-                    'keywords' => 'theme change log'
+                    'order'       => 910,
+                    'keywords'    => 'theme change log'
                 ]
             ]);
         });
+    }
+
+    /**
+     * Boots localization from an active theme for backend items.
+     */
+    protected function bootBackendLocalization()
+    {
+        $theme = CmsTheme::getActiveTheme();
+
+        if (is_null($theme)) {
+            return;
+        }
+
+        $langPath = $theme->getPath() . '/lang';
+
+        if (File::isDirectory($langPath)) {
+            Lang::addNamespace('themes.' . $theme->getId(), $langPath);
+        }
     }
 
     /**
@@ -274,36 +366,18 @@ class ServiceProvider extends ModuleServiceProvider
     }
 
     /**
-     * bootThemesForBackend localization from an active theme for backend items.
-     */
-    protected function bootThemesForBackend()
-    {
-        ThemeManager::instance()->bootAllBackend();
-    }
-
-    /**
      * Registers the models to be made available to the theme database layer
      */
     protected function registerHalcyonModels()
     {
         Event::listen('system.console.theme.sync.getAvailableModelClasses', function () {
             return [
-                \Cms\Classes\Meta::class,
-                \Cms\Classes\Page::class,
-                \Cms\Classes\Layout::class,
-                \Cms\Classes\Content::class,
-                \Cms\Classes\Partial::class
+                Classes\Meta::class,
+                Classes\Page::class,
+                Classes\Layout::class,
+                Classes\Content::class,
+                Classes\Partial::class
             ];
-        });
-    }
-
-    /**
-     * Handle Editor events
-     */
-    protected function bootEditorEvents()
-    {
-        Event::listen('editor.extension.register', function () {
-            return \Cms\Classes\EditorExtension::class;
         });
     }
 }

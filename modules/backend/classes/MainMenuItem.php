@@ -1,63 +1,75 @@
 <?php namespace Backend\Classes;
 
-use October\Rain\Element\Navigation\ItemDefinition;
 use October\Rain\Exception\SystemException;
 
 /**
- * MainMenuItem
+ * Class MainMenuItem
  *
- * @package october\backend
- * @author Alexey Bobkov, Samuel Georges
+ * @package Backend\Classes
  */
-class MainMenuItem extends ItemDefinition
+class MainMenuItem
 {
     /**
-     * @var string owner
+     * @var string
+     */
+    public $code;
+
+    /**
+     * @var string
      */
     public $owner;
 
     /**
-     * @var null|string iconSvg
+     * @var string
+     */
+    public $label;
+
+    /**
+     * @var null|string
+     */
+    public $icon;
+
+    /**
+     * @var null|string
      */
     public $iconSvg;
 
     /**
-     * @var mixed counter
+     * @var mixed
      */
     public $counter;
 
     /**
-     * @var null|string counterLabel
+     * @var null|string
      */
     public $counterLabel;
 
     /**
-     * @var array permissions
+     * @var null|string
+     */
+     public $badge;
+
+    /**
+     * @var string
+     */
+    public $url;
+
+    /**
+     * @var array
      */
     public $permissions = [];
 
     /**
-     * @var SideMenuItem[] sideMenu
+     * @var int
+     */
+    public $order = 500;
+
+    /**
+     * @var SideMenuItem[]
      */
     public $sideMenu = [];
 
     /**
-     * evalConfig
-     */
-    protected function evalConfig($config): void
-    {
-        parent::evalConfig($config);
-
-        $this->owner = $config['owner'] ?? $this->owner;
-        $this->iconSvg = $config['iconSvg'] ?? $this->iconSvg;
-        $this->counter = $config['counter'] ?? $this->counter;
-        $this->counterLabel = $config['counterLabel'] ?? $this->counterLabel;
-        $this->permissions = $config['permissions'] ?? $this->permissions;
-        $this->order = $config['order'] ?? 500;
-    }
-
-    /**
-     * addPermission
      * @param string $permission
      * @param array $definition
      */
@@ -67,7 +79,6 @@ class MainMenuItem extends ItemDefinition
     }
 
     /**
-     * addSideMenuItem
      * @param SideMenuItem $sideMenu
      */
     public function addSideMenuItem(SideMenuItem $sideMenu)
@@ -76,7 +87,6 @@ class MainMenuItem extends ItemDefinition
     }
 
     /**
-     * getSideMenuItem
      * @param string $code
      * @return SideMenuItem
      * @throws SystemException
@@ -91,11 +101,31 @@ class MainMenuItem extends ItemDefinition
     }
 
     /**
-     * removeSideMenuItem
      * @param string $code
      */
     public function removeSideMenuItem(string $code)
     {
         unset($this->sideMenu[$code]);
+    }
+
+    /**
+     * @param array $data
+     * @return static
+     */
+    public static function createFromArray(array $data)
+    {
+        $instance = new static();
+        $instance->code = $data['code'];
+        $instance->owner = $data['owner'];
+        $instance->label = $data['label'];
+        $instance->url = $data['url'];
+        $instance->icon = $data['icon'] ?? null;
+        $instance->iconSvg = $data['iconSvg'] ?? null;
+        $instance->counter = $data['counter'] ?? null;
+        $instance->counterLabel = $data['counterLabel'] ?? null;
+        $instance->badge = $data['badge'] ?? null;
+        $instance->permissions = $data['permissions'] ?? $instance->permissions;
+        $instance->order = $data['order'] ?? $instance->order;
+        return $instance;
     }
 }

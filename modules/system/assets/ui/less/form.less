@@ -26,11 +26,10 @@
     background: white;
     border: 1px solid #eee;
 
-    > .form-group:last-child {
+    >.form-group:last-child {
         padding-bottom: 0;
 
-        .radio,
-        .checkbox {
+        .radio, .checkbox {
             margin-bottom: 0;
         }
     }
@@ -42,12 +41,9 @@
 
     // Style primary tabs
     .control-tabs.primary-tabs {
-        > ul.nav-tabs,
-        > div > ul.nav-tabs,
-        > div > div > ul.nav-tabs {
+        > ul.nav-tabs, > div > ul.nav-tabs, > div > div > ul.nav-tabs {
             > li a > span.title {
-                &:before,
-                &:after {
+                &:before, &:after {
                     background: white;
                 }
             }
@@ -64,8 +60,7 @@
 // Nice forms
 //
 
-.form-elements,
-.form-tabless-fields {
+.form-elements, .form-tabless-fields {
     .clearfix();
 }
 
@@ -73,7 +68,7 @@
     position: relative;
     -webkit-appearance: none;
     border: 1px solid @input-border;
-    .box-shadow(none);
+    .box-shadow(@input-box-shadow);
 
     &:focus {
         border: 1px solid @color-form-field-border-focus;
@@ -85,25 +80,16 @@
         padding-right: 30px !important;
         background-image: url('@{image-path}/bitmap-icons.png');
 
-        &.plus {
-            background-position: right -124px;
-        }
-        &.search {
-            background-position: right -84px;
-        }
-        &.user {
-            background-position: right -41px;
-        }
-        &.lock {
-            background-position: right 0;
-        }
+        &.plus { background-position: right -124px; }
+        &.search { background-position: right -84px; }
+        &.user { background-position: right -41px; }
+        &.lock { background-position: right 0; }
     }
 
     &.growable {
         width: 110px;
         //.transition(width 0.2s);
-        &:focus,
-        &:active {
+        &:focus, &:active {
             width: 200px !important;
         }
 
@@ -111,8 +97,7 @@
             width: 40px;
             text-indent: -999px;
 
-            &:focus,
-            &:active {
+            &:focus, &:active {
                 text-indent: 0;
                 width: 100px !important;
             }
@@ -124,22 +109,6 @@
     }
 }
 
-.search-input-container {
-    position: relative;
-
-    &:before {
-        position: absolute;
-        right: 3px;
-        top: 3px;
-        width: 16px;
-        height: 16px;
-        background-position: 0 -38px;
-        z-index: 1;
-        right: 8px;
-        top: 9px;
-    }
-}
-
 .form-group {
     position: relative;
 
@@ -147,8 +116,7 @@
         display: none;
     }
 
-    &,
-    &.layout-item {
+    &, &.layout-item {
         padding-bottom: @padding-standard;
         margin-bottom: 0;
     }
@@ -208,18 +176,16 @@
     }
 
     &.number-field {
-        > .form-control {
-            text-align: right;
-        }
+        > .form-control { text-align: right; }
     }
 
     &.radio-align {
-        padding-left: 23px;
+        padding-left: 28px;
         margin-top: -20px;
     }
 
     &.checkbox-align {
-        padding-left: 23px;
+        padding-left: 28px;
         margin-top: -5px;
     }
 
@@ -228,8 +194,7 @@
     }
 
     &.field-slim {
-        &.span-left,
-        &.span-right {
+        &.span-left, &.span-right {
             width: 50%;
         }
     }
@@ -247,8 +212,7 @@
             top: 34px;
             font-size: 16px;
             color: @color-input-sidebar-control;
-            &:hover,
-            &:focus {
+            &:hover, &:focus {
                 text-decoration: none;
                 color: @link-color;
                 outline: none;
@@ -258,6 +222,7 @@
 }
 
 .form-group-preview {
+
     .form-control {
         background-color: @color-form-field-preview-bg;
         color: @color-form-field-preview-text;
@@ -270,18 +235,16 @@
 
     .custom-checkbox,
     .custom-radio {
-        label {
-            cursor: default;
-        }
+        label { cursor: default; }
     }
 }
 
 .help-block {
-    font-size: @font-size-base;
+    font-size: @font-size-base - 1;
     margin-bottom: 0;
     &.before-field {
         margin-top: 0;
-        margin-bottom: 10px;
+        margin-bottom: 17px;
     }
 }
 
@@ -299,21 +262,13 @@
     }
 
     &.right-align {
-        > .icon {
-            right: 0;
-        }
-        input {
-            padding-right: 32px !important;
-        }
+        > .icon { right: 0; }
+        input { padding-right: 32px !important; }
     }
 
     &.left-align {
-        > .icon {
-            left: 0;
-        }
-        input {
-            padding-left: 32px !important;
-        }
+        > .icon { left: 0; }
+        input { padding-left: 32px !important; }
     }
 }
 
@@ -323,7 +278,7 @@
     padding-bottom: 7px;
 
     > h4 {
-        color: @color-grey-1;
+        color: rgba(0,0,0,.6);
     }
 
     > p:first-child,
@@ -344,7 +299,7 @@
             font-size: 12px;
             margin: 2px 8px 0;
             float: right;
-            color: rgba(0, 0, 0, .4);
+            color: rgba(0,0,0,.4);
             .transition(all 0.3s);
             .scaleAxes(1, 1);
         }
@@ -358,61 +313,24 @@
     }
 }
 
-.field-action {
-    border-bottom: 1px solid @color-form-field-border;
-    padding: 10px 0 5px;
-    margin-top: -20px;
-
-    h5 {
-        margin-bottom: 5px;
-    }
-
-    p {
-        color: @color-help-block-text;
-    }
-
-    .field-action-button {
-        margin-top: 15px;
-        margin-bottom: 10px;
-
-        @media (min-width: 992px) {
-            text-align: right;
-        }
-    }
-}
-
 .form-group.section-field.collapsed {
     .field-section.is-collapsible > h4:before {
         .scaleAxes(1, -1);
     }
 }
 
-.field-horizontalrule hr {
-    margin: 10px 0;
-}
-
 .field-textarea {
     resize: vertical;
-    &.size-tiny {
-        min-height: @size-tiny;
-    }
-    &.size-small {
-        min-height: @size-small;
-    }
-    &.size-large {
-        min-height: @size-large;
-    }
-    &.size-huge {
-        min-height: @size-huge;
-    }
-    &.size-giant {
-        min-height: @size-giant;
-    }
+    &.size-tiny { min-height: @size-tiny; }
+    &.size-small { min-height: @size-small; }
+    &.size-large { min-height: @size-large; }
+    &.size-huge { min-height: @size-huge; }
+    &.size-giant { min-height: @size-giant; }
 }
 
 .field-checkboxlist {
     .field-checkboxlist-inner {
-        border-radius: @border-radius-base;
+        .border-radius(@border-radius-base);
         background: @color-form-checkboxlist-background;
         border: 1px solid @color-form-checkboxlist-border;
     }
@@ -424,19 +342,30 @@
     }
 
     .checkboxlist-controls {
-        padding: 3px;
-        font-size: 0;
-        white-space: nowrap;
-        background: white;
-        border-top: 1px solid @color-form-checkboxlist-border;
-        border-left: 1px solid @color-form-checkboxlist-border;
-        border-right: 1px solid @color-form-checkboxlist-border;
-        border-top-left-radius: @border-radius-base;
-        border-top-right-radius: @border-radius-base;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -webkit-box-align: baseline;
+        -ms-flex-align: baseline;
+        align-items: baseline;
+        > div {
+            padding-bottom: 7px;
 
-        + .field-checkboxlist-inner {
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
+            > a {
+                font-size: 13px;
+                margin-right: 20px;
+                text-decoration: none;
+                > i {
+                    color: @text-muted;
+                    margin: 0 4px;
+                }
+
+                &:hover > i {
+                    color: @color-label;
+                }
+            }
         }
     }
 }
@@ -452,9 +381,7 @@
     }
 
     // All others
-    .checkbox ~ .checkbox {
-        margin-top: 0;
-    }
+    .checkbox ~ .checkbox { margin-top: 0; }
 }
 
 .field-recordfinder {
@@ -484,25 +411,12 @@
         height: 88px;
         color: lighten(@color-form-field-recordfinder-btn, 15%);
         text-shadow: none;
-        padding-left: 0;
+        padding-left: 15px;
         padding-right: 15px;
 
         &.clear-record {
-            right: 37px;
+            right: 30px;
             margin-top: -44px;
-            padding-left: 0;
-            padding-right: 0;
-
-            i:before {
-                width: 16px;
-                height: 16px;
-                background-position: -17px -37px;
-                display: block;
-            }
-
-            &:hover i:before {
-                background-position: -32px -37px;
-            }
         }
 
         i {
@@ -520,19 +434,15 @@
         display: inline-block;
         margin: 0 2px;
     }
+    .primary {
+        font-weight: 600;
+    }
 }
 
 .recordfinder-list {
-    border-top: 1px solid @color-form-field-border;
-
     .list-footer {
         padding-top: 0;
         padding-bottom: 0;
-    }
-
-    .search-input-container:before {
-        top: 12px;
-        right: 12px;
     }
 }
 
@@ -542,7 +452,7 @@
     border-left: none !important;
     border-right: none !important;
     border-radius: 0;
-    padding-left: 22px;
+    padding-left: 20px;
 }
 
 .form-buttons {
@@ -584,8 +494,7 @@ body.slim-container {
 
 @media (max-width: @form-breakpoint-max) {
     .form-group {
-        &.span-left,
-        &.span-right {
+        &.span-left, &.span-right {
             width: 100%;
             clear: none;
         }
@@ -614,8 +523,7 @@ body.slim-container {
         margin-right: 15px;
     }
 
-    input[type=text].form-control,
-    label {
+    input[type=text].form-control, label {
         position: relative;
         top: 5px;
     }

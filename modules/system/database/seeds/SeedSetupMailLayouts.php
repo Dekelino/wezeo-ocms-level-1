@@ -3,9 +3,6 @@
 use Seeder;
 use System\Models\MailLayout;
 
-/**
- * SeedSetupMailLayouts
- */
 class SeedSetupMailLayouts extends Seeder
 {
     public function run()

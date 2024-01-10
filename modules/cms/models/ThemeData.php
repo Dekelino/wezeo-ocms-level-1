@@ -2,15 +2,13 @@
 
 use Lang;
 use Model;
-use Event;
-use October\Rain\Html\Helper as HtmlHelper;
 use Cms\Classes\Theme as CmsTheme;
 use System\Classes\CombineAssets;
-use System\Models\File;
 use Exception;
+use System\Models\File;
 
 /**
- * ThemeData for theme customization
+ * Customization data used by a theme
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
@@ -25,47 +23,38 @@ class ThemeData extends Model
     public $table = 'cms_theme_data';
 
     /**
-     * @var array guarded fields
+     * @var array Guarded fields
      */
     protected $guarded = [];
 
     /**
-     * @var array fillable fields
+     * @var array Fillable fields
      */
     protected $fillable = [];
 
     /**
-     * @var array jsonable attribute names that are json encoded and decoded from the database
+     * @var array List of attribute names which are json encoded and decoded from the database.
      */
     protected $jsonable = ['data'];
 
     /**
-     * @var array rules to be applied to the data.
+     * @var array The rules to be applied to the data.
      */
     public $rules = [];
 
     /**
-     * @var array customMessages to be applied to the data.
-     */
-    public $customMessages = [];
-
-    /**
-     * @var array attributeNames to be applied to the data.
-     */
-    public $attributeNames = [];
-
-    /**
-     * @var array attachOne relations
+     * @var array Relations
      */
     public $attachOne = [];
 
     /**
-     * @var ThemeData instances of cached objects
+     * @var ThemeData Cached array of objects
      */
     protected static $instances = [];
 
     /**
-     * beforeSave the model, strip dynamic attributes applied from config.
+     * Before saving the model, strip dynamic attributes applied from config.
+     * @return void
      */
     public function beforeSave()
     {
@@ -80,7 +69,7 @@ class ThemeData extends Model
     }
 
     /**
-     * afterSave clears asset cache after saving to ensure `assetVar` form fields take
+     * Clear asset cache after saving to ensure `assetVar` form fields take
      * immediate effect.
      */
     public function afterSave()
@@ -93,9 +82,11 @@ class ThemeData extends Model
     }
 
     /**
-     * forTheme returns a cached version of this model, based on a Theme object
+     * Returns a cached version of this model, based on a Theme object.
+     * @param $theme Cms\Classes\Theme
+     * @return self
      */
-    public static function forTheme(CmsTheme $theme): ThemeData
+    public static function forTheme($theme)
     {
         $dirName = $theme->getDirName();
         if ($themeData = array_get(self::$instances, $dirName)) {
@@ -103,41 +94,51 @@ class ThemeData extends Model
         }
 
         try {
-            $themeData = static::createThemeDataModel()->firstOrCreate(['theme' => $dirName]);
+            $themeData = self::firstOrCreate(['theme' => $dirName]);
         }
         catch (Exception $ex) {
             // Database failed
-            $themeData = static::createThemeDataModel(['theme' => $dirName]);
+            $themeData = new self(['theme' => $dirName]);
         }
-
-        $themeData->initFormFields();
 
         return self::$instances[$dirName] = $themeData;
     }
 
     /**
-     * afterFetch the model, intiialize model relationships based on form field definitions.
+     * After fetching the model, intiialize model relationships based
+     * on form field definitions.
+     * @return void
      */
     public function afterFetch()
     {
-        $this->initFormFields();
-
-        // Fill this model with the jsonable attributes kept in 'data' and
-        // purge the relations that don't need to exist as local attributes
         $data = (array) $this->data + $this->getDefaultValues();
 
-        $toPurge = ['fileupload'];
+        /*
+         * Repeater form fields store arrays and must be jsonable.
+         */
         foreach ($this->getFormFields() as $id => $field) {
-            if (isset($field['type']) && in_array($field['type'], $toPurge)) {
+            if (!isset($field['type'])) {
+                continue;
+            }
+
+            if ($field['type'] === 'repeater') {
+                $this->jsonable[] = $id;
+            }
+            elseif ($field['type'] === 'fileupload') {
+                $this->attachOne[$id] = File::class;
                 unset($data[$id]);
             }
         }
 
+        /*
+         * Fill this model with the jsonable attributes kept in 'data'.
+         */
         $this->setRawAttributes((array) $this->getAttributes() + $data, true);
     }
 
     /**
-     * beforeValidate set the default values.
+     * Before model is validated, set the default values.
+     * @return void
      */
     public function beforeValidate()
     {
@@ -147,37 +148,14 @@ class ThemeData extends Model
     }
 
     /**
-     * initFormFields sets relations and others based on field definitions.
+     * Creates relationships for this model based on form field definitions.
      */
     public function initFormFields()
     {
-        foreach ($this->getFormFields() as $id => $field) {
-            if (strpos($id, '[') !== false) {
-                $idSeg = HtmlHelper::nameToArray($id)[0];
-                if (!$this->isJsonable($idSeg)) {
-                    $this->addJsonable($idSeg);
-                }
-
-                continue;
-            }
-
-            if (!isset($field['type'])) {
-                continue;
-            }
-
-            if (in_array($field['type'], ['repeater', 'nestedform'])) {
-                if (!$this->isJsonable($id)) {
-                    $this->addJsonable($id);
-                }
-            }
-            elseif ($field['type'] === 'fileupload') {
-                $this->attachOne[$id] = File::class;
-            }
-        }
     }
 
     /**
-     * setDefaultValues on this model based on form field definitions.
+     * Sets default values on this model based on form field definitions.
      */
     public function setDefaultValues()
     {
@@ -187,7 +165,7 @@ class ThemeData extends Model
     }
 
     /**
-     * getDefaultValues for this model based on form field definitions.
+     * Gets default values for this model based on form field definitions.
      * @return array
      */
     public function getDefaultValues()
@@ -206,7 +184,7 @@ class ThemeData extends Model
     }
 
     /**
-     * getFormFields defined for this model, based on form field definitions.
+     * Returns all fields defined for this model, based on form field definitions.
      * @return array
      */
     public function getFormFields()
@@ -223,7 +201,7 @@ class ThemeData extends Model
     }
 
     /**
-     * getAssetVariables returns variables that should be passed to the asset combiner.
+     * Returns variables that should be passed to the asset combiner.
      * @return array
      */
     public function getAssetVariables()
@@ -242,7 +220,8 @@ class ThemeData extends Model
     }
 
     /**
-     * applyAssetVariablesToCombinerFilters that support it
+     * Applies asset variables to the combiner filters that support it.
+     * @return void
      */
     public static function applyAssetVariablesToCombinerFilters($filters)
     {
@@ -266,8 +245,7 @@ class ThemeData extends Model
     }
 
     /**
-     * getCombinerCacheKey generates a cache key for the combiner, this allows variables to
-     * bust the cache.
+     * Generate a cache key for the combiner, this allows variables to bust the cache.
      * @return string
      */
     public static function getCombinerCacheKey()
@@ -280,29 +258,5 @@ class ThemeData extends Model
         $customData = $theme->getCustomData();
 
         return (string) $customData->updated_at ?: '';
-    }
-
-    /**
-     * createThemeDataModel is an opportunity to override the theme data model
-     */
-    public static function createThemeDataModel(array $attributes = []): ThemeData
-    {
-        /**
-         * @event cms.theme.createThemeDataModel
-         * Overrides the theme data model used by the system, which must inherit the main model
-         *
-         * Example usage:
-         *
-         *     Event::listen('cms.theme.createThemeDataModel', function (array $attributes) {
-         *         return new MyCustomThemeDataModel($attributes);
-         *     });
-         */
-        if ($newModel = Event::fire('cms.theme.createThemeDataModel', [$attributes], true)) {
-            if ($newModel instanceof ThemeData) {
-                return $newModel;
-            }
-        }
-
-        return new static($attributes);
     }
 }

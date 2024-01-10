@@ -8,6 +8,7 @@ class DbSystemMailPartials extends Migration
     public function up()
     {
         Schema::create('system_mail_partials', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->increments('id');
             $table->string('name')->nullable();
             $table->string('code')->nullable();

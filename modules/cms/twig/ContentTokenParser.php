@@ -6,7 +6,7 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 use Twig\Error\SyntaxError as TwigErrorSyntax;
 
 /**
- * ContentTokenParser for the `{% content %}` Twig tag.
+ * Parser for the `{% content %}` Twig tag.
  *
  *     {% content "intro.htm" %}
  *
@@ -20,7 +20,9 @@ use Twig\Error\SyntaxError as TwigErrorSyntax;
 class ContentTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
      * @return TwigNode A TwigNode instance
      */
     public function parse(TwigToken $token)
@@ -61,7 +63,8 @@ class ContentTokenParser extends TwigTokenParser
     }
 
     /**
-     * getTag name associated with this token parser.
+     * Gets the tag name associated with this token parser.
+     *
      * @return string The tag name
      */
     public function getTag()

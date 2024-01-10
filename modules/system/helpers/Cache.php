@@ -5,20 +5,12 @@ use File;
 use Cache as CacheFacade;
 use Config;
 
-/**
- * Cache helper
- *
- * @method static Cache instance()
- *
- * @package october\system
- * @author Alexey Bobkov, Samuel Georges
- */
 class Cache
 {
     use \October\Rain\Support\Traits\Singleton;
 
     /**
-     * clear from the console command
+     * Execute the console command.
      */
     public static function clear()
     {
@@ -26,24 +18,21 @@ class Cache
         self::clearInternal();
     }
 
-    /**
-     * clearInternal
-     */
     public static function clearInternal()
     {
         $instance = self::instance();
         $instance->clearCombiner();
         $instance->clearCache();
 
-        if (Config::get('cms.enable_twig_cache', true)) {
+        if (!Config::get('cms.twigNoCache')) {
             $instance->clearTwig();
         }
 
         $instance->clearMeta();
     }
 
-    /**
-     * clearCombiner
+    /*
+     * Combiner
      */
     public function clearCombiner()
     {
@@ -52,8 +41,8 @@ class Cache
         }
     }
 
-    /**
-     * clearCache
+    /*
+     * Cache
      */
     public function clearCache()
     {
@@ -62,8 +51,8 @@ class Cache
         }
     }
 
-    /**
-     * clearTwig
+    /*
+     * Twig
      */
     public function clearTwig()
     {
@@ -72,23 +61,13 @@ class Cache
         }
     }
 
-    /**
-     * clearMeta
+    /*
+     * Meta
      */
     public function clearMeta()
     {
         File::delete(storage_path().'/cms/disabled.json');
-
-        File::delete(App::getCachedClassesPath());
-
         File::delete(App::getCachedCompilePath());
-
-        File::delete(App::getCachedConfigPath());
-
         File::delete(App::getCachedServicesPath());
-
-        File::delete(App::getCachedPackagesPath());
-
-        File::delete(App::getCachedRoutesPath());
     }
 }

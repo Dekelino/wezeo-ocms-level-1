@@ -1,7 +1,7 @@
 /*
  * The loading indicator.
  *
- * The load indicator DIV is injected inside its container. The container should have
+ * The load indicator DIV is injected inside its container. The container should have 
  * the relative position (use the loading-indicator-container class for it).
  *
  * Used with framework.js
@@ -20,51 +20,51 @@
 +function ($) { "use strict";
 
     var LoadIndicator = function (element, options) {
-        this.$el = $(element);
 
-        this.options = options || {};
-        this.tally = 0;
-        this.show();
+        this.$el = $(element)
+
+        this.options = options || {}
+        this.tally = 0
+        this.show()
     }
 
     LoadIndicator.prototype.hide = function() {
-        this.tally--;
+        this.tally--
 
         if (this.tally <= 0) {
-            $('div.loading-indicator', this.$el).remove();
-            this.$el.removeClass('in-progress');
+            $('div.loading-indicator', this.$el).remove()
+            this.$el.removeClass('in-progress')
         }
     }
 
     LoadIndicator.prototype.show = function(options) {
-        if (options) {
-            this.options = options;
-        }
+        if (options)
+            this.options = options
 
-        this.hide();
+        this.hide()
 
-        var indicator = $('<div class="loading-indicator"></div>');
-        indicator.append($('<div></div>').text(this.options.text));
-        indicator.append($('<span></span>'));
+        var indicator = $('<div class="loading-indicator"></div>')
+        indicator.append($('<div></div>').text(this.options.text))
+        indicator.append($('<span></span>'))
         if (this.options.opaque !== undefined) {
-            indicator.addClass('is-opaque');
+            indicator.addClass('is-opaque')
         }
         if (this.options.centered !== undefined) {
-            indicator.addClass('indicator-center');
+            indicator.addClass('indicator-center')
         }
         if (this.options.size === 'small') {
-            indicator.addClass('size-small');
+            indicator.addClass('size-small')
         }
 
-        this.$el.prepend(indicator);
-        this.$el.addClass('in-progress');
+        this.$el.prepend(indicator)
+        this.$el.addClass('in-progress')
 
-        this.tally++;
+        this.tally++
     }
 
     LoadIndicator.prototype.destroy = function() {
-        this.$el.removeData('oc.loadIndicator');
-        this.$el = null;
+        this.$el.removeData('oc.loadIndicator')
+        this.$el = null
     }
 
     LoadIndicator.DEFAULTS = {
@@ -74,7 +74,7 @@
     // LOADINDICATOR PLUGIN DEFINITION
     // ============================
 
-    var old = $.fn.loadIndicator;
+    var old = $.fn.loadIndicator
 
     $.fn.loadIndicator = function (option) {
         var args = arguments;
@@ -85,36 +85,32 @@
             var options = $.extend({}, LoadIndicator.DEFAULTS, typeof option == 'object' && option)
 
             if (!data) {
-                if (typeof option == 'string') {
+                if (typeof option == 'string')
                     return;
-                }
 
-                $this.data('oc.loadIndicator', (data = new LoadIndicator(this, options)));
-            }
-            else {
-                if (typeof option !== 'string') {
+                $this.data('oc.loadIndicator', (data = new LoadIndicator(this, options)))
+            } else {
+                if (typeof option !== 'string')
                     data.show(options);
-                }
                 else {
                     var methodArgs = [];
-                    for (var i=1; i<args.length; i++) {
-                        methodArgs.push(args[i]);
-                    }
+                    for (var i=1; i<args.length; i++)
+                        methodArgs.push(args[i])
 
-                    data[option].apply(data, methodArgs);
+                    data[option].apply(data, methodArgs)
                 }
             }
-        });
+        })
     }
 
-    $.fn.loadIndicator.Constructor = LoadIndicator;
+    $.fn.loadIndicator.Constructor = LoadIndicator
 
     // LOADINDICATOR NO CONFLICT
     // =================
 
     $.fn.loadIndicator.noConflict = function () {
-        $.fn.loadIndicator = old;
-        return this;
+        $.fn.loadIndicator = old
+        return this
     }
 
     // LOADINDICATOR DATA-API
@@ -129,16 +125,16 @@
                     opaque: $(this).data('load-indicator-opaque'),
                     centered: $(this).data('load-indicator-centered'),
                     size: $(this).data('load-indicator-size')
-                };
-
-                if (loadingText) {
-                    options.text = loadingText;
                 }
 
-            indicatorContainer.loadIndicator(options);
+                if (loadingText)
+                    options.text = loadingText
+
+            indicatorContainer.loadIndicator(options)
         })
         .on('ajaxFail ajaxDone', '[data-load-indicator]', function() {
-            $(this).closest('.loading-indicator-container').loadIndicator('hide');
-        });
+            $(this).closest('.loading-indicator-container').loadIndicator('hide')
+        })
+
 
 }(window.jQuery);

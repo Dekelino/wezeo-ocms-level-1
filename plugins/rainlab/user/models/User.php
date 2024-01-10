@@ -9,8 +9,8 @@ use Carbon\Carbon;
 use October\Rain\Auth\Models\User as UserBase;
 use RainLab\User\Models\Settings as UserSettings;
 use October\Rain\Auth\AuthException;
-use Tymon\JWTAuth\Contracts\JWTSubject;
-class User extends UserBase implements JWTSubject
+
+class User extends UserBase
 {
     use \October\Rain\Database\Traits\SoftDelete;
 
@@ -34,11 +34,7 @@ class User extends UserBase implements JWTSubject
      * @var array Relations
      */
     public $belongsToMany = [
-        'groups' => [UserGroup::class, 'table' => 'users_groups'],
-    ];
-
-    public $hasMany = [
-        'arrivals' => ['App\Arrival\Models\Arrival', 'key' => 'user_id'],
+        'groups' => [UserGroup::class, 'table' => 'users_groups']
     ];
 
     public $attachOne = [
@@ -151,26 +147,6 @@ class User extends UserBase implements JWTSubject
     //
     // Getters
     //
-
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
 
     /**
      * clearPersistCode will forcibly sign the user out
@@ -295,34 +271,11 @@ class User extends UserBase implements JWTSubject
         }
 
         /*
-         * Apply rules Settings
+         * Apply Password Length Settings
          */
-        $minPasswordLength = Settings::get('min_password_length', static::getMinPasswordLength());
-        if (class_exists('\Illuminate\Validation\Rules\Password')) {
-            $passwordRule = \Illuminate\Validation\Rules\Password::min($minPasswordLength);
-            if (Settings::get('require_mixed_case')) {
-                $passwordRule->mixedCase();
-            }
-
-            if (Settings::get('require_uncompromised')) {
-                $passwordRule->uncompromised();
-            }
-
-            if (Settings::get('require_number')) {
-                $passwordRule->numbers();
-            }
-
-            if (Settings::get('require_symbol')) {
-                $passwordRule->symbols();
-            }
-
-            $this->addValidationRule('password', $passwordRule);
-            $this->addValidationRule('password_confirmation', $passwordRule);
-        }
-        else {
-            $this->addValidationRule('password', 'between:' . $minPasswordLength .',255');
-            $this->addValidationRule('password_confirmation', 'between:' . $minPasswordLength . ',255');
-        }
+        $minPasswordLength = static::getMinPasswordLength();
+        $this->rules['password'] = "required:create|between:$minPasswordLength,255|confirmed";
+        $this->rules['password_confirmation'] = "required_with:password|between:$minPasswordLength,255";
     }
 
     /**

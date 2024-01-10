@@ -31,13 +31,12 @@ trait ResponseMaker
     /**
      * Sets the status code for the current web response.
      * @param int $code Status code
-     * @return void
+     * @return $this
      */
     public function setStatusCode($code)
     {
         $this->statusCode = (int) $code;
 
-        // @deprecated
         return $this;
     }
 
@@ -54,13 +53,12 @@ trait ResponseMaker
      * Sets the response for the current page request cycle, this value takes priority
      * over the standard response prepared by the controller.
      * @param mixed $response Response object or string
-     * @return void
+     * @return $this
      */
     public function setResponse($response)
     {
         $this->responseOverride = $response;
 
-        // @deprecated
         return $this;
     }
 
@@ -70,7 +68,7 @@ trait ResponseMaker
      * @param  string  $key
      * @param  array|string  $values
      * @param  bool    $replace
-     * @return void
+     * @return $this
      */
     public function setResponseHeader($key, $values, $replace = true)
     {
@@ -80,7 +78,6 @@ trait ResponseMaker
 
         $this->responseHeaderBag->set($key, $values, $replace);
 
-        // @deprecated
         return $this;
     }
 
@@ -88,7 +85,7 @@ trait ResponseMaker
      * Add a cookie to the response.
      *
      * @param  \Symfony\Component\HttpFoundation\Cookie|mixed  $cookie
-     * @return void
+     * @return $this
      */
     public function setResponseCookie($cookie)
     {
@@ -102,7 +99,6 @@ trait ResponseMaker
 
         $this->responseHeaderBag->setCookie($cookie);
 
-        // @deprecated
         return $this;
     }
 
@@ -127,7 +123,7 @@ trait ResponseMaker
         }
 
         if (is_string($contents)) {
-            $contents = Response::make($contents, $this->getStatusCode(), ['Content-Type' => 'text/html']);
+            $contents = Response::make($contents, $this->getStatusCode());
         }
 
         $responseHeaders = $this->getResponseHeaders();

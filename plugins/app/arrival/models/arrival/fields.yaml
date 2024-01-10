@@ -7,8 +7,8 @@ fields:
         label: Id
         span: auto
         type: number
-    name:
-        label: Name
+    arrivalName:
+        label: Arrival name
         span: auto
         type: textarea
     timestamp:

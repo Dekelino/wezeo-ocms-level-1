@@ -5,8 +5,6 @@ use ApplicationException;
 /**
  * Helper class for processing video and audio tags inserted by the Media Manager.
  *
- * @method static MediaViewHelper instance()
- *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */

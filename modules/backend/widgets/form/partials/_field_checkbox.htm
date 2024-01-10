@@ -1,5 +1,5 @@
 <!-- Checkbox -->
-<div class="checkbox custom-checkbox" <?php if ($this->previewMode): ?>tabindex="0"<?php endif ?>>
+<div class="checkbox custom-checkbox" tabindex="0">
     <input
         type="hidden"
         name="<?= $field->getName() ?>"
@@ -14,7 +14,7 @@
         <?= $field->isSelected() ? 'checked="checked"' : '' ?>
         <?= $field->getAttributes() ?>>
 
-    <label for="<?= $field->getId() ?>" class="storm-icon-pseudo">
+    <label for="<?= $field->getId() ?>">
         <?= e(trans($field->label)) ?>
     </label>
     <?php if ($field->comment): ?>

@@ -1,13 +1,12 @@
 @import "../../../../assets/less/core/boot.less";
 
-@color-permissioneditor-section-border: #DBE1E3;
-@color-permissioneditor-permission-border: #ECF0F1;
+@color-permissioneditor-section-border:         #DBE1E3;
+@color-permissioneditor-permission-border:      #ECF0F1;
 
 .permissioneditor {
     position: relative;
-    border-radius: @border-radius-base;
-    background: @color-form-checkboxlist-background;
-    border: 1px solid @color-form-checkboxlist-border;
+
+    margin: 0 -(@padding-standard);
 
     &.control-disabled {
         .permissions-overlay {
@@ -21,7 +20,7 @@
         }
 
         table {
-            opacity: .5;
+            .opacity(0.5);
         }
     }
 
@@ -29,29 +28,19 @@
         width: 100%;
 
         th {
-            padding: 0 4px 0 4px;
+            padding: 30px 4px 8px 4px;
             color: @color-label;
             font-weight: normal;
             border-bottom: 1px solid @color-permissioneditor-section-border;
 
             &.tab {
-                .tab-inner {
-                    display: flex;
+                font-size: @font-size-base - 1;
+            }
 
-                    .tab-title {
-                        font-size: @font-size-base;
-                        font-weight: 500;
-                        padding: 7px 0;
-                    }
-
-                    .tab-controls {
-                        padding: 3px;
-                        font-size: 0;
-                        white-space: nowrap;
-                        text-align: right;
-                        flex-grow: 1;
-                    }
-                }
+            &.permission-type {
+                text-transform: uppercase;
+                font-size: @font-size-base - 3;
+                text-align: center;
             }
         }
 
@@ -61,7 +50,7 @@
             border-bottom: 1px solid @color-permissioneditor-permission-border;
             .user-select(none);
 
-            &.permission-value {
+            &.permission-value{
                 text-align: center;
             }
 
@@ -69,7 +58,6 @@
                 font-size: @font-size-base - 1;
                 cursor: pointer;
                 color: @color-help-block-text;
-                width: 100%;
             }
 
             p.comment {
@@ -87,14 +75,14 @@
                 background: @color-list-hover-bg;
 
                 &.permission-name {
-                    color: #000 !important;
+                    color: #ffffff !important;
                 }
             }
         }
 
         th, td {
             &:first-child {
-                padding-left: 20px;
+                padding-left: @padding-standard;
             }
 
             &:last-child {
@@ -105,7 +93,7 @@
         .custom-radio,
         .custom-checkbox,
         .custom-switch {
-            display: inline-block;
+            display: inline-block;;
             padding-left: 0;
 
             &, label {

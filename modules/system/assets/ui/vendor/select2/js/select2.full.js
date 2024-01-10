@@ -1,41 +1,27 @@
 /*!
- * Select2 4.1.0-rc.0
+ * Select2 4.0.3
  * https://select2.github.io
  *
  * Released under the MIT license
  * https://github.com/select2/select2/blob/master/LICENSE.md
  */
-;(function (factory) {
+(function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module.
     define(['jquery'], factory);
-  } else if (typeof module === 'object' && module.exports) {
+  } else if (typeof exports === 'object') {
     // Node/CommonJS
-    module.exports = function (root, jQuery) {
-      if (jQuery === undefined) {
-        // require('jQuery') returns a factory that requires window to
-        // build a jQuery instance, we normalize how we use modules
-        // that require this pattern but the window provided is a noop
-        // if it's defined (how jquery works)
-        if (typeof window !== 'undefined') {
-          jQuery = require('jquery');
-        }
-        else {
-          jQuery = require('jquery')(root);
-        }
-      }
-      factory(jQuery);
-      return jQuery;
-    };
+    factory(require('jquery'));
   } else {
     // Browser globals
     factory(jQuery);
   }
-} (function (jQuery) {
+}(function (jQuery) {
   // This is needed so we can catch the AMD loader configuration and use it
   // The inner file should be wrapped (by `banner.start.js`) in a function that
   // returns the AMD loader references.
-  var S2 =(function () {
+  var S2 =
+(function () {
   // Restore the Select2 AMD loader so it can be used
   // Needed mostly in the language files, where the loader is not inserted
   if (jQuery && jQuery.fn && jQuery.fn.select2 && jQuery.fn.select2.amd) {
@@ -44,11 +30,13 @@
 var S2;(function () { if (!S2 || !S2.requirejs) {
 if (!S2) { S2 = {}; } else { require = S2; }
 /**
- * @license almond 0.3.3 Copyright jQuery Foundation and other contributors.
- * Released under MIT license, http://github.com/requirejs/almond/LICENSE
+ * @license almond 0.3.1 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/almond for details
  */
 //Going sloppy to avoid 'use strict' string cost, but strict practices should
 //be followed.
+/*jslint sloppy: true */
 /*global setTimeout: false */
 
 var requirejs, require, define;
@@ -76,58 +64,60 @@ var requirejs, require, define;
      */
     function normalize(name, baseName) {
         var nameParts, nameSegment, mapValue, foundMap, lastIndex,
-            foundI, foundStarMap, starI, i, j, part, normalizedBaseParts,
+            foundI, foundStarMap, starI, i, j, part,
             baseParts = baseName && baseName.split("/"),
             map = config.map,
             starMap = (map && map['*']) || {};
 
         //Adjust any relative paths.
-        if (name) {
-            name = name.split('/');
-            lastIndex = name.length - 1;
+        if (name && name.charAt(0) === ".") {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                name = name.split('/');
+                lastIndex = name.length - 1;
 
-            // If wanting node ID compatibility, strip .js from end
-            // of IDs. Have to do this here, and not in nameToUrl
-            // because node allows either .js or non .js to map
-            // to same file.
-            if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
-                name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
-            }
+                // Node .js allowance:
+                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
+                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
+                }
 
-            // Starts with a '.' so need the baseName
-            if (name[0].charAt(0) === '.' && baseParts) {
-                //Convert baseName to array, and lop off the last part,
-                //so that . matches that 'directory' and not name of the baseName's
-                //module. For instance, baseName of 'one/two/three', maps to
-                //'one/two/three.js', but we want the directory, 'one/two' for
-                //this normalization.
-                normalizedBaseParts = baseParts.slice(0, baseParts.length - 1);
-                name = normalizedBaseParts.concat(name);
-            }
+                //Lop off the last part of baseParts, so that . matches the
+                //"directory" and not name of the baseName's module. For instance,
+                //baseName of "one/two/three", maps to "one/two/three.js", but we
+                //want the directory, "one/two" for this normalization.
+                name = baseParts.slice(0, baseParts.length - 1).concat(name);
 
-            //start trimDots
-            for (i = 0; i < name.length; i++) {
-                part = name[i];
-                if (part === '.') {
-                    name.splice(i, 1);
-                    i -= 1;
-                } else if (part === '..') {
-                    // If at the start, or previous value is still ..,
-                    // keep them so that when converted to a path it may
-                    // still work when converted to a path, even though
-                    // as an ID it is less than ideal. In larger point
-                    // releases, may be better to just kick out an error.
-                    if (i === 0 || (i === 1 && name[2] === '..') || name[i - 1] === '..') {
-                        continue;
-                    } else if (i > 0) {
-                        name.splice(i - 1, 2);
-                        i -= 2;
+                //start trimDots
+                for (i = 0; i < name.length; i += 1) {
+                    part = name[i];
+                    if (part === ".") {
+                        name.splice(i, 1);
+                        i -= 1;
+                    } else if (part === "..") {
+                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {
+                            //End of the line. Keep at least one non-dot
+                            //path segment at the front so it can be mapped
+                            //correctly to disk. Otherwise, there is likely
+                            //no path mapping for a path starting with '..'.
+                            //This can still fail, but catches the most reasonable
+                            //uses of ..
+                            break;
+                        } else if (i > 0) {
+                            name.splice(i - 1, 2);
+                            i -= 2;
+                        }
                     }
                 }
-            }
-            //end trimDots
+                //end trimDots
 
-            name = name.join('/');
+                name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
+            }
         }
 
         //Apply map config if available.
@@ -240,39 +230,32 @@ var requirejs, require, define;
         return [prefix, name];
     }
 
-    //Creates a parts array for a relName where first part is plugin ID,
-    //second part is resource ID. Assumes relName has already been normalized.
-    function makeRelParts(relName) {
-        return relName ? splitPrefix(relName) : [];
-    }
-
     /**
      * Makes a name map, normalizing the name, and using a plugin
      * for normalization if necessary. Grabs a ref to plugin
      * too, as an optimization.
      */
-    makeMap = function (name, relParts) {
+    makeMap = function (name, relName) {
         var plugin,
             parts = splitPrefix(name),
-            prefix = parts[0],
-            relResourceName = relParts[1];
+            prefix = parts[0];
 
         name = parts[1];
 
         if (prefix) {
-            prefix = normalize(prefix, relResourceName);
+            prefix = normalize(prefix, relName);
             plugin = callDep(prefix);
         }
 
         //Normalize according
         if (prefix) {
             if (plugin && plugin.normalize) {
-                name = plugin.normalize(name, makeNormalize(relResourceName));
+                name = plugin.normalize(name, makeNormalize(relName));
             } else {
-                name = normalize(name, relResourceName);
+                name = normalize(name, relName);
             }
         } else {
-            name = normalize(name, relResourceName);
+            name = normalize(name, relName);
             parts = splitPrefix(name);
             prefix = parts[0];
             name = parts[1];
@@ -319,14 +302,13 @@ var requirejs, require, define;
     };
 
     main = function (name, deps, callback, relName) {
-        var cjsModule, depName, ret, map, i, relParts,
+        var cjsModule, depName, ret, map, i,
             args = [],
             callbackType = typeof callback,
             usingExports;
 
         //Use name if no relName
         relName = relName || name;
-        relParts = makeRelParts(relName);
 
         //Call the callback to define the module, if necessary.
         if (callbackType === 'undefined' || callbackType === 'function') {
@@ -335,7 +317,7 @@ var requirejs, require, define;
             //Default to [require, exports, module] if no deps
             deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
             for (i = 0; i < deps.length; i += 1) {
-                map = makeMap(deps[i], relParts);
+                map = makeMap(deps[i], relName);
                 depName = map.f;
 
                 //Fast path CommonJS standard dependencies.
@@ -391,7 +373,7 @@ var requirejs, require, define;
             //deps arg is the module name, and second arg (if passed)
             //is just the relName.
             //Normalize module name, if it contains . or ..
-            return callDep(makeMap(deps, makeRelParts(callback)).f);
+            return callDep(makeMap(deps, callback).f);
         } else if (!deps.splice) {
             //deps is a config object, not an array.
             config = deps;
@@ -574,10 +556,10 @@ S2.define('select2/utils',[
     DecoratedClass.prototype = new ctr();
 
     for (var m = 0; m < superMethods.length; m++) {
-      var superMethod = superMethods[m];
+        var superMethod = superMethods[m];
 
-      DecoratedClass.prototype[superMethod] =
-        SuperClass.prototype[superMethod];
+        DecoratedClass.prototype[superMethod] =
+          SuperClass.prototype[superMethod];
     }
 
     var calledMethod = function (methodName) {
@@ -755,95 +737,21 @@ S2.define('select2/utils',[
     });
   };
 
-  // Cache objects in Utils.__cache instead of $.data (see #4346)
-  Utils.__cache = {};
+  // Append an array of jQuery nodes to a given element.
+  Utils.appendMany = function ($element, $nodes) {
+    // jQuery 1.7.x does not support $.fn.append() with an array
+    // Fall back to a jQuery object collection using $.fn.add()
+    if ($.fn.jquery.substr(0, 3) === '1.7') {
+      var $jqNodes = $();
 
-  var id = 0;
-  Utils.GetUniqueElementId = function (element) {
-    // Get a unique element Id. If element has no id,
-    // creates a new unique number, stores it in the id
-    // attribute and returns the new id with a prefix.
-    // If an id already exists, it simply returns it with a prefix.
+      $.map($nodes, function (node) {
+        $jqNodes = $jqNodes.add(node);
+      });
 
-    var select2Id = element.getAttribute('data-select2-id');
-
-    if (select2Id != null) {
-      return select2Id;
+      $nodes = $jqNodes;
     }
 
-    // If element has id, use it.
-    if (element.id) {
-      select2Id = 'select2-data-' + element.id;
-    } else {
-      select2Id = 'select2-data-' + (++id).toString() +
-        '-' + Utils.generateChars(4);
-    }
-
-    element.setAttribute('data-select2-id', select2Id);
-
-    return select2Id;
-  };
-
-  Utils.StoreData = function (element, name, value) {
-    // Stores an item in the cache for a specified element.
-    // name is the cache key.
-    var id = Utils.GetUniqueElementId(element);
-    if (!Utils.__cache[id]) {
-      Utils.__cache[id] = {};
-    }
-
-    Utils.__cache[id][name] = value;
-  };
-
-  Utils.GetData = function (element, name) {
-    // Retrieves a value from the cache by its key (name)
-    // name is optional. If no name specified, return
-    // all cache items for the specified element.
-    // and for a specified element.
-    var id = Utils.GetUniqueElementId(element);
-    if (name) {
-      if (Utils.__cache[id]) {
-        if (Utils.__cache[id][name] != null) {
-          return Utils.__cache[id][name];
-        }
-        return $(element).data(name); // Fallback to HTML5 data attribs.
-      }
-      return $(element).data(name); // Fallback to HTML5 data attribs.
-    } else {
-      return Utils.__cache[id];
-    }
-  };
-
-  Utils.RemoveData = function (element) {
-    // Removes all cached items for a specified element.
-    var id = Utils.GetUniqueElementId(element);
-    if (Utils.__cache[id] != null) {
-      delete Utils.__cache[id];
-    }
-
-    element.removeAttribute('data-select2-id');
-  };
-
-  Utils.copyNonInternalCssClasses = function (dest, src) {
-    var classes;
-
-    var destinationClasses = dest.getAttribute('class').trim().split(/\s+/);
-
-    destinationClasses = destinationClasses.filter(function (clazz) {
-      // Save all Select2 classes
-      return clazz.indexOf('select2-') === 0;
-    });
-
-    var sourceClasses = src.getAttribute('class').trim().split(/\s+/);
-
-    sourceClasses = sourceClasses.filter(function (clazz) {
-      // Only copy non-Select2 classes
-      return clazz.indexOf('select2-') !== 0;
-    });
-
-    var replacements = destinationClasses.concat(sourceClasses);
-
-    dest.setAttribute('class', replacements.join(' '));
+    $element.append($nodes);
   };
 
   return Utils;
@@ -865,7 +773,7 @@ S2.define('select2/results',[
 
   Results.prototype.render = function () {
     var $results = $(
-      '<ul class="select2-results__options" role="listbox"></ul>'
+      '<ul class="select2-results__options" role="tree"></ul>'
     );
 
     if (this.options.get('multiple')) {
@@ -888,7 +796,7 @@ S2.define('select2/results',[
     this.hideLoading();
 
     var $message = $(
-      '<li role="alert" aria-live="assertive"' +
+      '<li role="treeitem" aria-live="assertive"' +
       ' class="select2-results__option"></li>'
     );
 
@@ -950,9 +858,9 @@ S2.define('select2/results',[
 
   Results.prototype.highlightFirstItem = function () {
     var $options = this.$results
-      .find('.select2-results__option--selectable');
+      .find('.select2-results__option[aria-selected]');
 
-    var $selected = $options.filter('.select2-results__option--selected');
+    var $selected = $options.filter('[aria-selected=true]');
 
     // Check if there are any selected options
     if ($selected.length > 0) {
@@ -971,27 +879,25 @@ S2.define('select2/results',[
     var self = this;
 
     this.data.current(function (selected) {
-      var selectedIds = selected.map(function (s) {
+      var selectedIds = $.map(selected, function (s) {
         return s.id.toString();
       });
 
       var $options = self.$results
-        .find('.select2-results__option--selectable');
+        .find('.select2-results__option[aria-selected]');
 
       $options.each(function () {
         var $option = $(this);
 
-        var item = Utils.GetData(this, 'data');
+        var item = $.data(this, 'data');
 
         // id needs to be converted to a string when comparing
         var id = '' + item.id;
 
         if ((item.element != null && item.element.selected) ||
-            (item.element == null && selectedIds.indexOf(id) > -1)) {
-          this.classList.add('select2-results__option--selected');
+            (item.element == null && $.inArray(id, selectedIds) > -1)) {
           $option.attr('aria-selected', 'true');
         } else {
-          this.classList.remove('select2-results__option--selected');
           $option.attr('aria-selected', 'false');
         }
       });
@@ -1021,27 +927,20 @@ S2.define('select2/results',[
 
   Results.prototype.option = function (data) {
     var option = document.createElement('li');
-    option.classList.add('select2-results__option');
-    option.classList.add('select2-results__option--selectable');
+    option.className = 'select2-results__option';
 
     var attrs = {
-      'role': 'option'
+      'role': 'treeitem',
+      'aria-selected': 'false'
     };
 
-    var matches = window.Element.prototype.matches ||
-      window.Element.prototype.msMatchesSelector ||
-      window.Element.prototype.webkitMatchesSelector;
-
-    if ((data.element != null && matches.call(data.element, ':disabled')) ||
-        (data.element == null && data.disabled)) {
+    if (data.disabled) {
+      delete attrs['aria-selected'];
       attrs['aria-disabled'] = 'true';
-
-      option.classList.remove('select2-results__option--selectable');
-      option.classList.add('select2-results__option--disabled');
     }
 
     if (data.id == null) {
-      option.classList.remove('select2-results__option--selectable');
+      delete attrs['aria-selected'];
     }
 
     if (data._resultId != null) {
@@ -1055,9 +954,7 @@ S2.define('select2/results',[
     if (data.children) {
       attrs.role = 'group';
       attrs['aria-label'] = data.text;
-
-      option.classList.remove('select2-results__option--selectable');
-      option.classList.add('select2-results__option--group');
+      delete attrs['aria-selected'];
     }
 
     for (var attr in attrs) {
@@ -1072,6 +969,7 @@ S2.define('select2/results',[
       var label = document.createElement('strong');
       label.className = 'select2-results__group';
 
+      var $label = $(label);
       this.template(data, label);
 
       var $children = [];
@@ -1085,8 +983,7 @@ S2.define('select2/results',[
       }
 
       var $childrenContainer = $('<ul></ul>', {
-        'class': 'select2-results__options select2-results__options--nested',
-        'role': 'none'
+        'class': 'select2-results__options select2-results__options--nested'
       });
 
       $childrenContainer.append($children);
@@ -1097,7 +994,7 @@ S2.define('select2/results',[
       this.template(data, option);
     }
 
-    Utils.StoreData(option, 'data', data);
+    $.data(option, 'data', data);
 
     return option;
   };
@@ -1138,10 +1035,7 @@ S2.define('select2/results',[
       }
 
       self.setClasses();
-
-      if (self.options.get('scrollAfterSelect')) {
-        self.highlightFirstItem();
-      }
+      self.highlightFirstItem();
     });
 
     container.on('unselect', function () {
@@ -1150,10 +1044,7 @@ S2.define('select2/results',[
       }
 
       self.setClasses();
-
-      if (self.options.get('scrollAfterSelect')) {
-        self.highlightFirstItem();
-      }
+      self.highlightFirstItem();
     });
 
     container.on('open', function () {
@@ -1189,9 +1080,9 @@ S2.define('select2/results',[
         return;
       }
 
-      var data = Utils.GetData($highlighted[0], 'data');
+      var data = $highlighted.data('data');
 
-      if ($highlighted.hasClass('select2-results__option--selected')) {
+      if ($highlighted.attr('aria-selected') == 'true') {
         self.trigger('close', {});
       } else {
         self.trigger('select', {
@@ -1203,13 +1094,12 @@ S2.define('select2/results',[
     container.on('results:previous', function () {
       var $highlighted = self.getHighlightedResults();
 
-      var $options = self.$results.find('.select2-results__option--selectable');
+      var $options = self.$results.find('[aria-selected]');
 
       var currentIndex = $options.index($highlighted);
 
-      // If we are already at the top, don't move further
-      // If no options, currentIndex will be -1
-      if (currentIndex <= 0) {
+      // If we are already at te top, don't move further
+      if (currentIndex === 0) {
         return;
       }
 
@@ -1238,7 +1128,7 @@ S2.define('select2/results',[
     container.on('results:next', function () {
       var $highlighted = self.getHighlightedResults();
 
-      var $options = self.$results.find('.select2-results__option--selectable');
+      var $options = self.$results.find('[aria-selected]');
 
       var currentIndex = $options.index($highlighted);
 
@@ -1266,8 +1156,7 @@ S2.define('select2/results',[
     });
 
     container.on('results:focus', function (params) {
-      params.element[0].classList.add('select2-results__option--highlighted');
-      params.element[0].setAttribute('aria-selected', 'true');
+      params.element.addClass('select2-results__option--highlighted');
     });
 
     container.on('results:message', function (params) {
@@ -1299,13 +1188,13 @@ S2.define('select2/results',[
       });
     }
 
-    this.$results.on('mouseup', '.select2-results__option--selectable',
+    this.$results.on('mouseup', '.select2-results__option[aria-selected]',
       function (evt) {
       var $this = $(this);
 
-      var data = Utils.GetData(this, 'data');
+      var data = $this.data('data');
 
-      if ($this.hasClass('select2-results__option--selected')) {
+      if ($this.attr('aria-selected') === 'true') {
         if (self.options.get('multiple')) {
           self.trigger('unselect', {
             originalEvent: evt,
@@ -1324,13 +1213,12 @@ S2.define('select2/results',[
       });
     });
 
-    this.$results.on('mouseenter', '.select2-results__option--selectable',
+    this.$results.on('mouseenter', '.select2-results__option[aria-selected]',
       function (evt) {
-      var data = Utils.GetData(this, 'data');
+      var data = $(this).data('data');
 
       self.getHighlightedResults()
-          .removeClass('select2-results__option--highlighted')
-          .attr('aria-selected', 'false');
+          .removeClass('select2-results__option--highlighted');
 
       self.trigger('results:focus', {
         data: data,
@@ -1357,7 +1245,7 @@ S2.define('select2/results',[
       return;
     }
 
-    var $options = this.$results.find('.select2-results__option--selectable');
+    var $options = this.$results.find('[aria-selected]');
 
     var currentIndex = $options.index($highlighted);
 
@@ -1442,15 +1330,14 @@ S2.define('select2/selection/base',[
 
     this._tabindex = 0;
 
-    if (Utils.GetData(this.$element[0], 'old-tabindex') != null) {
-      this._tabindex = Utils.GetData(this.$element[0], 'old-tabindex');
+    if (this.$element.data('old-tabindex') != null) {
+      this._tabindex = this.$element.data('old-tabindex');
     } else if (this.$element.attr('tabindex') != null) {
       this._tabindex = this.$element.attr('tabindex');
     }
 
     $selection.attr('title', this.$element.attr('title'));
     $selection.attr('tabindex', this._tabindex);
-    $selection.attr('aria-disabled', 'false');
 
     this.$selection = $selection;
 
@@ -1460,6 +1347,7 @@ S2.define('select2/selection/base',[
   BaseSelection.prototype.bind = function (container, $container) {
     var self = this;
 
+    var id = container.id + '-container';
     var resultsId = container.id + '-results';
 
     this.container = container;
@@ -1502,19 +1390,17 @@ S2.define('select2/selection/base',[
       self.$selection.removeAttr('aria-activedescendant');
       self.$selection.removeAttr('aria-owns');
 
-      self.$selection.trigger('focus');
+      self.$selection.focus();
 
       self._detachCloseHandler(container);
     });
 
     container.on('enable', function () {
       self.$selection.attr('tabindex', self._tabindex);
-      self.$selection.attr('aria-disabled', 'false');
     });
 
     container.on('disable', function () {
       self.$selection.attr('tabindex', '-1');
-      self.$selection.attr('aria-disabled', 'true');
     });
   };
 
@@ -1537,6 +1423,7 @@ S2.define('select2/selection/base',[
   };
 
   BaseSelection.prototype._attachCloseHandler = function (container) {
+    var self = this;
 
     $(document.body).on('mousedown.select2.' + container.id, function (e) {
       var $target = $(e.target);
@@ -1546,11 +1433,13 @@ S2.define('select2/selection/base',[
       var $all = $('.select2.select2-container--open');
 
       $all.each(function () {
+        var $this = $(this);
+
         if (this == $select[0]) {
           return;
         }
 
-        var $element = Utils.GetData(this, 'element');
+        var $element = $this.data('element');
 
         $element.select2('close');
       });
@@ -1574,27 +1463,6 @@ S2.define('select2/selection/base',[
     throw new Error('The `update` method must be defined in child classes.');
   };
 
-  /**
-   * Helper method to abstract the "enabled" (not "disabled") state of this
-   * object.
-   *
-   * @return {true} if the instance is not disabled.
-   * @return {false} if the instance is disabled.
-   */
-  BaseSelection.prototype.isEnabled = function () {
-    return !this.isDisabled();
-  };
-
-  /**
-   * Helper method to abstract the "disabled" state of this object.
-   *
-   * @return {true} if the disabled option is true.
-   * @return {false} if the disabled option is false.
-   */
-  BaseSelection.prototype.isDisabled = function () {
-    return this.options.get('disabled');
-  };
-
   return BaseSelection;
 });
 
@@ -1613,7 +1481,7 @@ S2.define('select2/selection/single',[
   SingleSelection.prototype.render = function () {
     var $selection = SingleSelection.__super__.render.call(this);
 
-    $selection[0].classList.add('select2-selection--single');
+    $selection.addClass('select2-selection--single');
 
     $selection.html(
       '<span class="select2-selection__rendered"></span>' +
@@ -1632,12 +1500,8 @@ S2.define('select2/selection/single',[
 
     var id = container.id + '-container';
 
-    this.$selection.find('.select2-selection__rendered')
-      .attr('id', id)
-      .attr('role', 'textbox')
-      .attr('aria-readonly', 'true');
+    this.$selection.find('.select2-selection__rendered').attr('id', id);
     this.$selection.attr('aria-labelledby', id);
-    this.$selection.attr('aria-controls', id);
 
     this.$selection.on('mousedown', function (evt) {
       // Only respond to left clicks
@@ -1660,15 +1524,17 @@ S2.define('select2/selection/single',[
 
     container.on('focus', function (evt) {
       if (!container.isOpen()) {
-        self.$selection.trigger('focus');
+        self.$selection.focus();
       }
+    });
+
+    container.on('selection:update', function (params) {
+      self.update(params.data);
     });
   };
 
   SingleSelection.prototype.clear = function () {
-    var $rendered = this.$selection.find('.select2-selection__rendered');
-    $rendered.empty();
-    $rendered.removeAttr('title'); // clear tooltip on empty
+    this.$selection.find('.select2-selection__rendered').empty();
   };
 
   SingleSelection.prototype.display = function (data, container) {
@@ -1694,14 +1560,7 @@ S2.define('select2/selection/single',[
     var formatted = this.display(selection, $rendered);
 
     $rendered.empty().append(formatted);
-
-    var title = selection.title || selection.text;
-
-    if (title) {
-      $rendered.attr('title', title);
-    } else {
-      $rendered.removeAttr('title');
-    }
+    $rendered.prop('title', selection.title || selection.text);
   };
 
   return SingleSelection;
@@ -1721,7 +1580,7 @@ S2.define('select2/selection/multiple',[
   MultipleSelection.prototype.render = function () {
     var $selection = MultipleSelection.__super__.render.call(this);
 
-    $selection[0].classList.add('select2-selection--multiple');
+    $selection.addClass('select2-selection--multiple');
 
     $selection.html(
       '<ul class="select2-selection__rendered"></ul>'
@@ -1735,9 +1594,6 @@ S2.define('select2/selection/multiple',[
 
     MultipleSelection.__super__.bind.apply(this, arguments);
 
-    var id = container.id + '-container';
-    this.$selection.find('.select2-selection__rendered').attr('id', id);
-
     this.$selection.on('click', function (evt) {
       self.trigger('toggle', {
         originalEvent: evt
@@ -1749,14 +1605,14 @@ S2.define('select2/selection/multiple',[
       '.select2-selection__choice__remove',
       function (evt) {
         // Ignore the event if it is disabled
-        if (self.isDisabled()) {
+        if (self.options.get('disabled')) {
           return;
         }
 
         var $remove = $(this);
         var $selection = $remove.parent();
 
-        var data = Utils.GetData($selection[0], 'data');
+        var data = $selection.data('data');
 
         self.trigger('unselect', {
           originalEvent: evt,
@@ -1764,25 +1620,10 @@ S2.define('select2/selection/multiple',[
         });
       }
     );
-
-    this.$selection.on(
-      'keydown',
-      '.select2-selection__choice__remove',
-      function (evt) {
-        // Ignore the event if it is disabled
-        if (self.isDisabled()) {
-          return;
-        }
-
-        evt.stopPropagation();
-      }
-    );
   };
 
   MultipleSelection.prototype.clear = function () {
-    var $rendered = this.$selection.find('.select2-selection__rendered');
-    $rendered.empty();
-    $rendered.removeAttr('title');
+    this.$selection.find('.select2-selection__rendered').empty();
   };
 
   MultipleSelection.prototype.display = function (data, container) {
@@ -1795,11 +1636,9 @@ S2.define('select2/selection/multiple',[
   MultipleSelection.prototype.selectionContainer = function () {
     var $container = $(
       '<li class="select2-selection__choice">' +
-        '<button type="button" class="select2-selection__choice__remove" ' +
-        'tabindex="-1">' +
-          '<span aria-hidden="true">&times;</span>' +
-        '</button>' +
-        '<span class="select2-selection__choice__display"></span>' +
+        '<span class="select2-selection__choice__remove" role="presentation">' +
+          '&times;' +
+        '</span>' +
       '</li>'
     );
 
@@ -1815,57 +1654,31 @@ S2.define('select2/selection/multiple',[
 
     var $selections = [];
 
-    var selectionIdPrefix = this.$selection.find('.select2-selection__rendered')
-      .attr('id') + '-choice-';
-
     for (var d = 0; d < data.length; d++) {
       var selection = data[d];
 
       var $selection = this.selectionContainer();
       var formatted = this.display(selection, $selection);
 
-      var selectionId = selectionIdPrefix + Utils.generateChars(4) + '-';
+      $selection.append(formatted);
+      $selection.prop('title', selection.title || selection.text);
 
-      if (selection.id) {
-        selectionId += selection.id;
-      } else {
-        selectionId += Utils.generateChars(4);
-      }
-
-      $selection.find('.select2-selection__choice__display')
-        .append(formatted)
-        .attr('id', selectionId);
-
-      var title = selection.title || selection.text;
-
-      if (title) {
-        $selection.attr('title', title);
-      }
-
-      var removeItem = this.options.get('translations').get('removeItem');
-
-      var $remove = $selection.find('.select2-selection__choice__remove');
-
-      $remove.attr('title', removeItem());
-      $remove.attr('aria-label', removeItem());
-      $remove.attr('aria-describedby', selectionId);
-
-      Utils.StoreData($selection[0], 'data', selection);
+      $selection.data('data', selection);
 
       $selections.push($selection);
     }
 
     var $rendered = this.$selection.find('.select2-selection__rendered');
 
-    $rendered.append($selections);
+    Utils.appendMany($rendered, $selections);
   };
 
   return MultipleSelection;
 });
 
 S2.define('select2/selection/placeholder',[
-
-], function () {
+  '../utils'
+], function (Utils) {
   function Placeholder (decorated, $element, options) {
     this.placeholder = this.normalizePlaceholder(options.get('placeholder'));
 
@@ -1887,17 +1700,8 @@ S2.define('select2/selection/placeholder',[
     var $placeholder = this.selectionContainer();
 
     $placeholder.html(this.display(placeholder));
-    $placeholder[0].classList.add('select2-selection__placeholder');
-    $placeholder[0].classList.remove('select2-selection__choice');
-
-    var placeholderTitle = placeholder.title ||
-      placeholder.text ||
-      $placeholder.text();
-
-    this.$selection.find('.select2-selection__rendered').attr(
-      'title',
-      placeholderTitle
-    );
+    $placeholder.addClass('select2-selection__placeholder')
+                .removeClass('select2-selection__choice');
 
     return $placeholder;
   };
@@ -1924,9 +1728,8 @@ S2.define('select2/selection/placeholder',[
 
 S2.define('select2/selection/allowClear',[
   'jquery',
-  '../keys',
-  '../utils'
-], function ($, KEYS, Utils) {
+  '../keys'
+], function ($, KEYS) {
   function AllowClear () { }
 
   AllowClear.prototype.bind = function (decorated, container, $container) {
@@ -1955,7 +1758,7 @@ S2.define('select2/selection/allowClear',[
 
   AllowClear.prototype._handleClear = function (_, evt) {
     // Ignore the event if it is disabled
-    if (this.isDisabled()) {
+    if (this.options.get('disabled')) {
       return;
     }
 
@@ -1968,22 +1771,10 @@ S2.define('select2/selection/allowClear',[
 
     evt.stopPropagation();
 
-    var data = Utils.GetData($clear[0], 'data');
-
-    var previousVal = this.$element.val();
-    this.$element.val(this.placeholder.id);
-
-    var unselectData = {
-      data: data
-    };
-    this.trigger('clear', unselectData);
-    if (unselectData.prevented) {
-      this.$element.val(previousVal);
-      return;
-    }
+    var data = $clear.data('data');
 
     for (var d = 0; d < data.length; d++) {
-      unselectData = {
+      var unselectData = {
         data: data[d]
       };
 
@@ -1993,12 +1784,11 @@ S2.define('select2/selection/allowClear',[
 
       // If the event was prevented, don't clear it out.
       if (unselectData.prevented) {
-        this.$element.val(previousVal);
         return;
       }
     }
 
-    this.$element.trigger('input').trigger('change');
+    this.$element.val(this.placeholder.id).trigger('change');
 
     this.trigger('toggle', {});
   };
@@ -2016,31 +1806,19 @@ S2.define('select2/selection/allowClear',[
   AllowClear.prototype.update = function (decorated, data) {
     decorated.call(this, data);
 
-    this.$selection.find('.select2-selection__clear').remove();
-    this.$selection[0].classList.remove('select2-selection--clearable');
-
     if (this.$selection.find('.select2-selection__placeholder').length > 0 ||
         data.length === 0) {
       return;
     }
 
-    var selectionId = this.$selection.find('.select2-selection__rendered')
-      .attr('id');
-
-    var removeAll = this.options.get('translations').get('removeAllItems');
-
     var $remove = $(
-      '<button type="button" class="select2-selection__clear" tabindex="-1">' +
-        '<span aria-hidden="true">&times;</span>' +
-      '</button>'
+      '<span class="select2-selection__clear">' +
+        '&times;' +
+      '</span>'
     );
-    $remove.attr('title', removeAll());
-    $remove.attr('aria-label', removeAll());
-    $remove.attr('aria-describedby', selectionId);
-    Utils.StoreData($remove[0], 'data', data);
+    $remove.data('data', data);
 
-    this.$selection.prepend($remove);
-    this.$selection[0].classList.add('select2-selection--clearable');
+    this.$selection.find('.select2-selection__rendered').prepend($remove);
   };
 
   return AllowClear;
@@ -2056,27 +1834,20 @@ S2.define('select2/selection/search',[
   }
 
   Search.prototype.render = function (decorated) {
-    var searchLabel = this.options.get('translations').get('search');
     var $search = $(
-      '<span class="select2-search select2-search--inline">' +
-        '<textarea class="select2-search__field"'+
-        ' type="search" tabindex="-1"' +
-        ' autocorrect="off" autocapitalize="none"' +
-        ' spellcheck="false" role="searchbox" aria-autocomplete="list" >' +
-        '</textarea>' +
-      '</span>'
+      '<li class="select2-search select2-search--inline">' +
+        '<input class="select2-search__field" type="search" tabindex="-1"' +
+        ' autocomplete="off" autocorrect="off" autocapitalize="off"' +
+        ' spellcheck="false" role="textbox" aria-autocomplete="list" />' +
+      '</li>'
     );
 
     this.$searchContainer = $search;
-    this.$search = $search.find('textarea');
-
-    this.$search.prop('autocomplete', this.options.get('autocomplete'));
-    this.$search.attr('aria-label', searchLabel());
+    this.$search = $search.find('input');
 
     var $rendered = decorated.call(this);
 
     this._transferTabIndex();
-    $rendered.append(this.$searchContainer);
 
     return $rendered;
   };
@@ -2084,22 +1855,14 @@ S2.define('select2/selection/search',[
   Search.prototype.bind = function (decorated, container, $container) {
     var self = this;
 
-    var resultsId = container.id + '-results';
-    var selectionId = container.id + '-container';
-
     decorated.call(this, container, $container);
 
-    self.$search.attr('aria-describedby', selectionId);
-
     container.on('open', function () {
-      self.$search.attr('aria-controls', resultsId);
       self.$search.trigger('focus');
     });
 
     container.on('close', function () {
       self.$search.val('');
-      self.resizeSearch();
-      self.$search.removeAttr('aria-controls');
       self.$search.removeAttr('aria-activedescendant');
       self.$search.trigger('focus');
     });
@@ -2119,11 +1882,7 @@ S2.define('select2/selection/search',[
     });
 
     container.on('results:focus', function (params) {
-      if (params.data._resultId) {
-        self.$search.attr('aria-activedescendant', params.data._resultId);
-      } else {
-        self.$search.removeAttr('aria-activedescendant');
-      }
+      self.$search.attr('aria-activedescendant', params.id);
     });
 
     this.$selection.on('focusin', '.select2-search--inline', function (evt) {
@@ -2144,22 +1903,16 @@ S2.define('select2/selection/search',[
       var key = evt.which;
 
       if (key === KEYS.BACKSPACE && self.$search.val() === '') {
-        var $previousChoice = self.$selection
-          .find('.select2-selection__choice').last();
+        var $previousChoice = self.$searchContainer
+          .prev('.select2-selection__choice');
 
         if ($previousChoice.length > 0) {
-          var item = Utils.GetData($previousChoice[0], 'data');
+          var item = $previousChoice.data('data');
 
           self.searchRemoveChoice(item);
 
           evt.preventDefault();
         }
-      }
-    });
-
-    this.$selection.on('click', '.select2-search--inline', function (evt) {
-      if (self.$search.val()) {
-        evt.stopPropagation();
       }
     });
 
@@ -2243,9 +1996,12 @@ S2.define('select2/selection/search',[
 
     decorated.call(this, data);
 
+    this.$selection.find('.select2-selection__rendered')
+                   .append(this.$searchContainer);
+
     this.resizeSearch();
     if (searchHadFocus) {
-      this.$search.trigger('focus');
+      this.$search.focus();
     }
   };
 
@@ -2275,9 +2031,11 @@ S2.define('select2/selection/search',[
   Search.prototype.resizeSearch = function () {
     this.$search.css('width', '25px');
 
-    var width = '100%';
+    var width = '';
 
-    if (this.$search.attr('placeholder') === '') {
+    if (this.$search.attr('placeholder') !== '') {
+      width = this.$selection.find('.select2-selection__rendered').innerWidth();
+    } else {
       var minimumWidth = this.$search.val().length + 1;
 
       width = (minimumWidth * 0.75) + 'em';
@@ -2287,30 +2045,6 @@ S2.define('select2/selection/search',[
   };
 
   return Search;
-});
-
-S2.define('select2/selection/selectionCss',[
-  '../utils'
-], function (Utils) {
-  function SelectionCSS () { }
-
-  SelectionCSS.prototype.render = function (decorated) {
-    var $selection = decorated.call(this);
-
-    var selectionCssClass = this.options.get('selectionCssClass') || '';
-
-    if (selectionCssClass.indexOf(':all:') !== -1) {
-      selectionCssClass = selectionCssClass.replace(':all:', '');
-
-      Utils.copyNonInternalCssClasses($selection[0], this.$element[0]);
-    }
-
-    $selection.addClass(selectionCssClass);
-
-    return $selection;
-  };
-
-  return SelectionCSS;
 });
 
 S2.define('select2/selection/eventRelay',[
@@ -2324,19 +2058,16 @@ S2.define('select2/selection/eventRelay',[
       'open', 'opening',
       'close', 'closing',
       'select', 'selecting',
-      'unselect', 'unselecting',
-      'clear', 'clearing'
+      'unselect', 'unselecting'
     ];
 
-    var preventableEvents = [
-      'opening', 'closing', 'selecting', 'unselecting', 'clearing'
-    ];
+    var preventableEvents = ['opening', 'closing', 'selecting', 'unselecting'];
 
     decorated.call(this, container, $container);
 
     container.on('*', function (name, params) {
       // Ignore events that should not be relayed
-      if (relayEvents.indexOf(name) === -1) {
+      if ($.inArray(name, relayEvents) === -1) {
         return;
       }
 
@@ -2351,7 +2082,7 @@ S2.define('select2/selection/eventRelay',[
       self.$element.trigger(evt);
 
       // Only handle preventable events if it was one
-      if (preventableEvents.indexOf(name) === -1) {
+      if ($.inArray(name, preventableEvents) === -1) {
         return;
       }
 
@@ -2663,7 +2394,6 @@ S2.define('select2/diacritics',[
     '\u019F': 'O',
     '\uA74A': 'O',
     '\uA74C': 'O',
-    '\u0152': 'OE',
     '\u01A2': 'OI',
     '\uA74E': 'OO',
     '\u0222': 'OU',
@@ -3073,7 +2803,6 @@ S2.define('select2/diacritics',[
     '\uA74B': 'o',
     '\uA74D': 'o',
     '\u0275': 'o',
-    '\u0153': 'oe',
     '\u01A3': 'oi',
     '\u0223': 'ou',
     '\uA74F': 'oo',
@@ -3242,9 +2971,8 @@ S2.define('select2/diacritics',[
     '\u03CD': '\u03C5',
     '\u03CB': '\u03C5',
     '\u03B0': '\u03C5',
-    '\u03CE': '\u03C9',
-    '\u03C2': '\u03C3',
-    '\u2019': '\''
+    '\u03C9': '\u03C9',
+    '\u03C2': '\u03C3'
   };
 
   return diacritics;
@@ -3306,14 +3034,16 @@ S2.define('select2/data/select',[
   Utils.Extend(SelectAdapter, BaseAdapter);
 
   SelectAdapter.prototype.current = function (callback) {
+    var data = [];
     var self = this;
 
-    var data = Array.prototype.map.call(
-      this.$element[0].querySelectorAll(':checked'),
-      function (selectedElement) {
-        return self.item($(selectedElement));
-      }
-    );
+    this.$element.find(':selected').each(function () {
+      var $option = $(this);
+
+      var option = self.item($option);
+
+      data.push(option);
+    });
 
     callback(data);
   };
@@ -3324,12 +3054,10 @@ S2.define('select2/data/select',[
     data.selected = true;
 
     // If data.element is a DOM node, use it instead
-    if (
-      data.element != null && data.element.tagName.toLowerCase() === 'option'
-    ) {
+    if ($(data.element).is('option')) {
       data.element.selected = true;
 
-      this.$element.trigger('input').trigger('change');
+      this.$element.trigger('change');
 
       return;
     }
@@ -3344,19 +3072,19 @@ S2.define('select2/data/select',[
         for (var d = 0; d < data.length; d++) {
           var id = data[d].id;
 
-          if (val.indexOf(id) === -1) {
+          if ($.inArray(id, val) === -1) {
             val.push(id);
           }
         }
 
         self.$element.val(val);
-        self.$element.trigger('input').trigger('change');
+        self.$element.trigger('change');
       });
     } else {
       var val = data.id;
 
       this.$element.val(val);
-      this.$element.trigger('input').trigger('change');
+      this.$element.trigger('change');
     }
   };
 
@@ -3369,13 +3097,10 @@ S2.define('select2/data/select',[
 
     data.selected = false;
 
-    if (
-      data.element != null &&
-      data.element.tagName.toLowerCase() === 'option'
-    ) {
+    if ($(data.element).is('option')) {
       data.element.selected = false;
 
-      this.$element.trigger('input').trigger('change');
+      this.$element.trigger('change');
 
       return;
     }
@@ -3386,14 +3111,14 @@ S2.define('select2/data/select',[
       for (var d = 0; d < currentData.length; d++) {
         var id = currentData[d].id;
 
-        if (id !== data.id && val.indexOf(id) === -1) {
+        if (id !== data.id && $.inArray(id, val) === -1) {
           val.push(id);
         }
       }
 
       self.$element.val(val);
 
-      self.$element.trigger('input').trigger('change');
+      self.$element.trigger('change');
     });
   };
 
@@ -3415,7 +3140,7 @@ S2.define('select2/data/select',[
     // Remove anything added to child elements
     this.$element.find('*').each(function () {
       // Remove any custom data set by Select2
-      Utils.RemoveData(this);
+      $.removeData(this, 'data');
     });
   };
 
@@ -3426,14 +3151,11 @@ S2.define('select2/data/select',[
     var $options = this.$element.children();
 
     $options.each(function () {
-      if (
-        this.tagName.toLowerCase() !== 'option' &&
-        this.tagName.toLowerCase() !== 'optgroup'
-      ) {
+      var $option = $(this);
+
+      if (!$option.is('option') && !$option.is('optgroup')) {
         return;
       }
-
-      var $option = $(this);
 
       var option = self.item($option);
 
@@ -3450,7 +3172,7 @@ S2.define('select2/data/select',[
   };
 
   SelectAdapter.prototype.addOptions = function ($options) {
-    this.$element.append($options);
+    Utils.appendMany(this.$element, $options);
   };
 
   SelectAdapter.prototype.option = function (data) {
@@ -3469,7 +3191,7 @@ S2.define('select2/data/select',[
       }
     }
 
-    if (data.id !== undefined) {
+    if (data.id) {
       option.value = data.id;
     }
 
@@ -3485,27 +3207,27 @@ S2.define('select2/data/select',[
       option.title = data.title;
     }
 
+    var $option = $(option);
+
     var normalizedData = this._normalizeItem(data);
     normalizedData.element = option;
 
     // Override the option's data with the combined data
-    Utils.StoreData(option, 'data', normalizedData);
+    $.data(option, 'data', normalizedData);
 
-    return $(option);
+    return $option;
   };
 
   SelectAdapter.prototype.item = function ($option) {
     var data = {};
 
-    data = Utils.GetData($option[0], 'data');
+    data = $.data($option[0], 'data');
 
     if (data != null) {
       return data;
     }
 
-    var option = $option[0];
-
-    if (option.tagName.toLowerCase() === 'option') {
+    if ($option.is('option')) {
       data = {
         id: $option.val(),
         text: $option.text(),
@@ -3513,7 +3235,7 @@ S2.define('select2/data/select',[
         selected: $option.prop('selected'),
         title: $option.prop('title')
       };
-    } else if (option.tagName.toLowerCase() === 'optgroup') {
+    } else if ($option.is('optgroup')) {
       data = {
         text: $option.prop('label'),
         children: [],
@@ -3537,13 +3259,13 @@ S2.define('select2/data/select',[
     data = this._normalizeItem(data);
     data.element = $option[0];
 
-    Utils.StoreData($option[0], 'data', data);
+    $.data($option[0], 'data', data);
 
     return data;
   };
 
   SelectAdapter.prototype._normalizeItem = function (item) {
-    if (item !== Object(item)) {
+    if (!$.isPlainObject(item)) {
       item = {
         id: item,
         text: item
@@ -3589,18 +3311,14 @@ S2.define('select2/data/array',[
   'jquery'
 ], function (SelectAdapter, Utils, $) {
   function ArrayAdapter ($element, options) {
-    this._dataToConvert = options.get('data') || [];
+    var data = options.get('data') || [];
 
     ArrayAdapter.__super__.constructor.call(this, $element, options);
+
+    this.addOptions(this.convertToOptions(data));
   }
 
   Utils.Extend(ArrayAdapter, SelectAdapter);
-
-  ArrayAdapter.prototype.bind = function (container, $container) {
-    ArrayAdapter.__super__.bind.call(this, container, $container);
-
-    this.addOptions(this.convertToOptions(this._dataToConvert));
-  };
 
   ArrayAdapter.prototype.select = function (data) {
     var $option = this.$element.find('option').filter(function (i, elm) {
@@ -3637,7 +3355,7 @@ S2.define('select2/data/array',[
       var item = this._normalizeItem(data[d]);
 
       // Skip items which were pre-loaded, only merge the data
-      if (existingIds.indexOf(item.id) >= 0) {
+      if ($.inArray(item.id, existingIds) >= 0) {
         var $existingOption = $existing.filter(onlyItem(item));
 
         var existingData = this.item($existingOption);
@@ -3655,7 +3373,7 @@ S2.define('select2/data/array',[
       if (item.children) {
         var $children = this.convertToOptions(item.children);
 
-        $option.append($children);
+        Utils.appendMany($option, $children);
       }
 
       $options.push($option);
@@ -3714,7 +3432,7 @@ S2.define('select2/data/ajax',[
 
     if (this._request != null) {
       // JSONP requests cannot always be aborted
-      if (typeof this._request.abort === 'function') {
+      if ($.isFunction(this._request.abort)) {
         this._request.abort();
       }
 
@@ -3739,7 +3457,7 @@ S2.define('select2/data/ajax',[
 
         if (self.options.get('debug') && window.console && console.error) {
           // Check to make sure that the response included a `results` key.
-          if (!results || !results.results || !Array.isArray(results.results)) {
+          if (!results || !results.results || !$.isArray(results.results)) {
             console.error(
               'Select2: The AJAX results did not return an array in the ' +
               '`results` key of the response.'
@@ -3751,8 +3469,7 @@ S2.define('select2/data/ajax',[
       }, function () {
         // Attempt to detect if a request was aborted
         // Only works if the transport exposes a status property
-        if ('status' in $request &&
-            ($request.status === 0 || $request.status === '0')) {
+        if ($request.status && $request.status === '0') {
           return;
         }
 
@@ -3798,7 +3515,7 @@ S2.define('select2/data/tags',[
 
     decorated.call(this, $element, options);
 
-    if (Array.isArray(tags)) {
+    if ($.isArray(tags)) {
       for (var t = 0; t < tags.length; t++) {
         var tag = tags[t];
         var item = this._normalizeItem(tag);
@@ -3833,10 +3550,7 @@ S2.define('select2/data/tags',[
           }, true)
         );
 
-        var optionText = (option.text || '').toUpperCase();
-        var paramsTerm = (params.term || '').toUpperCase();
-
-        var checkText = optionText === paramsTerm;
+        var checkText = option.text === params.term;
 
         if (checkText || checkChildren) {
           if (child) {
@@ -3858,7 +3572,7 @@ S2.define('select2/data/tags',[
 
       if (tag != null) {
         var $option = self.option(tag);
-        $option.attr('data-select2-tag', 'true');
+        $option.attr('data-select2-tag', true);
 
         self.addOptions([$option]);
 
@@ -3874,11 +3588,7 @@ S2.define('select2/data/tags',[
   };
 
   Tags.prototype.createTag = function (decorated, params) {
-    if (params.term == null) {
-      return null;
-    }
-
-    var term = params.term.trim();
+    var term = $.trim(params.term);
 
     if (term === '') {
       return null;
@@ -3895,6 +3605,8 @@ S2.define('select2/data/tags',[
   };
 
   Tags.prototype._removeOldTags = function (_) {
+    var tag = this._lastTag;
+
     var $options = this.$element.find('option[data-select2-tag]');
 
     $options.each(function () {
@@ -3969,7 +3681,7 @@ S2.define('select2/data/tokenizer',[
       // Replace the search term if we have the search box
       if (this.$search.length) {
         this.$search.val(tokenData.term);
-        this.$search.trigger('focus');
+        this.$search.focus();
       }
 
       params.term = tokenData.term;
@@ -3993,7 +3705,7 @@ S2.define('select2/data/tokenizer',[
     while (i < term.length) {
       var termChar = term[i];
 
-      if (separators.indexOf(termChar) === -1) {
+      if ($.inArray(termChar, separators) === -1) {
         i++;
 
         continue;
@@ -4098,28 +3810,8 @@ S2.define('select2/data/maximumSelectionLength',[
     decorated.call(this, $e, options);
   }
 
-  MaximumSelectionLength.prototype.bind =
-    function (decorated, container, $container) {
-      var self = this;
-
-      decorated.call(this, container, $container);
-
-      container.on('select', function () {
-        self._checkIfMaximumSelected();
-      });
-  };
-
   MaximumSelectionLength.prototype.query =
     function (decorated, params, callback) {
-      var self = this;
-
-      this._checkIfMaximumSelected(function () {
-        decorated.call(self, params, callback);
-      });
-  };
-
-  MaximumSelectionLength.prototype._checkIfMaximumSelected =
-    function (_, successCallback) {
       var self = this;
 
       this.current(function (currentData) {
@@ -4134,10 +3826,7 @@ S2.define('select2/data/maximumSelectionLength',[
           });
           return;
         }
-
-        if (successCallback) {
-          successCallback();
-        }
+        decorated.call(self, params, callback);
       });
   };
 
@@ -4176,7 +3865,7 @@ S2.define('select2/dropdown',[
   };
 
   Dropdown.prototype.position = function ($dropdown, $container) {
-    // Should be implemented in subclasses
+    // Should be implmented in subclasses
   };
 
   Dropdown.prototype.destroy = function () {
@@ -4188,27 +3877,24 @@ S2.define('select2/dropdown',[
 });
 
 S2.define('select2/dropdown/search',[
-  'jquery'
-], function ($) {
+  'jquery',
+  '../utils'
+], function ($, Utils) {
   function Search () { }
 
   Search.prototype.render = function (decorated) {
     var $rendered = decorated.call(this);
-    var searchLabel = this.options.get('translations').get('search');
 
     var $search = $(
       '<span class="select2-search select2-search--dropdown">' +
         '<input class="select2-search__field" type="search" tabindex="-1"' +
-        ' autocorrect="off" autocapitalize="none"' +
-        ' spellcheck="false" role="searchbox" aria-autocomplete="list" />' +
+        ' autocomplete="off" autocorrect="off" autocapitalize="off"' +
+        ' spellcheck="false" role="textbox" />' +
       '</span>'
     );
 
     this.$searchContainer = $search;
     this.$search = $search.find('input');
-
-    this.$search.prop('autocomplete', this.options.get('autocomplete'));
-    this.$search.attr('aria-label', searchLabel());
 
     $rendered.prepend($search);
 
@@ -4217,8 +3903,6 @@ S2.define('select2/dropdown/search',[
 
   Search.prototype.bind = function (decorated, container, $container) {
     var self = this;
-
-    var resultsId = container.id + '-results';
 
     decorated.call(this, container, $container);
 
@@ -4242,27 +3926,23 @@ S2.define('select2/dropdown/search',[
 
     container.on('open', function () {
       self.$search.attr('tabindex', 0);
-      self.$search.attr('aria-controls', resultsId);
 
-      self.$search.trigger('focus');
+      self.$search.focus();
 
       window.setTimeout(function () {
-        self.$search.trigger('focus');
+        self.$search.focus();
       }, 0);
     });
 
     container.on('close', function () {
       self.$search.attr('tabindex', -1);
-      self.$search.removeAttr('aria-controls');
-      self.$search.removeAttr('aria-activedescendant');
 
       self.$search.val('');
-      self.$search.trigger('blur');
     });
 
     container.on('focus', function () {
-      if (!container.isOpen()) {
-        self.$search.trigger('focus');
+      if (container.isOpen()) {
+        self.$search.focus();
       }
     });
 
@@ -4271,18 +3951,10 @@ S2.define('select2/dropdown/search',[
         var showSearch = self.showSearch(params);
 
         if (showSearch) {
-          self.$searchContainer[0].classList.remove('select2-search--hide');
+          self.$searchContainer.removeClass('select2-search--hide');
         } else {
-          self.$searchContainer[0].classList.add('select2-search--hide');
+          self.$searchContainer.addClass('select2-search--hide');
         }
-      }
-    });
-
-    container.on('results:focus', function (params) {
-      if (params.data._resultId) {
-        self.$search.attr('aria-activedescendant', params.data._resultId);
-      } else {
-        self.$search.removeAttr('aria-activedescendant');
       }
     });
   };
@@ -4369,7 +4041,6 @@ S2.define('select2/dropdown/infiniteScroll',[
 
     if (this.showLoadingMore(data)) {
       this.$results.append(this.$loadingMore);
-      this.loadMoreIfNeeded();
     }
   };
 
@@ -4388,27 +4059,25 @@ S2.define('select2/dropdown/infiniteScroll',[
       self.loading = true;
     });
 
-    this.$results.on('scroll', this.loadMoreIfNeeded.bind(this));
-  };
+    this.$results.on('scroll', function () {
+      var isLoadMoreVisible = $.contains(
+        document.documentElement,
+        self.$loadingMore[0]
+      );
 
-  InfiniteScroll.prototype.loadMoreIfNeeded = function () {
-    var isLoadMoreVisible = $.contains(
-      document.documentElement,
-      this.$loadingMore[0]
-    );
+      if (self.loading || !isLoadMoreVisible) {
+        return;
+      }
 
-    if (this.loading || !isLoadMoreVisible) {
-      return;
-    }
+      var currentOffset = self.$results.offset().top +
+        self.$results.outerHeight(false);
+      var loadingMoreOffset = self.$loadingMore.offset().top +
+        self.$loadingMore.outerHeight(false);
 
-    var currentOffset = this.$results.offset().top +
-      this.$results.outerHeight(false);
-    var loadingMoreOffset = this.$loadingMore.offset().top +
-      this.$loadingMore.outerHeight(false);
-
-    if (currentOffset + 50 >= loadingMoreOffset) {
-      this.loadMore();
-    }
+      if (currentOffset + 50 >= loadingMoreOffset) {
+        self.loadMore();
+      }
+    });
   };
 
   InfiniteScroll.prototype.loadMore = function () {
@@ -4429,7 +4098,7 @@ S2.define('select2/dropdown/infiniteScroll',[
     var $option = $(
       '<li ' +
       'class="select2-results__option select2-results__option--load-more"' +
-      'role="option" aria-disabled="true"></li>'
+      'role="treeitem" aria-disabled="true"></li>'
     );
 
     var message = this.options.get('translations').get('loadingMore');
@@ -4447,7 +4116,7 @@ S2.define('select2/dropdown/attachBody',[
   '../utils'
 ], function ($, Utils) {
   function AttachBody (decorated, $element, options) {
-    this.$dropdownParent = $(options.get('dropdownParent') || document.body);
+    this.$dropdownParent = options.get('dropdownParent') || $(document.body);
 
     decorated.call(this, $element, options);
   }
@@ -4455,14 +4124,27 @@ S2.define('select2/dropdown/attachBody',[
   AttachBody.prototype.bind = function (decorated, container, $container) {
     var self = this;
 
+    var setupResultsEvents = false;
+
     decorated.call(this, container, $container);
 
     container.on('open', function () {
       self._showDropdown();
       self._attachPositioningHandler(container);
 
-      // Must bind after the results handlers to ensure correct sizing
-      self._bindContainerResultHandlers(container);
+      if (!setupResultsEvents) {
+        setupResultsEvents = true;
+
+        container.on('results:all', function () {
+          self._positionDropdown();
+          self._resizeDropdown();
+        });
+
+        container.on('results:append', function () {
+          self._positionDropdown();
+          self._resizeDropdown();
+        });
+      }
     });
 
     container.on('close', function () {
@@ -4485,8 +4167,8 @@ S2.define('select2/dropdown/attachBody',[
     // Clone all of the container classes
     $dropdown.attr('class', $container.attr('class'));
 
-    $dropdown[0].classList.remove('select2');
-    $dropdown[0].classList.add('select2-container--open');
+    $dropdown.removeClass('select2');
+    $dropdown.addClass('select2-container--open');
 
     $dropdown.css({
       position: 'absolute',
@@ -4511,44 +4193,6 @@ S2.define('select2/dropdown/attachBody',[
     this.$dropdownContainer.detach();
   };
 
-  AttachBody.prototype._bindContainerResultHandlers =
-      function (decorated, container) {
-
-    // These should only be bound once
-    if (this._containerResultsHandlersBound) {
-      return;
-    }
-
-    var self = this;
-
-    container.on('results:all', function () {
-      self._positionDropdown();
-      self._resizeDropdown();
-    });
-
-    container.on('results:append', function () {
-      self._positionDropdown();
-      self._resizeDropdown();
-    });
-
-    container.on('results:message', function () {
-      self._positionDropdown();
-      self._resizeDropdown();
-    });
-
-    container.on('select', function () {
-      self._positionDropdown();
-      self._resizeDropdown();
-    });
-
-    container.on('unselect', function () {
-      self._positionDropdown();
-      self._resizeDropdown();
-    });
-
-    this._containerResultsHandlersBound = true;
-  };
-
   AttachBody.prototype._attachPositioningHandler =
       function (decorated, container) {
     var self = this;
@@ -4559,14 +4203,14 @@ S2.define('select2/dropdown/attachBody',[
 
     var $watchers = this.$container.parents().filter(Utils.hasScroll);
     $watchers.each(function () {
-      Utils.StoreData(this, 'select2-scroll-position', {
+      $(this).data('select2-scroll-position', {
         x: $(this).scrollLeft(),
         y: $(this).scrollTop()
       });
     });
 
     $watchers.on(scrollEvent, function (ev) {
-      var position = Utils.GetData(this, 'select2-scroll-position');
+      var position = $(this).data('select2-scroll-position');
       $(this).scrollTop(position.y);
     });
 
@@ -4592,10 +4236,8 @@ S2.define('select2/dropdown/attachBody',[
   AttachBody.prototype._positionDropdown = function () {
     var $window = $(window);
 
-    var isCurrentlyAbove = this.$dropdown[0].classList
-      .contains('select2-dropdown--above');
-    var isCurrentlyBelow = this.$dropdown[0].classList
-      .contains('select2-dropdown--below');
+    var isCurrentlyAbove = this.$dropdown.hasClass('select2-dropdown--above');
+    var isCurrentlyBelow = this.$dropdown.hasClass('select2-dropdown--below');
 
     var newDirection = null;
 
@@ -4627,26 +4269,16 @@ S2.define('select2/dropdown/attachBody',[
       top: container.bottom
     };
 
-    // Determine what the parent element is to use for calculating the offset
+    // Determine what the parent element is to use for calciulating the offset
     var $offsetParent = this.$dropdownParent;
 
-    // For statically positioned elements, we need to get the element
+    // For statically positoned elements, we need to get the element
     // that is determining the offset
     if ($offsetParent.css('position') === 'static') {
       $offsetParent = $offsetParent.offsetParent();
     }
 
-    var parentOffset = {
-      top: 0,
-      left: 0
-    };
-
-    if (
-      $.contains(document.body, $offsetParent[0]) ||
-      $offsetParent[0].isConnected
-      ) {
-      parentOffset = $offsetParent.offset();
-    }
+    var parentOffset = $offsetParent.offset();
 
     css.top -= parentOffset.top;
     css.left -= parentOffset.left;
@@ -4667,13 +4299,12 @@ S2.define('select2/dropdown/attachBody',[
     }
 
     if (newDirection != null) {
-      this.$dropdown[0].classList.remove('select2-dropdown--below');
-      this.$dropdown[0].classList.remove('select2-dropdown--above');
-      this.$dropdown[0].classList.add('select2-dropdown--' + newDirection);
-
-      this.$container[0].classList.remove('select2-container--below');
-      this.$container[0].classList.remove('select2-container--above');
-      this.$container[0].classList.add('select2-container--' + newDirection);
+      this.$dropdown
+        .removeClass('select2-dropdown--below select2-dropdown--above')
+        .addClass('select2-dropdown--' + newDirection);
+      this.$container
+        .removeClass('select2-container--below select2-container--above')
+        .addClass('select2-container--' + newDirection);
     }
 
     this.$dropdownContainer.css(css);
@@ -4744,8 +4375,8 @@ S2.define('select2/dropdown/minimumResultsForSearch',[
 });
 
 S2.define('select2/dropdown/selectOnClose',[
-  '../utils'
-], function (Utils) {
+
+], function () {
   function SelectOnClose () { }
 
   SelectOnClose.prototype.bind = function (decorated, container, $container) {
@@ -4776,7 +4407,7 @@ S2.define('select2/dropdown/selectOnClose',[
       return;
     }
 
-    var data = Utils.GetData($highlightedResults[0], 'data');
+    var data = $highlightedResults.data('data');
 
     // Don't re-select already selected resulte
     if (
@@ -4817,7 +4448,7 @@ S2.define('select2/dropdown/closeOnSelect',[
     var originalEvent = evt.originalEvent;
 
     // Don't close if the control key is being held
-    if (originalEvent && (originalEvent.ctrlKey || originalEvent.metaKey)) {
+    if (originalEvent && originalEvent.ctrlKey) {
       return;
     }
 
@@ -4828,62 +4459,6 @@ S2.define('select2/dropdown/closeOnSelect',[
   };
 
   return CloseOnSelect;
-});
-
-S2.define('select2/dropdown/dropdownCss',[
-  '../utils'
-], function (Utils) {
-  function DropdownCSS () { }
-
-  DropdownCSS.prototype.render = function (decorated) {
-    var $dropdown = decorated.call(this);
-
-    var dropdownCssClass = this.options.get('dropdownCssClass') || '';
-
-    if (dropdownCssClass.indexOf(':all:') !== -1) {
-      dropdownCssClass = dropdownCssClass.replace(':all:', '');
-
-      Utils.copyNonInternalCssClasses($dropdown[0], this.$element[0]);
-    }
-
-    $dropdown.addClass(dropdownCssClass);
-
-    return $dropdown;
-  };
-
-  return DropdownCSS;
-});
-
-S2.define('select2/dropdown/tagsSearchHighlight',[
-  '../utils'
-], function (Utils) {
-  function TagsSearchHighlight () { }
-
-  TagsSearchHighlight.prototype.highlightFirstItem = function (decorated) {
-    var $options = this.$results
-    .find(
-      '.select2-results__option--selectable' +
-      ':not(.select2-results__option--selected)'
-    );
-
-    if ($options.length > 0) {
-      var $firstOption = $options.first();
-      var data = Utils.GetData($firstOption[0], 'data');
-      var firstElement = data.element;
-
-      if (firstElement && firstElement.getAttribute) {
-        if (firstElement.getAttribute('data-select2-tag') === 'true') {
-          $firstOption.trigger('mouseenter');
-
-          return;
-        }
-      }
-    }
-
-    decorated.call(this);
-  };
-
-  return TagsSearchHighlight;
 });
 
 S2.define('select2/i18n/en',[],function () {
@@ -4927,21 +4502,13 @@ S2.define('select2/i18n/en',[],function () {
     },
     searching: function () {
       return 'Searching…';
-    },
-    removeAllItems: function () {
-      return 'Remove all items';
-    },
-    removeItem: function () {
-      return 'Remove item';
-    },
-    search: function() {
-      return 'Search';
     }
   };
 });
 
 S2.define('select2/defaults',[
   'jquery',
+  'require',
 
   './results',
 
@@ -4950,7 +4517,6 @@ S2.define('select2/defaults',[
   './selection/placeholder',
   './selection/allowClear',
   './selection/search',
-  './selection/selectionCss',
   './selection/eventRelay',
 
   './utils',
@@ -4974,16 +4540,14 @@ S2.define('select2/defaults',[
   './dropdown/minimumResultsForSearch',
   './dropdown/selectOnClose',
   './dropdown/closeOnSelect',
-  './dropdown/dropdownCss',
-  './dropdown/tagsSearchHighlight',
 
   './i18n/en'
-], function ($,
+], function ($, require,
 
              ResultsList,
 
              SingleSelection, MultipleSelection, Placeholder, AllowClear,
-             SelectionSearch, SelectionCSS, EventRelay,
+             SelectionSearch, EventRelay,
 
              Utils, Translation, DIACRITICS,
 
@@ -4992,7 +4556,6 @@ S2.define('select2/defaults',[
 
              Dropdown, DropdownSearch, HidePlaceholder, InfiniteScroll,
              AttachBody, MinimumResultsForSearch, SelectOnClose, CloseOnSelect,
-             DropdownCSS, TagsSearchHighlight,
 
              EnglishTranslation) {
   function Defaults () {
@@ -5042,6 +4605,24 @@ S2.define('select2/defaults',[
           Tokenizer
         );
       }
+
+      if (options.query != null) {
+        var Query = require(options.amdBase + 'compat/query');
+
+        options.dataAdapter = Utils.Decorate(
+          options.dataAdapter,
+          Query
+        );
+      }
+
+      if (options.initSelection != null) {
+        var InitSelection = require(options.amdBase + 'compat/initSelection');
+
+        options.dataAdapter = Utils.Decorate(
+          options.dataAdapter,
+          InitSelection
+        );
+      }
     }
 
     if (options.resultsAdapter == null) {
@@ -5065,13 +4646,6 @@ S2.define('select2/defaults',[
         options.resultsAdapter = Utils.Decorate(
           options.resultsAdapter,
           SelectOnClose
-        );
-      }
-
-      if (options.tags) {
-        options.resultsAdapter = Utils.Decorate(
-          options.resultsAdapter,
-          TagsSearchHighlight
         );
       }
     }
@@ -5099,7 +4673,13 @@ S2.define('select2/defaults',[
         );
       }
 
-      if (options.dropdownCssClass != null) {
+      if (
+        options.dropdownCssClass != null ||
+        options.dropdownCss != null ||
+        options.adaptDropdownCssClass != null
+      ) {
+        var DropdownCSS = require(options.amdBase + 'compat/dropdownCss');
+
         options.dropdownAdapter = Utils.Decorate(
           options.dropdownAdapter,
           DropdownCSS
@@ -5141,10 +4721,16 @@ S2.define('select2/defaults',[
         );
       }
 
-      if (options.selectionCssClass != null) {
+      if (
+        options.containerCssClass != null ||
+        options.containerCss != null ||
+        options.adaptContainerCssClass != null
+      ) {
+        var ContainerCSS = require(options.amdBase + 'compat/containerCss');
+
         options.selectionAdapter = Utils.Decorate(
           options.selectionAdapter,
-          SelectionCSS
+          ContainerCSS
         );
       }
 
@@ -5154,29 +4740,66 @@ S2.define('select2/defaults',[
       );
     }
 
-    // If the defaults were not previously applied from an element, it is
-    // possible for the language option to have not been resolved
-    options.language = this._resolveLanguage(options.language);
+    if (typeof options.language === 'string') {
+      // Check if the language is specified with a region
+      if (options.language.indexOf('-') > 0) {
+        // Extract the region information if it is included
+        var languageParts = options.language.split('-');
+        var baseLanguage = languageParts[0];
 
-    // Always fall back to English since it will always be complete
-    options.language.push('en');
-
-    var uniqueLanguages = [];
-
-    for (var l = 0; l < options.language.length; l++) {
-      var language = options.language[l];
-
-      if (uniqueLanguages.indexOf(language) === -1) {
-        uniqueLanguages.push(language);
+        options.language = [options.language, baseLanguage];
+      } else {
+        options.language = [options.language];
       }
     }
 
-    options.language = uniqueLanguages;
+    if ($.isArray(options.language)) {
+      var languages = new Translation();
+      options.language.push('en');
 
-    options.translations = this._processTranslations(
-      options.language,
-      options.debug
-    );
+      var languageNames = options.language;
+
+      for (var l = 0; l < languageNames.length; l++) {
+        var name = languageNames[l];
+        var language = {};
+
+        try {
+          // Try to load it with the original name
+          language = Translation.loadPath(name);
+        } catch (e) {
+          try {
+            // If we couldn't load it, check if it wasn't the full path
+            name = this.defaults.amdLanguageBase + name;
+            language = Translation.loadPath(name);
+          } catch (ex) {
+            // The translation could not be loaded at all. Sometimes this is
+            // because of a configuration problem, other times this can be
+            // because of how Select2 helps load all possible translation files.
+            if (options.debug && window.console && console.warn) {
+              console.warn(
+                'Select2: The language file for "' + name + '" could not be ' +
+                'automatically loaded. A fallback will be used instead.'
+              );
+            }
+
+            continue;
+          }
+        }
+
+        languages.extend(language);
+      }
+
+      options.translations = languages;
+    } else {
+      var baseTranslation = Translation.loadPath(
+        this.defaults.amdLanguageBase + 'en'
+      );
+      var customTranslation = new Translation(options.language);
+
+      customTranslation.extend(baseTranslation);
+
+      options.translations = customTranslation;
+    }
 
     return options;
   };
@@ -5193,7 +4816,7 @@ S2.define('select2/defaults',[
 
     function matcher (params, data) {
       // Always return the object if there is nothing to compare
-      if (params.term == null || params.term.trim() === '') {
+      if ($.trim(params.term) === '') {
         return data;
       }
 
@@ -5237,20 +4860,19 @@ S2.define('select2/defaults',[
     }
 
     this.defaults = {
+      amdBase: './',
       amdLanguageBase: './i18n/',
-      autocomplete: 'off',
       closeOnSelect: true,
       debug: false,
       dropdownAutoWidth: false,
       escapeMarkup: Utils.escapeMarkup,
-      language: {},
+      language: EnglishTranslation,
       matcher: matcher,
       minimumInputLength: 0,
       maximumInputLength: 0,
       maximumSelectionLength: 0,
       minimumResultsForSearch: 0,
       selectOnClose: false,
-      scrollAfterSelect: false,
       sorter: function (data) {
         return data;
       },
@@ -5265,103 +4887,6 @@ S2.define('select2/defaults',[
     };
   };
 
-  Defaults.prototype.applyFromElement = function (options, $element) {
-    var optionLanguage = options.language;
-    var defaultLanguage = this.defaults.language;
-    var elementLanguage = $element.prop('lang');
-    var parentLanguage = $element.closest('[lang]').prop('lang');
-
-    var languages = Array.prototype.concat.call(
-      this._resolveLanguage(elementLanguage),
-      this._resolveLanguage(optionLanguage),
-      this._resolveLanguage(defaultLanguage),
-      this._resolveLanguage(parentLanguage)
-    );
-
-    options.language = languages;
-
-    return options;
-  };
-
-  Defaults.prototype._resolveLanguage = function (language) {
-    if (!language) {
-      return [];
-    }
-
-    if ($.isEmptyObject(language)) {
-      return [];
-    }
-
-    if ($.isPlainObject(language)) {
-      return [language];
-    }
-
-    var languages;
-
-    if (!Array.isArray(language)) {
-      languages = [language];
-    } else {
-      languages = language;
-    }
-
-    var resolvedLanguages = [];
-
-    for (var l = 0; l < languages.length; l++) {
-      resolvedLanguages.push(languages[l]);
-
-      if (typeof languages[l] === 'string' && languages[l].indexOf('-') > 0) {
-        // Extract the region information if it is included
-        var languageParts = languages[l].split('-');
-        var baseLanguage = languageParts[0];
-
-        resolvedLanguages.push(baseLanguage);
-      }
-    }
-
-    return resolvedLanguages;
-  };
-
-  Defaults.prototype._processTranslations = function (languages, debug) {
-    var translations = new Translation();
-
-    for (var l = 0; l < languages.length; l++) {
-      var languageData = new Translation();
-
-      var language = languages[l];
-
-      if (typeof language === 'string') {
-        try {
-          // Try to load it with the original name
-          languageData = Translation.loadPath(language);
-        } catch (e) {
-          try {
-            // If we couldn't load it, check if it wasn't the full path
-            language = this.defaults.amdLanguageBase + language;
-            languageData = Translation.loadPath(language);
-          } catch (ex) {
-            // The translation could not be loaded at all. Sometimes this is
-            // because of a configuration problem, other times this can be
-            // because of how Select2 helps load all possible translation files
-            if (debug && window.console && console.warn) {
-              console.warn(
-                'Select2: The language file for "' + language + '" could ' +
-                'not be automatically loaded. A fallback will be used instead.'
-              );
-            }
-          }
-        }
-      } else if ($.isPlainObject(language)) {
-        languageData = new Translation(language);
-      } else {
-        languageData = language;
-      }
-
-      translations.extend(languageData);
-    }
-
-    return translations;
-  };
-
   Defaults.prototype.set = function (key, value) {
     var camelKey = $.camelCase(key);
 
@@ -5370,7 +4895,7 @@ S2.define('select2/defaults',[
 
     var convertedData = Utils._convertData(data);
 
-    $.extend(true, this.defaults, convertedData);
+    $.extend(this.defaults, convertedData);
   };
 
   var defaults = new Defaults();
@@ -5379,10 +4904,11 @@ S2.define('select2/defaults',[
 });
 
 S2.define('select2/options',[
+  'require',
   'jquery',
   './defaults',
   './utils'
-], function ($, Defaults, Utils) {
+], function (require, $, Defaults, Utils) {
   function Options (options, $element) {
     this.options = options;
 
@@ -5390,11 +4916,16 @@ S2.define('select2/options',[
       this.fromElement($element);
     }
 
-    if ($element != null) {
-      this.options = Defaults.applyFromElement(this.options, $element);
-    }
-
     this.options = Defaults.apply(this.options);
+
+    if ($element && $element.is('input')) {
+      var InputCompat = require(this.get('amdBase') + 'compat/inputData');
+
+      this.options.dataAdapter = Utils.Decorate(
+        this.options.dataAdapter,
+        InputCompat
+      );
+    }
   }
 
   Options.prototype.fromElement = function ($e) {
@@ -5408,8 +4939,12 @@ S2.define('select2/options',[
       this.options.disabled = $e.prop('disabled');
     }
 
-    if (this.options.autocomplete == null && $e.prop('autocomplete')) {
-      this.options.autocomplete = $e.prop('autocomplete');
+    if (this.options.language == null) {
+      if ($e.prop('lang')) {
+        this.options.language = $e.prop('lang').toLowerCase();
+      } else if ($e.closest('[lang]').prop('lang')) {
+        this.options.language = $e.closest('[lang]').prop('lang');
+      }
     }
 
     if (this.options.dir == null) {
@@ -5425,7 +4960,7 @@ S2.define('select2/options',[
     $e.prop('disabled', this.options.disabled);
     $e.prop('multiple', this.options.multiple);
 
-    if (Utils.GetData($e[0], 'select2Tags')) {
+    if ($e.data('select2Tags')) {
       if (this.options.debug && window.console && console.warn) {
         console.warn(
           'Select2: The `data-select2-tags` attribute has been changed to ' +
@@ -5434,11 +4969,11 @@ S2.define('select2/options',[
         );
       }
 
-      Utils.StoreData($e[0], 'data', Utils.GetData($e[0], 'select2Tags'));
-      Utils.StoreData($e[0], 'tags', true);
+      $e.data('data', $e.data('select2Tags'));
+      $e.data('tags', true);
     }
 
-    if (Utils.GetData($e[0], 'ajaxUrl')) {
+    if ($e.data('ajaxUrl')) {
       if (this.options.debug && window.console && console.warn) {
         console.warn(
           'Select2: The `data-ajax-url` attribute has been changed to ' +
@@ -5447,50 +4982,26 @@ S2.define('select2/options',[
         );
       }
 
-      $e.attr('ajax--url', Utils.GetData($e[0], 'ajaxUrl'));
-      Utils.StoreData($e[0], 'ajax-Url', Utils.GetData($e[0], 'ajaxUrl'));
+      $e.attr('ajax--url', $e.data('ajaxUrl'));
+      $e.data('ajax--url', $e.data('ajaxUrl'));
     }
 
     var dataset = {};
 
-    function upperCaseLetter(_, letter) {
-      return letter.toUpperCase();
-    }
-
-    // Pre-load all of the attributes which are prefixed with `data-`
-    for (var attr = 0; attr < $e[0].attributes.length; attr++) {
-      var attributeName = $e[0].attributes[attr].name;
-      var prefix = 'data-';
-
-      if (attributeName.substr(0, prefix.length) == prefix) {
-        // Get the contents of the attribute after `data-`
-        var dataName = attributeName.substring(prefix.length);
-
-        // Get the data contents from the consistent source
-        // This is more than likely the jQuery data helper
-        var dataValue = Utils.GetData($e[0], dataName);
-
-        // camelCase the attribute name to match the spec
-        var camelDataName = dataName.replace(/-([a-z])/g, upperCaseLetter);
-
-        // Store the data attribute contents into the dataset since
-        dataset[camelDataName] = dataValue;
-      }
-    }
-
     // Prefer the element's `dataset` attribute if it exists
     // jQuery 1.x does not correctly handle data attributes with multiple dashes
     if ($.fn.jquery && $.fn.jquery.substr(0, 2) == '1.' && $e[0].dataset) {
-      dataset = $.extend(true, {}, $e[0].dataset, dataset);
+      dataset = $.extend(true, {}, $e[0].dataset, $e.data());
+    } else {
+      dataset = $e.data();
     }
 
-    // Prefer our internal data cache if it exists
-    var data = $.extend(true, {}, Utils.GetData($e[0]), dataset);
+    var data = $.extend(true, {}, dataset);
 
     data = Utils._convertData(data);
 
     for (var key in data) {
-      if (excludedData.indexOf(key) > -1) {
+      if ($.inArray(key, excludedData) > -1) {
         continue;
       }
 
@@ -5522,8 +5033,8 @@ S2.define('select2/core',[
   './keys'
 ], function ($, Options, Utils, KEYS) {
   var Select2 = function ($element, options) {
-    if (Utils.GetData($element[0], 'select2') != null) {
-      Utils.GetData($element[0], 'select2').destroy();
+    if ($element.data('select2') != null) {
+      $element.data('select2').destroy();
     }
 
     this.$element = $element;
@@ -5539,7 +5050,7 @@ S2.define('select2/core',[
     // Set up the tabindex
 
     var tabindex = $element.attr('tabindex') || 0;
-    Utils.StoreData($element[0], 'old-tabindex', tabindex);
+    $element.data('old-tabindex', tabindex);
     $element.attr('tabindex', '-1');
 
     // Set up containers and adapters
@@ -5594,15 +5105,12 @@ S2.define('select2/core',[
     });
 
     // Hide the original select
-    $element[0].classList.add('select2-hidden-accessible');
+    $element.addClass('select2-hidden-accessible');
     $element.attr('aria-hidden', 'true');
 
     // Synchronize any monitored attributes
     this._syncAttributes();
 
-    Utils.StoreData($element[0], 'select2', this);
-
-    // Ensure backwards compatibility with $element.data('select2').
     $element.data('select2', this);
   };
 
@@ -5679,12 +5187,6 @@ S2.define('select2/core',[
       return null;
     }
 
-    if (method == 'computedstyle') {
-      var computedStyle = window.getComputedStyle($element[0]);
-
-      return computedStyle.width;
-    }
-
     return method;
   };
 
@@ -5714,15 +5216,42 @@ S2.define('select2/core',[
     this._syncA = Utils.bind(this._syncAttributes, this);
     this._syncS = Utils.bind(this._syncSubtree, this);
 
-    this._observer = new window.MutationObserver(function (mutations) {
-      self._syncA();
-      self._syncS(mutations);
-    });
-    this._observer.observe(this.$element[0], {
-      attributes: true,
-      childList: true,
-      subtree: false
-    });
+    if (this.$element[0].attachEvent) {
+      this.$element[0].attachEvent('onpropertychange', this._syncA);
+    }
+
+    var observer = window.MutationObserver ||
+      window.WebKitMutationObserver ||
+      window.MozMutationObserver
+    ;
+
+    if (observer != null) {
+      this._observer = new observer(function (mutations) {
+        $.each(mutations, self._syncA);
+        $.each(mutations, self._syncS);
+      });
+      this._observer.observe(this.$element[0], {
+        attributes: true,
+        childList: true,
+        subtree: false
+      });
+    } else if (this.$element[0].addEventListener) {
+      this.$element[0].addEventListener(
+        'DOMAttrModified',
+        self._syncA,
+        false
+      );
+      this.$element[0].addEventListener(
+        'DOMNodeInserted',
+        self._syncS,
+        false
+      );
+      this.$element[0].addEventListener(
+        'DOMNodeRemoved',
+        self._syncS,
+        false
+      );
+    }
   };
 
   Select2.prototype._registerDataEvents = function () {
@@ -5746,7 +5275,7 @@ S2.define('select2/core',[
     });
 
     this.selection.on('*', function (name, params) {
-      if (nonRelayEvents.indexOf(name) !== -1) {
+      if ($.inArray(name, nonRelayEvents) !== -1) {
         return;
       }
 
@@ -5774,23 +5303,23 @@ S2.define('select2/core',[
     var self = this;
 
     this.on('open', function () {
-      self.$container[0].classList.add('select2-container--open');
+      self.$container.addClass('select2-container--open');
     });
 
     this.on('close', function () {
-      self.$container[0].classList.remove('select2-container--open');
+      self.$container.removeClass('select2-container--open');
     });
 
     this.on('enable', function () {
-      self.$container[0].classList.remove('select2-container--disabled');
+      self.$container.removeClass('select2-container--disabled');
     });
 
     this.on('disable', function () {
-      self.$container[0].classList.add('select2-container--disabled');
+      self.$container.addClass('select2-container--disabled');
     });
 
     this.on('blur', function () {
-      self.$container[0].classList.remove('select2-container--focus');
+      self.$container.removeClass('select2-container--focus');
     });
 
     this.on('query', function (params) {
@@ -5819,11 +5348,12 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.ESC || (key === KEYS.UP && evt.altKey)) {
-          self.close(evt);
+        if (key === KEYS.ESC || key === KEYS.TAB ||
+            (key === KEYS.UP && evt.altKey)) {
+          self.close();
 
           evt.preventDefault();
-        } else if (key === KEYS.ENTER || key === KEYS.TAB) {
+        } else if (key === KEYS.ENTER) {
           self.trigger('results:select', {});
 
           evt.preventDefault();
@@ -5854,7 +5384,7 @@ S2.define('select2/core',[
   Select2.prototype._syncAttributes = function () {
     this.options.set('disabled', this.$element.prop('disabled'));
 
-    if (this.isDisabled()) {
+    if (this.options.get('disabled')) {
       if (this.isOpen()) {
         this.close();
       }
@@ -5865,31 +5395,35 @@ S2.define('select2/core',[
     }
   };
 
-  Select2.prototype._isChangeMutation = function (mutations) {
+  Select2.prototype._syncSubtree = function (evt, mutations) {
+    var changed = false;
     var self = this;
 
-    if (mutations.addedNodes && mutations.addedNodes.length > 0) {
+    // Ignore any mutation events raised for elements that aren't options or
+    // optgroups. This handles the case when the select element is destroyed
+    if (
+      evt && evt.target && (
+        evt.target.nodeName !== 'OPTION' && evt.target.nodeName !== 'OPTGROUP'
+      )
+    ) {
+      return;
+    }
+
+    if (!mutations) {
+      // If mutation events aren't supported, then we can only assume that the
+      // change affected the selections
+      changed = true;
+    } else if (mutations.addedNodes && mutations.addedNodes.length > 0) {
       for (var n = 0; n < mutations.addedNodes.length; n++) {
         var node = mutations.addedNodes[n];
 
         if (node.selected) {
-          return true;
+          changed = true;
         }
       }
     } else if (mutations.removedNodes && mutations.removedNodes.length > 0) {
-      return true;
-    } else if (Array.isArray(mutations)) {
-      return mutations.some(function (mutation) {
-        return self._isChangeMutation(mutation);
-      });
+      changed = true;
     }
-
-    return false;
-  };
-
-  Select2.prototype._syncSubtree = function (mutations) {
-    var changed = this._isChangeMutation(mutations);
-    var self = this;
 
     // Only re-pull the data if we think there is a change
     if (changed) {
@@ -5911,8 +5445,7 @@ S2.define('select2/core',[
       'open': 'opening',
       'close': 'closing',
       'select': 'selecting',
-      'unselect': 'unselecting',
-      'clear': 'clearing'
+      'unselect': 'unselecting'
     };
 
     if (args === undefined) {
@@ -5940,7 +5473,7 @@ S2.define('select2/core',[
   };
 
   Select2.prototype.toggleDropdown = function () {
-    if (this.isDisabled()) {
+    if (this.options.get('disabled')) {
       return;
     }
 
@@ -5956,48 +5489,23 @@ S2.define('select2/core',[
       return;
     }
 
-    if (this.isDisabled()) {
-      return;
-    }
-
     this.trigger('query', {});
   };
 
-  Select2.prototype.close = function (evt) {
+  Select2.prototype.close = function () {
     if (!this.isOpen()) {
       return;
     }
 
-    this.trigger('close', { originalEvent : evt });
-  };
-
-  /**
-   * Helper method to abstract the "enabled" (not "disabled") state of this
-   * object.
-   *
-   * @return {true} if the instance is not disabled.
-   * @return {false} if the instance is disabled.
-   */
-  Select2.prototype.isEnabled = function () {
-    return !this.isDisabled();
-  };
-
-  /**
-   * Helper method to abstract the "disabled" state of this object.
-   *
-   * @return {true} if the disabled option is true.
-   * @return {false} if the disabled option is false.
-   */
-  Select2.prototype.isDisabled = function () {
-    return this.options.get('disabled');
+    this.trigger('close', {});
   };
 
   Select2.prototype.isOpen = function () {
-    return this.$container[0].classList.contains('select2-container--open');
+    return this.$container.hasClass('select2-container--open');
   };
 
   Select2.prototype.hasFocus = function () {
-    return this.$container[0].classList.contains('select2-container--focus');
+    return this.$container.hasClass('select2-container--focus');
   };
 
   Select2.prototype.focus = function (data) {
@@ -6006,7 +5514,7 @@ S2.define('select2/core',[
       return;
     }
 
-    this.$container[0].classList.add('select2-container--focus');
+    this.$container.addClass('select2-container--focus');
     this.trigger('focus', {});
   };
 
@@ -6060,32 +5568,42 @@ S2.define('select2/core',[
 
     var newVal = args[0];
 
-    if (Array.isArray(newVal)) {
-      newVal = newVal.map(function (obj) {
+    if ($.isArray(newVal)) {
+      newVal = $.map(newVal, function (obj) {
         return obj.toString();
       });
     }
 
-    this.$element.val(newVal).trigger('input').trigger('change');
+    this.$element.val(newVal).trigger('change');
   };
 
   Select2.prototype.destroy = function () {
-    Utils.RemoveData(this.$container[0]);
     this.$container.remove();
 
-    this._observer.disconnect();
-    this._observer = null;
+    if (this.$element[0].detachEvent) {
+      this.$element[0].detachEvent('onpropertychange', this._syncA);
+    }
+
+    if (this._observer != null) {
+      this._observer.disconnect();
+      this._observer = null;
+    } else if (this.$element[0].removeEventListener) {
+      this.$element[0]
+        .removeEventListener('DOMAttrModified', this._syncA, false);
+      this.$element[0]
+        .removeEventListener('DOMNodeInserted', this._syncS, false);
+      this.$element[0]
+        .removeEventListener('DOMNodeRemoved', this._syncS, false);
+    }
 
     this._syncA = null;
     this._syncS = null;
 
     this.$element.off('.select2');
-    this.$element.attr('tabindex',
-    Utils.GetData(this.$element[0], 'old-tabindex'));
+    this.$element.attr('tabindex', this.$element.data('old-tabindex'));
 
-    this.$element[0].classList.remove('select2-hidden-accessible');
+    this.$element.removeClass('select2-hidden-accessible');
     this.$element.attr('aria-hidden', 'false');
-    Utils.RemoveData(this.$element[0]);
     this.$element.removeData('select2');
 
     this.dataAdapter.destroy();
@@ -6111,15 +5629,413 @@ S2.define('select2/core',[
 
     this.$container = $container;
 
-    this.$container[0].classList
-      .add('select2-container--' + this.options.get('theme'));
+    this.$container.addClass('select2-container--' + this.options.get('theme'));
 
-    Utils.StoreData($container[0], 'element', this.$element);
+    $container.data('element', this.$element);
 
     return $container;
   };
 
   return Select2;
+});
+
+S2.define('select2/compat/utils',[
+  'jquery'
+], function ($) {
+  function syncCssClasses ($dest, $src, adapter) {
+    var classes, replacements = [], adapted;
+
+    classes = $.trim($dest.attr('class'));
+
+    if (classes) {
+      classes = '' + classes; // for IE which returns object
+
+      $(classes.split(/\s+/)).each(function () {
+        // Save all Select2 classes
+        if (this.indexOf('select2-') === 0) {
+          replacements.push(this);
+        }
+      });
+    }
+
+    classes = $.trim($src.attr('class'));
+
+    if (classes) {
+      classes = '' + classes; // for IE which returns object
+
+      $(classes.split(/\s+/)).each(function () {
+        // Only adapt non-Select2 classes
+        if (this.indexOf('select2-') !== 0) {
+          adapted = adapter(this);
+
+          if (adapted != null) {
+            replacements.push(adapted);
+          }
+        }
+      });
+    }
+
+    $dest.attr('class', replacements.join(' '));
+  }
+
+  return {
+    syncCssClasses: syncCssClasses
+  };
+});
+
+S2.define('select2/compat/containerCss',[
+  'jquery',
+  './utils'
+], function ($, CompatUtils) {
+  // No-op CSS adapter that discards all classes by default
+  function _containerAdapter (clazz) {
+    return null;
+  }
+
+  function ContainerCSS () { }
+
+  ContainerCSS.prototype.render = function (decorated) {
+    var $container = decorated.call(this);
+
+    var containerCssClass = this.options.get('containerCssClass') || '';
+
+    if ($.isFunction(containerCssClass)) {
+      containerCssClass = containerCssClass(this.$element);
+    }
+
+    var containerCssAdapter = this.options.get('adaptContainerCssClass');
+    containerCssAdapter = containerCssAdapter || _containerAdapter;
+
+    if (containerCssClass.indexOf(':all:') !== -1) {
+      containerCssClass = containerCssClass.replace(':all:', '');
+
+      var _cssAdapter = containerCssAdapter;
+
+      containerCssAdapter = function (clazz) {
+        var adapted = _cssAdapter(clazz);
+
+        if (adapted != null) {
+          // Append the old one along with the adapted one
+          return adapted + ' ' + clazz;
+        }
+
+        return clazz;
+      };
+    }
+
+    var containerCss = this.options.get('containerCss') || {};
+
+    if ($.isFunction(containerCss)) {
+      containerCss = containerCss(this.$element);
+    }
+
+    CompatUtils.syncCssClasses($container, this.$element, containerCssAdapter);
+
+    $container.css(containerCss);
+    $container.addClass(containerCssClass);
+
+    return $container;
+  };
+
+  return ContainerCSS;
+});
+
+S2.define('select2/compat/dropdownCss',[
+  'jquery',
+  './utils'
+], function ($, CompatUtils) {
+  // No-op CSS adapter that discards all classes by default
+  function _dropdownAdapter (clazz) {
+    return null;
+  }
+
+  function DropdownCSS () { }
+
+  DropdownCSS.prototype.render = function (decorated) {
+    var $dropdown = decorated.call(this);
+
+    var dropdownCssClass = this.options.get('dropdownCssClass') || '';
+
+    if ($.isFunction(dropdownCssClass)) {
+      dropdownCssClass = dropdownCssClass(this.$element);
+    }
+
+    var dropdownCssAdapter = this.options.get('adaptDropdownCssClass');
+    dropdownCssAdapter = dropdownCssAdapter || _dropdownAdapter;
+
+    if (dropdownCssClass.indexOf(':all:') !== -1) {
+      dropdownCssClass = dropdownCssClass.replace(':all:', '');
+
+      var _cssAdapter = dropdownCssAdapter;
+
+      dropdownCssAdapter = function (clazz) {
+        var adapted = _cssAdapter(clazz);
+
+        if (adapted != null) {
+          // Append the old one along with the adapted one
+          return adapted + ' ' + clazz;
+        }
+
+        return clazz;
+      };
+    }
+
+    var dropdownCss = this.options.get('dropdownCss') || {};
+
+    if ($.isFunction(dropdownCss)) {
+      dropdownCss = dropdownCss(this.$element);
+    }
+
+    CompatUtils.syncCssClasses($dropdown, this.$element, dropdownCssAdapter);
+
+    $dropdown.css(dropdownCss);
+    $dropdown.addClass(dropdownCssClass);
+
+    return $dropdown;
+  };
+
+  return DropdownCSS;
+});
+
+S2.define('select2/compat/initSelection',[
+  'jquery'
+], function ($) {
+  function InitSelection (decorated, $element, options) {
+    if (options.get('debug') && window.console && console.warn) {
+      console.warn(
+        'Select2: The `initSelection` option has been deprecated in favor' +
+        ' of a custom data adapter that overrides the `current` method. ' +
+        'This method is now called multiple times instead of a single ' +
+        'time when the instance is initialized. Support will be removed ' +
+        'for the `initSelection` option in future versions of Select2'
+      );
+    }
+
+    this.initSelection = options.get('initSelection');
+    this._isInitialized = false;
+
+    decorated.call(this, $element, options);
+  }
+
+  InitSelection.prototype.current = function (decorated, callback) {
+    var self = this;
+
+    if (this._isInitialized) {
+      decorated.call(this, callback);
+
+      return;
+    }
+
+    this.initSelection.call(null, this.$element, function (data) {
+      self._isInitialized = true;
+
+      if (!$.isArray(data)) {
+        data = [data];
+      }
+
+      callback(data);
+    });
+  };
+
+  return InitSelection;
+});
+
+S2.define('select2/compat/inputData',[
+  'jquery'
+], function ($) {
+  function InputData (decorated, $element, options) {
+    this._currentData = [];
+    this._valueSeparator = options.get('valueSeparator') || ',';
+
+    if ($element.prop('type') === 'hidden') {
+      if (options.get('debug') && console && console.warn) {
+        console.warn(
+          'Select2: Using a hidden input with Select2 is no longer ' +
+          'supported and may stop working in the future. It is recommended ' +
+          'to use a `<select>` element instead.'
+        );
+      }
+    }
+
+    decorated.call(this, $element, options);
+  }
+
+  InputData.prototype.current = function (_, callback) {
+    function getSelected (data, selectedIds) {
+      var selected = [];
+
+      if (data.selected || $.inArray(data.id, selectedIds) !== -1) {
+        data.selected = true;
+        selected.push(data);
+      } else {
+        data.selected = false;
+      }
+
+      if (data.children) {
+        selected.push.apply(selected, getSelected(data.children, selectedIds));
+      }
+
+      return selected;
+    }
+
+    var selected = [];
+
+    for (var d = 0; d < this._currentData.length; d++) {
+      var data = this._currentData[d];
+
+      selected.push.apply(
+        selected,
+        getSelected(
+          data,
+          this.$element.val().split(
+            this._valueSeparator
+          )
+        )
+      );
+    }
+
+    callback(selected);
+  };
+
+  InputData.prototype.select = function (_, data) {
+    if (!this.options.get('multiple')) {
+      this.current(function (allData) {
+        $.map(allData, function (data) {
+          data.selected = false;
+        });
+      });
+
+      this.$element.val(data.id);
+      this.$element.trigger('change');
+    } else {
+      var value = this.$element.val();
+      value += this._valueSeparator + data.id;
+
+      this.$element.val(value);
+      this.$element.trigger('change');
+    }
+  };
+
+  InputData.prototype.unselect = function (_, data) {
+    var self = this;
+
+    data.selected = false;
+
+    this.current(function (allData) {
+      var values = [];
+
+      for (var d = 0; d < allData.length; d++) {
+        var item = allData[d];
+
+        if (data.id == item.id) {
+          continue;
+        }
+
+        values.push(item.id);
+      }
+
+      self.$element.val(values.join(self._valueSeparator));
+      self.$element.trigger('change');
+    });
+  };
+
+  InputData.prototype.query = function (_, params, callback) {
+    var results = [];
+
+    for (var d = 0; d < this._currentData.length; d++) {
+      var data = this._currentData[d];
+
+      var matches = this.matches(params, data);
+
+      if (matches !== null) {
+        results.push(matches);
+      }
+    }
+
+    callback({
+      results: results
+    });
+  };
+
+  InputData.prototype.addOptions = function (_, $options) {
+    var options = $.map($options, function ($option) {
+      return $.data($option[0], 'data');
+    });
+
+    this._currentData.push.apply(this._currentData, options);
+  };
+
+  return InputData;
+});
+
+S2.define('select2/compat/matcher',[
+  'jquery'
+], function ($) {
+  function oldMatcher (matcher) {
+    function wrappedMatcher (params, data) {
+      var match = $.extend(true, {}, data);
+
+      if (params.term == null || $.trim(params.term) === '') {
+        return match;
+      }
+
+      if (data.children) {
+        for (var c = data.children.length - 1; c >= 0; c--) {
+          var child = data.children[c];
+
+          // Check if the child object matches
+          // The old matcher returned a boolean true or false
+          var doesMatch = matcher(params.term, child.text, child);
+
+          // If the child didn't match, pop it off
+          if (!doesMatch) {
+            match.children.splice(c, 1);
+          }
+        }
+
+        if (match.children.length > 0) {
+          return match;
+        }
+      }
+
+      if (matcher(params.term, data.text, data)) {
+        return match;
+      }
+
+      return null;
+    }
+
+    return wrappedMatcher;
+  }
+
+  return oldMatcher;
+});
+
+S2.define('select2/compat/query',[
+
+], function () {
+  function Query (decorated, $element, options) {
+    if (options.get('debug') && window.console && console.warn) {
+      console.warn(
+        'Select2: The `query` option has been deprecated in favor of a ' +
+        'custom data adapter that overrides the `query` method. Support ' +
+        'will be removed for the `query` option in future versions of ' +
+        'Select2.'
+      );
+    }
+
+    decorated.call(this, $element, options);
+  }
+
+  Query.prototype.query = function (_, params, callback) {
+    params.callback = callback;
+
+    var query = this.options.get('query');
+
+    query.call(null, params);
+  };
+
+  return Query;
 });
 
 S2.define('select2/dropdown/attachContainer',[
@@ -6134,8 +6050,8 @@ S2.define('select2/dropdown/attachContainer',[
     var $dropdownContainer = $container.find('.dropdown-wrapper');
     $dropdownContainer.append($dropdown);
 
-    $dropdown[0].classList.add('select2-dropdown--below');
-    $container[0].classList.add('select2-container--below');
+    $dropdown.addClass('select2-dropdown--below');
+    $container.addClass('select2-container--below');
   };
 
   return AttachContainer;
@@ -6429,7 +6345,7 @@ S2.define('select2/selection/stopPropagation',[
     }
 
     function shouldAdjustOldDeltas(orgEvent, absDelta) {
-        // If this is an older event and the delta is divisible by 120,
+        // If this is an older event and the delta is divisable by 120,
         // then we are assuming that the browser is treating this as an
         // older mouse wheel event and that we should divide the deltas
         // by 40 to try and get a more usable deltaFactor.
@@ -6446,9 +6362,8 @@ S2.define('jquery.select2',[
   'jquery-mousewheel',
 
   './select2/core',
-  './select2/defaults',
-  './select2/utils'
-], function ($, _, Select2, Defaults, Utils) {
+  './select2/defaults'
+], function ($, _, Select2, Defaults) {
   if ($.fn.select2 == null) {
     // All methods that should return the element
     var thisMethods = ['open', 'close', 'destroy'];
@@ -6469,7 +6384,7 @@ S2.define('jquery.select2',[
         var args = Array.prototype.slice.call(arguments, 1);
 
         this.each(function () {
-          var instance = Utils.GetData(this, 'select2');
+          var instance = $(this).data('select2');
 
           if (instance == null && window.console && console.error) {
             console.error(
@@ -6482,7 +6397,7 @@ S2.define('jquery.select2',[
         });
 
         // Check if we should be returning `this`
-        if (thisMethods.indexOf(options) > -1) {
+        if ($.inArray(options, thisMethods) > -1) {
           return this;
         }
 

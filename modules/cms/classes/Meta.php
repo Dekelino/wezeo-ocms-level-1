@@ -3,10 +3,10 @@
 use Yaml;
 
 /**
- * The CMS meta file class, used for interacting with YAML files within the Halycon datasources
+ * The CMS meta file class, used for interacting with YAML files within the Halcyon datasources
  *
  * @package october\cms
- * @author Alexey Bobkov, Samuel Georges, Luke Towers
+ * @author Luke Towers
  */
 class Meta extends CmsObject
 {

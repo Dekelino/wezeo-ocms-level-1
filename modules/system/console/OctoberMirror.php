@@ -2,16 +2,13 @@
 
 use File;
 use Event;
-use System;
-use Config;
 use StdClass;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use Exception;
 
 /**
- * OctoberMirror command to implement a "public" folder.
+ * Console command to implement a "public" folder.
  *
  * This command will create symbolic links to files and directories
  * that are commonly required to be publicly available.
@@ -21,19 +18,17 @@ use Exception;
  */
 class OctoberMirror extends Command
 {
+
     /**
-     * @var string name of console command
+     * The console command name.
      */
     protected $name = 'october:mirror';
 
     /**
-     * @var string description of the console command
+     * The console command description.
      */
     protected $description = 'Generates a mirrored public folder using symbolic links.';
 
-    /**
-     * @var array files to symlink
-     */
     protected $files = [
         '.htaccess',
         'index.php',
@@ -43,19 +38,13 @@ class OctoberMirror extends Command
         'sitemap.xml',
     ];
 
-    /**
-     * @var array directories to symlink
-     */
     protected $directories = [
         'storage/app/uploads/public',
         'storage/app/media',
-        'storage/app/resources',
+        'storage/app/resized',
         'storage/temp/public',
     ];
 
-    /**
-     * @var array wildcards to symlink
-     */
     protected $wildcards = [
         'modules/*/assets',
         'modules/*/resources',
@@ -67,8 +56,6 @@ class OctoberMirror extends Command
         'modules/*/formwidgets/*/resources',
         'modules/*/reportwidgets/*/assets',
         'modules/*/reportwidgets/*/resources',
-        'modules/*/vuecomponents/*/assets',
-        'modules/*/vuecomponents/*/resources',
 
         'plugins/*/*/assets',
         'plugins/*/*/resources',
@@ -80,31 +67,19 @@ class OctoberMirror extends Command
         'plugins/*/*/formwidgets/*/resources',
         'plugins/*/*/widgets/*/assets',
         'plugins/*/*/widgets/*/resources',
-        'plugins/*/*/vuecomponents/*/assets',
-        'plugins/*/*/vuecomponents/*/resources',
 
         'themes/*/assets',
         'themes/*/resources',
     ];
 
-    /**
-     * @var string destinationPath for the symlink
-     */
     protected $destinationPath;
 
     /**
-     * handle executes the console command
+     * Execute the console command.
      */
     public function handle()
     {
-        // Called internally via composer
-        if ($this->option('composer') && !$this->useAutoMirror()) {
-            return;
-        }
-
         $this->getDestinationPath();
-
-        $this->output->writeln(sprintf('<info>Mirror Path: [%s]</info>', $this->destinationPath));
 
         $paths = new StdClass();
         $paths->files = $this->files;
@@ -126,6 +101,10 @@ class OctoberMirror extends Command
          */
         Event::fire('system.console.mirror.extendPaths', [$paths]);
 
+        foreach ($paths->files as $file) {
+            $this->mirrorFile($file);
+        }
+
         foreach ($paths->directories as $directory) {
             $this->mirrorDirectory($directory);
         }
@@ -134,41 +113,31 @@ class OctoberMirror extends Command
             $this->mirrorWildcard($wildcard);
         }
 
-        foreach ($paths->files as $file) {
-            $this->mirrorFile($file);
-        }
+        $this->output->writeln('<info>Mirror complete!</info>');
     }
 
-    /**
-     * mirrorFile mirrors a single file
-     */
-    protected function mirrorFile(string $src)
+    protected function mirrorFile($file)
     {
-        $dest = $this->getDestinationPath().'/'.$src;
+        $this->output->writeln(sprintf('<info> - Mirroring: %s</info>', $file));
+
+        $src = base_path().'/'.$file;
+
+        $dest = $this->getDestinationPath().'/'.$file;
 
         if (!File::isFile($src) || File::isFile($dest)) {
             return false;
         }
 
-        // Disabled until junctions can be resolved
-        // if ($this->isWindows()) {
-        //     File::copy($src, $dest);
-        // }
-        // else {
-        //     $this->makeSymlink($src, $dest);
-        // }
-
-        $this->makeSymlink($src, $dest);
-
-        $this->output->writeln(sprintf('<info> - Mirrored: %s</info>', $src));
+        $this->mirror($src, $dest);
     }
 
-    /**
-     * mirrorDirectory mirrors a directory
-     */
-    protected function mirrorDirectory(string $src)
+    protected function mirrorDirectory($directory)
     {
-        $dest = $this->getDestinationPath().'/'.$src;
+        $this->output->writeln(sprintf('<info> - Mirroring: %s</info>', $directory));
+
+        $src = base_path().'/'.$directory;
+
+        $dest = $this->getDestinationPath().'/'.$directory;
 
         if (!File::isDirectory($src) || File::isDirectory($dest)) {
             return false;
@@ -178,29 +147,16 @@ class OctoberMirror extends Command
             File::makeDirectory(dirname($dest), 0755, true);
         }
 
-        // Disabled until junctions can be resolved
-        // if ($this->isWindows()) {
-        //     $this->makeJunction($src, $dest);
-        // }
-        // else {
-        //     $this->makeSymlink($src, $dest);
-        // }
-
-        $this->makeSymlink($src, $dest);
-
-        $this->output->writeln(sprintf('<info> - Mirrored: %s</info>', $src));
+        $this->mirror($src, $dest);
     }
 
-    /**
-     * mirrorWildcard matches a wild card and mirrors it
-     */
-    protected function mirrorWildcard(string $wildcard)
+    protected function mirrorWildcard($wildcard)
     {
         if (strpos($wildcard, '*') === false) {
             return $this->mirrorDirectory($wildcard);
         }
 
-        [$start, $end] = explode('*', $wildcard, 2);
+        list($start, $end) = explode('*', $wildcard, 2);
 
         $startDir = base_path().'/'.$start;
 
@@ -213,78 +169,19 @@ class OctoberMirror extends Command
         }
     }
 
-    /**
-     * mirror performs the symlink operation
-     */
-    protected function makeSymlink(string $src, string $dest)
+    protected function mirror($src, $dest)
     {
         if ($this->option('relative')) {
-            $finalSrc = $this->makeRelativePath($dest, $src);
-        }
-        else {
-            $finalSrc = base_path($src);
+            $src = $this->getRelativePath($dest, $src);
+
+            if (strpos($src, '../') === 0) {
+                $src = rtrim(substr($src, 3), '/');
+            }
         }
 
-        try {
-            symlink($finalSrc, $dest);
-        }
-        catch (Exception $ex) {
-            $msg = $ex->getMessage();
-            $this->output->error("Could not mirror directory at ${dest}: ${msg}");
-            exit(1);
-        }
+        symlink($src, $dest);
     }
 
-    /**
-     * makeJunction performs a junction in windows
-     */
-    protected function makeJunction(string $src, string $dest)
-    {
-        $cmd = sprintf(
-            'mklink /J %s %s',
-            str_replace('/', DIRECTORY_SEPARATOR, $src),
-            str_replace('/', DIRECTORY_SEPARATOR, $dest)
-        );
-
-        $result = $code = null;
-        exec($cmd . ' 2>&1', $result, $code);
-
-        if ($code !== 0) {
-            $msg = $result[0];
-            $this->output->error("Could not mirror directory at ${dest}: ${msg}");
-            exit(1);
-        }
-    }
-
-    /**
-     * makeRelativePath will count the number of to reach the base using a relative path.
-     * For example: from:public/index.php, to:index.php = ../index.php
-     */
-    protected function makeRelativePath($from, $to)
-    {
-        $from = str_replace(DIRECTORY_SEPARATOR, '/', $from);
-        $to = str_replace(DIRECTORY_SEPARATOR, '/', $to);
-
-        $dir = explode('/', is_file($from) ? dirname($from) : rtrim($from, '/'));
-        $file = explode('/', $to);
-
-        while ($dir && $file && ($dir[0] === $file[0])) {
-            array_shift($dir);
-            array_shift($file);
-        }
-
-        $out = str_repeat('../', count($dir)) . implode('/', $file);
-
-        if (strpos($out, '../') === 0) {
-            $out = rtrim(substr($out, 3), '/');
-        }
-
-        return $out;
-    }
-
-    /**
-     * getDestinationPath will look at the destination argument of default to the public path
-     */
     protected function getDestinationPath()
     {
         if ($this->destinationPath !== null) {
@@ -292,63 +189,54 @@ class OctoberMirror extends Command
         }
 
         $destPath = $this->argument('destination');
-
-        // Default to public folder
-        if (!$destPath) {
-            if (!File::exists(base_path('public'))) {
-                File::makeDirectory(base_path('public'));
-            }
-
-            return $this->destinationPath = 'public';
+        if (realpath($destPath) === false) {
+            $destPath = base_path() . '/' . $destPath;
         }
 
         if (!File::isDirectory($destPath)) {
-            $this->output->error("Directory does not exist [${destPath}]. Please create it first and try again");
-            exit(1);
+            File::makeDirectory($destPath, 0755, true);
         }
+
+        $destPath = realpath($destPath);
+
+        $this->output->writeln(sprintf('<info>Destination: %s</info>', $destPath));
 
         return $this->destinationPath = $destPath;
     }
 
-    /**
-     * useAutoMirror setting
-     */
-    protected function useAutoMirror(): bool
+    protected function getRelativePath($from, $to)
     {
-        $setting = Config::get('system.auto_mirror_public', false);
-        if ($setting === null) {
-            return !System::checkDebugMode();
+        $from = str_replace('\\', '/', $from);
+        $to = str_replace('\\', '/', $to);
+
+        $dir = explode('/', is_file($from) ? dirname($from) : rtrim($from, '/'));
+        $file = explode('/', $to);
+
+        while ($dir && $file && ($dir[0] == $file[0])) {
+            array_shift($dir);
+            array_shift($file);
         }
 
-        return (bool) $setting;
+        return str_repeat('../', count($dir)) . implode('/', $file);
     }
 
     /**
-     * getArguments get the console command arguments
+     * Get the console command arguments.
      */
     protected function getArguments()
     {
         return [
-            ['destination', InputArgument::OPTIONAL, 'The destination path relative to the current directory. Eg: public'],
+            ['destination', InputArgument::REQUIRED, 'The destination path relative to the current directory. Eg: public/'],
         ];
     }
 
     /**
-     * getOptions get the console command options
+     * Get the console command options.
      */
     protected function getOptions()
     {
         return [
-            ['composer', null, InputOption::VALUE_NONE, 'Command triggered from composer.'],
             ['relative', null, InputOption::VALUE_NONE, 'Create symlinks relative to the public directory.'],
         ];
-    }
-
-    /**
-     * isWindows determines if host machine is running a Windows OS
-     */
-    protected function isWindows(): bool
-    {
-        return '\\' === DIRECTORY_SEPARATOR;
     }
 }

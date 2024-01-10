@@ -1,7 +1,7 @@
 <?php namespace Backend\FormWidgets;
 
-use October\Rain\Database\Model;
 use Backend\Classes\FormWidgetBase;
+use October\Rain\Database\Relations\Relation as RelationBase;
 
 /**
  * Tag List Form Widget
@@ -9,8 +9,6 @@ use Backend\Classes\FormWidgetBase;
 class TagList extends FormWidgetBase
 {
     use \Backend\Traits\FormModelWidget;
-    use \Backend\FormWidgets\TagList\HasStringStore;
-    use \Backend\FormWidgets\TagList\HasRelationStore;
 
     const MODE_ARRAY = 'array';
     const MODE_STRING = 'string';
@@ -21,37 +19,37 @@ class TagList extends FormWidgetBase
     //
 
     /**
-     * @var string separator for tags: space, comma.
+     * @var string Tag separator: space, comma.
      */
     public $separator = 'comma';
 
     /**
-     * @var bool customTags allowed to be entered manually by the user.
+     * @var bool Allows custom tags to be entered manually by the user.
      */
     public $customTags = true;
 
     /**
-     * @var mixed options settings. Set to true to get from model.
+     * @var mixed Predefined options settings. Set to true to get from model.
      */
     public $options;
 
     /**
-     * @var string mode for the return value. Values: string, array, relation.
+     * @var string Mode for the return value. Values: string, array, relation.
      */
-    public $mode;
+    public $mode = 'string';
 
     /**
-     * @var string nameFrom if mode is relation, model column to use for the name reference.
+     * @var string If mode is relation, model column to use for the name reference.
      */
     public $nameFrom = 'name';
 
     /**
-     * @var bool useKey instead of value for saving and reading data.
+     * @var bool Use the key instead of value for saving and reading data.
      */
     public $useKey = false;
 
     /**
-     * @var string placeholder for empty TagList widget
+     * @var string Placeholder for empty TagList widget
      */
     public $placeholder = '';
 
@@ -78,33 +76,6 @@ class TagList extends FormWidgetBase
             'useKey',
             'placeholder'
         ]);
-
-        $this->processMode();
-    }
-
-    /**
-     * processMode
-     */
-    protected function processMode()
-    {
-        // Set by config
-        if ($this->mode !== null) {
-            return;
-        }
-
-        [$model, $attribute] = $this->nearestModelAttribute($this->valueFrom);
-
-        if ($model instanceof Model && $model->hasRelation($attribute)) {
-            $this->mode = static::MODE_RELATION;
-            return;
-        }
-
-        if ($model instanceof Model && $model->isJsonable($attribute)) {
-            $this->mode = static::MODE_ARRAY;
-            return;
-        }
-
-        $this->mode = static::MODE_STRING;
     }
 
     /**
@@ -118,7 +89,7 @@ class TagList extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the form widget view data
      */
     public function prepareVars()
     {
@@ -136,14 +107,43 @@ class TagList extends FormWidgetBase
     public function getSaveValue($value)
     {
         if ($this->mode === static::MODE_RELATION) {
-            return $this->processSaveForRelation($value);
+            return $this->hydrateRelationSaveValue($value);
         }
 
-        if ($this->mode === static::MODE_STRING) {
-            return $this->processSaveForString($value);
+        if (is_array($value) && $this->mode === static::MODE_STRING) {
+            return implode($this->getSeparatorCharacter(), $value);
         }
 
         return $value;
+    }
+
+    /**
+     * Returns an array suitable for saving against a relation (array of keys).
+     * This method also creates non-existent tags.
+     * @return array
+     */
+    protected function hydrateRelationSaveValue($names)
+    {
+        if (!$names) {
+            return $names;
+        }
+
+        $relationModel = $this->getRelationModel();
+        $existingTags = $relationModel
+            ->whereIn($this->nameFrom, $names)
+            ->lists($this->nameFrom, $relationModel->getKeyName())
+        ;
+
+        $newTags = $this->customTags ? array_diff($names, $existingTags) : [];
+
+        foreach ($newTags as $newTag) {
+            $newModel = new $relationModel;
+            $newModel->{$this->nameFrom} = $newTag;
+            $newModel->save();
+            $existingTags[$newModel->getKey()] = $newTag;
+        }
+
+        return array_keys($existingTags);
     }
 
     /**
@@ -154,14 +154,12 @@ class TagList extends FormWidgetBase
         $value = parent::getLoadValue();
 
         if ($this->mode === static::MODE_RELATION) {
-            return $this->getLoadValueFromRelation($value);
+            return $this->getRelationObject()->lists($this->nameFrom);
         }
 
-        if ($this->mode === static::MODE_STRING) {
-            return $this->getLoadValueFromString($value);
-        }
-
-        return $value;
+        return $this->mode === static::MODE_STRING
+            ? explode($this->getSeparatorCharacter(), $value)
+            : $value;
     }
 
     /**
@@ -170,36 +168,51 @@ class TagList extends FormWidgetBase
      */
     public function getFieldOptions()
     {
-        $options = [];
+        $options = $this->formField->options();
 
-        if ($this->formField->hasOptions()) {
-            $options = $this->formField->options();
-        }
-        elseif ($this->mode === static::MODE_RELATION) {
-            $options = $this->getFieldOptionsForRelation();
+        if (!$options && $this->mode === static::MODE_RELATION) {
+            $options = RelationBase::noConstraints(function () {
+                $query = $this->getRelationObject()->newQuery();
+
+                // Even though "no constraints" is applied, belongsToMany constrains the query
+                // by joining its pivot table. Remove all joins from the query.
+                $query->getQuery()->getQuery()->joins = [];
+
+                return $query->lists($this->nameFrom);
+            });
         }
 
         return $options;
     }
 
     /**
-     * getPreviewOptions generates options for display in read only modes
+     * Returns character(s) to use for separating keywords.
+     * @return mixed
      */
-    public function getPreviewOptions(array $selectedValues, array $availableOptions): array
+    protected function getCustomSeparators()
     {
-        $displayOptions = [];
-        foreach ($availableOptions as $key => $option) {
-            if (!strlen($option)) {
-                continue;
-            }
-            if (
-                ($this->useKey && in_array($key, $selectedValues)) ||
-                (!$this->useKey && in_array($option, $selectedValues))
-            ) {
-                $displayOptions[] = $option;
-            }
+        if (!$this->customTags) {
+            return false;
         }
 
-        return $displayOptions;
+        $separators = [];
+
+        $separators[] = $this->getSeparatorCharacter();
+
+        return implode('|', $separators);
+    }
+
+    /**
+     * Convert the character word to the singular character.
+     * @return string
+     */
+    protected function getSeparatorCharacter()
+    {
+        switch (strtolower($this->separator)) {
+            case 'comma':
+                return ',';
+            case 'space':
+                return ' ';
+        }
     }
 }

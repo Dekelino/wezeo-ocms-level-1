@@ -48,58 +48,44 @@ return [
 
         'sqlite' => [
             'driver' => 'sqlite',
-            'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => env('DB_DATABASE', 'storage/database.sqlite'),
             'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '8889'),
-            'database' => env('DB_DATABASE', 'database'),
+            'engine' => 'InnoDB',
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', 8889),
+            'database' => env('DB_DATABASE', 'arrivals'),
             'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
+            'password' => env('DB_PASSWORD', 'root'),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => 'InnoDB',
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : []
+            'varcharmax' => 191,
         ],
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', 5432),
             'database' => env('DB_DATABASE', 'database'),
-            'username' => env('DB_USERNAME', 'root'),
+            'username' => env('DB_USERNAME', ''),
             'password' => env('DB_PASSWORD', ''),
             'charset' => 'utf8',
             'prefix' => '',
-            'prefix_indexes' => true,
             'schema' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
         'sqlsrv' => [
             'driver' => 'sqlsrv',
-            'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
+            'port' => env('DB_PORT', 5432),
             'database' => env('DB_DATABASE', 'database'),
-            'username' => env('DB_USERNAME', 'root'),
+            'username' => env('DB_USERNAME', ''),
             'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
             'prefix' => '',
-            'prefix_indexes' => true,
         ],
 
     ],
@@ -130,29 +116,33 @@ return [
 
     'redis' => [
 
-        'client' => env('REDIS_CLIENT', 'phpredis'),
-
-        'options' => [
-            'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', 'october_database_'),
-        ],
+        'client' => 'predis',
+        'cluster' => false,
 
         'default' => [
-            'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
-            'password' => env('REDIS_PASSWORD'),
+            'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_DB', '0'),
-        ],
-
-        'cache' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_CACHE_DB', '1'),
+            'database' => 0,
         ],
 
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Use DB configuration for testing
+    |--------------------------------------------------------------------------
+    |
+    | When running plugin tests OctoberCMS by default uses SQLite in memory.
+    | You can override this behavior by setting `useConfigForTesting` to true.
+    |
+    | After that OctoberCMS will take DB parameters from the config.
+    | If file `/config/testing/database.php` exists, config will be read from it,
+    | but remember that when not specified it will use parameters specified in
+    | `/config/database.php`.
+    |
+    */
+
+    'useConfigForTesting' => env('DB_USE_CONFIG_FOR_TESTING', false),
 
 ];

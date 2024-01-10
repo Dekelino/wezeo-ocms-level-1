@@ -3,72 +3,64 @@
 use Lang;
 use File;
 use Flash;
-use Block;
 use Config;
 use Redirect;
 use BackendMenu;
-use Backend\Classes\SettingsController;
 use System\Models\MailBrandSetting;
 use System\Classes\SettingsManager;
 use System\Classes\MailManager;
+use Backend\Classes\Controller;
 use System\Models\MailLayout;
 use System\Models\MailTemplate;
 
 /**
- * MailBrandSettings for customizing mail brand settings
+ * Mail brand customization controller
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  *
  */
-class MailBrandSettings extends SettingsController
+class MailBrandSettings extends Controller
 {
     /**
-     * @var array implement extensions
+     * @var array Extensions implemented by this controller.
      */
     public $implement = [
         \Backend\Behaviors\FormController::class
     ];
 
     /**
-     * @var array formConfig `FormController` configuration.
+     * @var array `FormController` configuration.
      */
     public $formConfig = 'config_form.yaml';
 
     /**
-     * @var string settingsItemCode determines the settings code
-     */
-    public $settingsItemCode = 'mail_brand_settings';
-
-    /**
-     * @var array requiredPermissions to view this page.
+     * @var array Permissions required to view this page.
      */
     public $requiredPermissions = ['system.manage_mail_templates'];
 
     /**
-     * @var string bodyClass HTML body tag class
+     * @var string HTML body tag class
      */
     public $bodyClass = 'compact-container';
 
     /**
-     * __construct the controller
+     * Constructor.
      */
     public function __construct()
     {
         parent::__construct();
 
         $this->pageTitle = 'system::lang.mail_brand.page_title';
+
+        BackendMenu::setContext('October.System', 'system', 'settings');
+        SettingsManager::setContext('October.System', 'mail_brand_settings');
     }
 
-    /**
-     * index action
-     */
     public function index()
     {
         $this->addJs('/modules/system/assets/js/mailbrandsettings/mailbrandsettings.js', 'core');
         $this->addCss('/modules/system/assets/css/mailbrandsettings/mailbrandsettings.css', 'core');
-
-        Block::append('head', $this->renderSampleMessageAsScript());
 
         $setting = MailBrandSetting::instance();
 
@@ -77,17 +69,13 @@ class MailBrandSettings extends SettingsController
         return $this->create();
     }
 
-    /**
-     * index_onSave
-     */
     public function index_onSave()
     {
+        $setting = MailBrandSetting::instance();
+
         return $this->create_onSave();
     }
 
-    /**
-     * index_onResetDefault
-     */
     public function index_onResetDefault()
     {
         $setting = MailBrandSetting::instance();
@@ -99,9 +87,6 @@ class MailBrandSettings extends SettingsController
         return Redirect::refresh();
     }
 
-    /**
-     * onUpdateSampleMessage
-     */
     public function onUpdateSampleMessage()
     {
         $this->pageAction();
@@ -111,9 +96,6 @@ class MailBrandSettings extends SettingsController
         return ['previewHtml' => $this->renderSampleMessage()];
     }
 
-    /**
-     * renderSampleMessage
-     */
     public function renderSampleMessage()
     {
         $data = [
@@ -132,17 +114,6 @@ class MailBrandSettings extends SettingsController
         return MailManager::instance()->renderTemplate($template, $data);
     }
 
-    /**
-     * renderSampleMessageAsScript template
-     */
-    protected function renderSampleMessageAsScript()
-    {
-        return '<script type="text/template" id="'.$this->getId('mailPreviewTemplate').'">'.$this->renderSampleMessage().'</script>';
-    }
-
-    /**
-     * formCreateModelObject
-     */
     public function formCreateModelObject()
     {
         return MailBrandSetting::instance();

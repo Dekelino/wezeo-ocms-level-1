@@ -30,7 +30,7 @@ div.control-popover {
 
     &.fade {
         & > div {
-            opacity: 0;
+            .opacity(0);
             .transition(~'all 0.3s, width 0s');
             .transform(~'scale(0.7)');
         }
@@ -38,7 +38,7 @@ div.control-popover {
 
     &.fade.in {
         & > div {
-            opacity: 1;
+            .opacity(1);
             .transform( ~'scale(1)');
         }
     }
@@ -58,31 +58,17 @@ div.control-popover {
         &:before { z-index: @zindex-popover; }
     }
 
-    &.placement-bottom {
-        > div {
-            &:after {
-                .triangle(up, 15px, 8px, @color-popover-bg);
-                left: 15px;
-                top: -8px;
-            }
-
-            &:before {
-                .triangle(up, 17px, 9px, @color-popover-border);
-                left: 14px;
-                top: -9px;
-            }
+    &.placement-bottom > div {
+        &:after {
+            .triangle(up, 15px, 8px, @color-popover-bg);
+            left: 15px;
+            top: -8px;
         }
 
-        &.placement-bottom-right > div {
-            &:after {
-                left: auto;
-                right: 15px;
-            }
-
-            &:before {
-                left: auto;
-                right: 14px;
-            }
+        &:before {
+            .triangle(up, 17px, 9px, @color-popover-border);
+            left: 14px;
+            top: -9px;
         }
     }
 
@@ -179,15 +165,15 @@ div.control-popover {
             top: 12px;
             color: @color-popover-head-text;
             outline: none;
-            opacity: .4;
+            .opacity(0.4);
 
             &:hover {
-                opacity: 1;
+                .opacity(1);
             }
         }
 
         .inspector-move-to-container {
-            opacity: .4;
+            .opacity(0.4);
             position: absolute;
             top: 14px;
             right: 26px;
@@ -198,7 +184,7 @@ div.control-popover {
             line-height: 17px;
 
             &:hover {
-                opacity: 1;
+                .opacity(1);
                 color: @close-color;
             }
 
@@ -289,17 +275,6 @@ div.popover-overlay {
     bottom: 0;
     background: @overlay-background;
     z-index: @zindex-popover - 3;
-
-    &.vue-mode {
-        background: rgba(0, 0, 0, 0);
-        font-size: @font-size-base;
-
-        > div.control-popover {
-            > div {
-                .border-radius(@border-radius-base);
-            }
-        }
-    }
 }
 
 @media (max-width: @screen-xs) {

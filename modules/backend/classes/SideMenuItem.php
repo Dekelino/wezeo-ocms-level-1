@@ -1,74 +1,73 @@
 <?php namespace Backend\Classes;
 
-use October\Rain\Element\Navigation\ItemDefinition;
-
 /**
- * SideMenuItem
+ * Class SideMenuItem
  *
- * @package october\backend
- * @author Alexey Bobkov, Samuel Georges
+ * @package Backend\Classes
  */
-class SideMenuItem extends ItemDefinition
+class SideMenuItem
 {
     /**
-     * @var string owner
+     * @var string
+     */
+    public $code;
+
+    /**
+     * @var string
      */
     public $owner;
 
     /**
-     * @var null|string iconSvg
+     * @var string
+     */
+    public $label;
+
+    /**
+     * @var null|string
+     */
+    public $icon;
+
+    /**
+     * @var null|string
      */
     public $iconSvg;
 
     /**
-     * @var null|int|callable counter
+     * @var string
+     */
+    public $url;
+
+    /**
+     * @var null|int|callable
      */
     public $counter;
 
     /**
-     * @var null|string counterLabel
+     * @var null|string
      */
     public $counterLabel;
 
     /**
-     * @var array attributes
+     * @var null|string
+     */
+     public $badge;
+
+    /**
+     * @var int
+     */
+    public $order = -1;
+
+    /**
+     * @var array
      */
     public $attributes = [];
 
     /**
-     * @var array permissions
+     * @var array
      */
     public $permissions = [];
 
     /**
-     * @var string itemType
-     */
-    public $itemType;
-
-    /**
-     * @var string buttonActiveOn
-     */
-    public $buttonActiveOn;
-
-    /**
-     * evalConfig
-     */
-    protected function evalConfig($config): void
-    {
-        parent::evalConfig($config);
-
-        $this->owner = $config['owner'] ?? $this->owner;
-        $this->iconSvg = $config['iconSvg'] ?? $this->iconSvg;
-        $this->counter = $config['counter'] ?? $this->counter;
-        $this->counterLabel = $config['counterLabel'] ?? $this->counterLabel;
-        $this->attributes = $config['attributes'] ?? $this->attributes;
-        $this->permissions = $config['permissions'] ?? $this->permissions;
-        $this->itemType = $config['itemType'] ?? $this->itemType;
-        $this->buttonActiveOn = $config['buttonActiveOn'] ?? $this->buttonActiveOn;
-    }
-
-    /**
-     * addAttribute
      * @param null|string|int $attribute
      * @param null|string|array $value
      */
@@ -77,16 +76,14 @@ class SideMenuItem extends ItemDefinition
         $this->attributes[$attribute] = $value;
     }
 
-    /**
-     * removeAttribute
-     */
     public function removeAttribute($attribute)
     {
         unset($this->attributes[$attribute]);
     }
 
     /**
-     * addPermission
+     * @param string $permission
+     * @param array $definition
      */
     public function addPermission(string $permission, array $definition)
     {
@@ -94,12 +91,33 @@ class SideMenuItem extends ItemDefinition
     }
 
     /**
-     * removePermission
      * @param string $permission
      * @return void
      */
     public function removePermission(string $permission)
     {
         unset($this->permissions[$permission]);
+    }
+
+    /**
+     * @param array $data
+     * @return static
+     */
+    public static function createFromArray(array $data)
+    {
+        $instance = new static();
+        $instance->code = $data['code'];
+        $instance->owner = $data['owner'];
+        $instance->label = $data['label'];
+        $instance->url = $data['url'];
+        $instance->icon = $data['icon'] ?? null;
+        $instance->iconSvg = $data['iconSvg'] ?? null;
+        $instance->counter = $data['counter'] ?? null;
+        $instance->counterLabel = $data['counterLabel'] ?? null;
+        $instance->attributes = $data['attributes'] ?? $instance->attributes;
+        $instance->badge = $data['badge'] ?? null;
+        $instance->permissions = $data['permissions'] ?? $instance->permissions;
+        $instance->order = $data['order'] ?? $instance->order;
+        return $instance;
     }
 }

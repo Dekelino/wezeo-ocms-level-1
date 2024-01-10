@@ -3,7 +3,7 @@
 // --------------------------------------------------
 
 //
-// The scroll panel can host a scrollbar control. It has a right border that covers
+// The scroll panel can host a scrollbar control. It has a right border that covers 
 // the scrollbar to satisfy the design requirements.
 //
 .control-scrollpanel {
@@ -11,9 +11,7 @@
     background: @color-panel-light;
 
     .control-scrollbar {
-        &.vertical > .scrollbar-scrollbar {
-            right: 0;
-        }
+        &.vertical > .scrollbar-scrollbar {right: 0;}
     }
 }
 
@@ -24,20 +22,8 @@
     }
 
     &.in {
-        opacity: 1;
+        .opacity(1);
     }
-}
-
-//
-// General Status Indicator
-//
-
-.status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 20px;
-    display: inline-block;
-    margin-right: 3px;
 }
 
 //
@@ -51,8 +37,7 @@
     background-size: contain;
 }
 
-.oc-logo,
-.october-cms-logo-grey {
+.oc-logo {
     background-image: url(../images/october-logo.svg);
     background-position: 50% 50%;
     background-repeat: no-repeat;
@@ -62,9 +47,20 @@
 .layout.control-tabs.oc-logo-transparent:not(.has-tabs),
 .flex-layout-column.oc-logo-transparent:not(.has-tabs),
 .layout-cell.oc-logo-transparent {
-    background-size: auto 38px;
+    background-size: 50% auto;
     background-repeat: no-repeat;
     background-image: url(../images/october-logo.svg);
     background-position: 50% 50%;
     position: relative;
+
+    &:after {
+        content: '';
+        display: table-cell;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(249,249,249,0.7);
+    }
 }

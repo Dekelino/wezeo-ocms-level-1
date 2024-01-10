@@ -3,12 +3,12 @@
 <?php else: ?>
     <div
         id="<?= $this->getId() ?>"
-        class="field-colorpicker <?php if($readOnly || $disabled): ?>disabled<?php endif ?>"
+        class="field-colorpicker <?php if($readOnly || $disabled): ?>disabled<?php endif; ?>"
         data-control="colorpicker"
         <?php if ($showAlpha): ?>data-show-alpha="<?= $showAlpha ?>"<?php endif ?>
         <?php if ($allowEmpty): ?>data-allow-empty="<?= $allowEmpty ?>"<?php endif ?>
         data-data-locker="#<?= $this->getId('input') ?>"
-        <?php if ($readOnly || $disabled): ?>data-disabled="true"<?php endif ?>
+        <?php if ($readOnly || $disabled): ?>data-disabled="true"<?php endif; ?>
         <?= $this->formField->getAttributes() ?>>
 
         <ul>
@@ -20,14 +20,14 @@
                         <span style="background: <?= $color ?>"><?= $color ?></span>
                     </li>
                 <?php endforeach ?>
-            <?php endif ?>
+            <?php endif; ?>
 
             <li
                 class="custom-color <?= $isCustomColor == $value ? 'active' : null ?>"
                 data-hex-color="<?= $isCustomColor ? e($value) : '#ffffff' ?>"
                 data-custom-color>
                 <span
-                    class="<?php if (!$value): ?>is-empty<?php endif ?> <?php if ($readOnly || $disabled): ?>disabled<?php endif ?>"
+                    class="<?php if (!$value): ?>is-empty<?php endif; ?> <?php if ($readOnly || $disabled): ?>disabled<?php endif; ?>"
                     style="background: <?= $isCustomColor ? e($value) : '#ffffff' ?>"></span>
             </li>
         </ul>

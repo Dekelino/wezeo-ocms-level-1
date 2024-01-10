@@ -5,17 +5,11 @@
 <div class="modal-body">
     <?php if (count($warnings)): ?>
         <p><?= e(trans('backend::lang.warnings.tips_description')) ?></p>
-
-        <div class="control-simplelist with-icons is-divided">
-            <ul class="mb-0">
-                <?php foreach ($warnings as $warning): ?>
-                    <li class="py-2">
-                        <i class="icon-exclamation-triangle text-danger"></i>
-                        <?= $warning ?>
-                    </li>
-                <?php endforeach ?>
-            </ul>
-        </div>
+        <ul>
+            <?php foreach ($warnings as $warning): ?>
+                <li><?= $warning ?></li>
+            <?php endforeach ?>
+        </ul>
     <?php else: ?>
         <p>No warnings to display</p>
     <?php endif ?>

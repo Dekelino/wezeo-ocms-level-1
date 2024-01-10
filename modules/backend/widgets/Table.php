@@ -1,5 +1,7 @@
 <?php namespace Backend\Widgets;
 
+use Config;
+use Backend;
 use Lang;
 use Input;
 use Request;
@@ -47,12 +49,9 @@ class Table extends WidgetBase
      */
     protected $recordsKeyFrom;
 
-    /**
-     * @var array dataSourceAliases
-     */
     protected $dataSourceAliases = [
-        'client' => \Backend\Widgets\Table\ClientMemoryDataSource::class,
-        'server' => \Backend\Widgets\Table\ServerEventDataSource::class
+        'client' => '\Backend\Widgets\Table\ClientMemoryDataSource',
+        'server' => '\Backend\Widgets\Table\ServerEventDataSource'
     ];
 
     /**
@@ -81,22 +80,20 @@ class Table extends WidgetBase
 
         $this->dataSource = new $dataSourceClass($this->recordsKeyFrom);
 
-        // Load data into the client memory data source on POST
         if (Request::method() == 'POST' && $this->isClientDataSource()) {
             if (strpos($this->fieldName, '[') === false) {
-                $requestData = post($this->fieldName . 'TableData');
-            }
-            else {
-                $requestData = post($this->fieldName . '[TableData]');
-            }
-
-            if ($requestData) {
-                $requestData = json_decode($requestData, true);
+                $requestDataField = $this->fieldName . 'TableData';
+            } else {
+                $requestDataField = $this->fieldName . '[TableData]';
             }
 
-            if ($requestData) {
+            // Use dot notation for request data field
+            $requestDataField = implode('.', HtmlHelper::nameToArray($requestDataField));
+
+            if (Request::exists($requestDataField)) {
+                // Load data into the client memory data source on POST
                 $this->dataSource->purge();
-                $this->dataSource->initRecords($requestData);
+                $this->dataSource->initRecords(Request::input($requestDataField));
             }
         }
     }
@@ -120,7 +117,7 @@ class Table extends WidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the view data
      */
     public function prepareVars()
     {
@@ -129,7 +126,6 @@ class Table extends WidgetBase
 
         $this->vars['recordsPerPage'] = $this->getConfig('recordsPerPage', false) ?: 'false';
         $this->vars['postbackHandlerName'] = $this->getConfig('postbackHandlerName');
-        $this->vars['postbackHandlerWild'] = $this->getConfig('postbackHandlerWild', false) ?: 'false';
         $this->vars['searching'] = $this->getConfig('searching', false);
         $this->vars['adding'] = $this->getConfig('adding', true);
         $this->vars['deleting'] = $this->getConfig('deleting', true);
@@ -159,7 +155,15 @@ class Table extends WidgetBase
     protected function loadAssets()
     {
         $this->addCss('css/table.css', 'core');
-        $this->addJs('js/build-min.js', 'core');
+
+        if (Config::get('develop.decompileBackendAssets', false)) {
+            $scripts = Backend::decompileAsset($this->getAssetPath('js/build.js'));
+            foreach ($scripts as $script) {
+                $this->addJs($script, 'core');
+            }
+        } else {
+            $this->addJs('js/build-min.js', 'core');
+        }
     }
 
     /**
@@ -200,10 +204,7 @@ class Table extends WidgetBase
         return $result;
     }
 
-    /**
-     * isClientDataSource
-     */
-    protected function isClientDataSource(): bool
+    protected function isClientDataSource()
     {
         return $this->dataSource instanceof \Backend\Widgets\Table\ClientMemoryDataSource;
     }
@@ -212,9 +213,6 @@ class Table extends WidgetBase
     // Event handlers
     //
 
-    /**
-     * onServerGetRecords
-     */
     public function onServerGetRecords()
     {
         // Disable asset broadcasting
@@ -237,9 +235,6 @@ class Table extends WidgetBase
         ];
     }
 
-    /**
-     * onServerSearchRecords
-     */
     public function onServerSearchRecords()
     {
         // Disable asset broadcasting
@@ -262,9 +257,6 @@ class Table extends WidgetBase
         ];
     }
 
-    /**
-     * onServerCreateRecord
-     */
     public function onServerCreateRecord()
     {
         if ($this->isClientDataSource()) {
@@ -280,9 +272,6 @@ class Table extends WidgetBase
         return $this->onServerGetRecords();
     }
 
-    /**
-     * onServerUpdateRecord
-     */
     public function onServerUpdateRecord()
     {
         if ($this->isClientDataSource()) {
@@ -292,9 +281,6 @@ class Table extends WidgetBase
         $this->dataSource->updateRecord(post('key'), post('recordData'));
     }
 
-    /**
-     * onServerDeleteRecord
-     */
     public function onServerDeleteRecord()
     {
         if ($this->isClientDataSource()) {
@@ -306,9 +292,6 @@ class Table extends WidgetBase
         return $this->onServerGetRecords();
     }
 
-    /**
-     * onGetDropdownOptions
-     */
     public function onGetDropdownOptions()
     {
         $columnName = Input::get('column');
@@ -326,9 +309,6 @@ class Table extends WidgetBase
         ];
     }
 
-    /**
-     * onGetAutocompleteOptions
-     */
     public function onGetAutocompleteOptions()
     {
         $columnName = Input::get('column');

@@ -15,9 +15,9 @@
 @color-chart-tooltip-bg:                     #000000;
 @color-chart-tooltip-text:                   #ffffff;
 
-@color-scoreboard-title:                     @color-grey-1;
-@color-scoreboard-description:               @color-grey-2;
-@color-scoreboard-body:                      @color-grey-1;
+@color-scoreboard-title:                     #666666;
+@color-scoreboard-description:               #999999;
+@color-scoreboard-body:                      #666666;
 @color-scoreboard-icon:                      #e5a91a;
 @color-scoreboard-positive:                  #95b753;
 @color-scoreboard-negative:                  #cc3300;
@@ -171,9 +171,9 @@
     position: absolute;
     z-index: @zindex-tooltip;
     color: @color-chart-tooltip-text;
-    border-radius: @border-radius-base * 2;
+    .border-radius(@border-radius-base*2);
     font-size: 12px;
-    opacity: .8;
+    .opacity(0.8);
 }
 
 .title-value {

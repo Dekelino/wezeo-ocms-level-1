@@ -3,85 +3,107 @@
 use Str;
 use Backend\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Question\Question;
 
 /**
- * OctoberPasswd changes the password of a backend user
+ * Console command to change the password of a Backend user via CLI.
  *
  * @package october\system
- * @author Alexey Bobkov, Samuel Georges
  */
 class OctoberPasswd extends Command
 {
     /**
-     * @var string name of console command
+     * @var string The console command name.
      */
     protected $name = 'october:passwd';
 
     /**
-     * @var string description of the console command
+     * @var string The console command description.
      */
     protected $description = 'Change the password of a Backend user.';
 
     /**
-     * @var bool displayPassword will show the user their password
+     * @var bool Was the password automatically generated?
      */
-    protected $displayPassword = false;
+    protected $generatedPassword = false;
 
     /**
-     * handle executes the console command
+     * Execute the console command.
      */
     public function handle()
     {
-        if (!$username = $this->argument('username')) {
-            $username = $this->ask('Username to reset');
-        }
+        $username = $this->argument('username')
+            ?? $this->ask('Username to reset');
 
-        // Lookup user
-        $user = User::where('login', $username)->orWhere('email', $username)->first();
-
-        if (!$user) {
+        // Check that the user exists
+        try {
+            $user = User::where('login', $username)
+                ->orWhere('email', $username)
+                ->firstOrFail();
+        } catch (ModelNotFoundException $e) {
             $this->error('The specified user does not exist.');
-            return;
+            exit(1);
         }
 
-        // Determine password
-        if (!$password = $this->argument('password')) {
-            $password = $this->secret('Enter new password (leave blank for random password)');
-        }
-
-        if (!$password) {
-            $password = $this->generatePassword();
-        }
+        $password = $this->argument('password')
+            ?? (
+                $this->optionalSecret(
+                    'Enter new password (leave blank for generated password)',
+                    false,
+                    false
+                ) ?: $this->generatePassword()
+            );
 
         // Change password
         $user->password = $password;
         $user->forceSave();
 
-        $this->output->success('Password successfully changed');
-
-        if ($this->displayPassword) {
+        $this->info('Password successfully changed.');
+        if ($this->generatedPassword) {
             $this->output->writeLn('Password set to <info>' . $password . '</info>.');
         }
+        exit(0);
     }
 
     /**
-     * getArguments get the console command arguments
+     * Get the console command options.
      */
     protected function getArguments()
     {
         return [
-            ['username', InputArgument::OPTIONAL, 'The username of the backend user'],
+            ['username', InputArgument::OPTIONAL, 'The username of the Backend user'],
             ['password', InputArgument::OPTIONAL, 'The new password']
         ];
     }
 
     /**
-     * generatePassword returns an automatically generated password
+     * Prompt the user for input but hide the answer from the console.
+     *
+     * Also allows for a default to be specified.
+     *
+     * @param  string  $question
+     * @param  bool    $fallback
+     * @return string
      */
-    protected function generatePassword(): string
+    protected function optionalSecret($question, $fallback = true, $default = null)
     {
-        $this->displayPassword = true;
+        $question = new Question($question, $default);
+
+        $question->setHidden(true)->setHiddenFallback($fallback);
+
+        return $this->output->askQuestion($question);
+    }
+
+    /**
+     * Generate a password and flag it as an automatically-generated password.
+     *
+     * @return string
+     */
+    protected function generatePassword()
+    {
+        $this->generatedPassword = true;
 
         return Str::random(22);
     }

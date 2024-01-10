@@ -115,7 +115,6 @@
         if (this.propertyDefinition.emptyOption !== undefined) {
             options.placeholder = this.propertyDefinition.emptyOption
         }
-
         if (this.propertyDefinition.placeholder !== undefined) {
             options.placeholder = this.propertyDefinition.placeholder
         }

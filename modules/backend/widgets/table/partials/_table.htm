@@ -6,8 +6,9 @@
     data-data="<?= e($data) ?>"
     data-alias="<?= e($this->alias) ?>"
     data-field-name="<?= e($this->fieldName) ?>"
+    <?php if (!empty($postbackHandlerName)): ?>
     data-postback-handler-name="<?= e($postbackHandlerName) ?>"
-    data-postback-handler-wild="<?= e($postbackHandlerWild) ?>"
+    <?php endif; ?>
     data-adding="<?= e($adding) ?>"
     data-searching="<?= e($searching) ?>"
     data-deleting="<?= e($deleting) ?>"
@@ -20,25 +21,18 @@
 >
     <script type="text/template" data-table-toolbar>
         <div class="toolbar">
-            <button type="button" class="backend-toolbar-button control-button add-table-row-below" data-cmd="record-add">
-                <i class="octo-icon-list-add"></i>
-                <span class="button-label"><?= e($btnAddRowLabel) ?></span>
-            </button>
-
-            <button type="button" class="backend-toolbar-button control-button add-table-row-below" data-cmd="record-add-below">
-                <i class="octo-icon-add-below"></i>
+            <a class="btn table-icon add-table-row-below" data-cmd="record-add">
+                <?= e($btnAddRowLabel) ?>
+            </a>
+            <a class="btn table-icon add-table-row-below" data-cmd="record-add-below">
                 <?= e($btnAddRowBelowLabel) ?>
-            </button>
-
-            <button type="button" class="backend-toolbar-button control-button add-table-row-above" data-cmd="record-add-above">
-                <i class="octo-icon-add-above"></i>
+            </a>
+            <a class="btn table-icon add-table-row-above" data-cmd="record-add-above">
                 Add row above
-            </button>
-
-            <button type="button" class="backend-toolbar-button control-button delete-table-row" data-cmd="record-delete">
-                <i class="octo-icon-list-remove"></i>
+            </a>
+            <a class="btn table-icon delete-table-row" data-cmd="record-delete">
                 <?= e($btnDeleteRowLabel) ?>
-            </button>
+            </a>
         </div>
     </script>
     <script type="text/template" data-table-toolbar-search>

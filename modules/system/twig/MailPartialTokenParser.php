@@ -12,7 +12,7 @@ use Twig\Error\SyntaxError as TwigErrorSyntax;
  *
  *     {% partial "sidebar" name='John' %}
  *
- *     {% partial "sidebar" name='John' year=2013 %}
+ *     {% partial "sidebar" name='John', year=2013 %}
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
@@ -77,16 +77,15 @@ class MailPartialTokenParser extends TwigTokenParser
         return new MailPartialNode(new TwigNode($nodes), $paramNames, $body, $token->getLine(), $this->getTag());
     }
 
-    /**
-     * decidePartialEnd
-     */
     public function decidePartialEnd(TwigToken $token)
     {
         return $token->test('endpartial');
     }
 
     /**
-     * getTag name associated with this token parser
+     * Gets the tag name associated with this token parser.
+     *
+     * @return string The tag name
      */
     public function getTag()
     {

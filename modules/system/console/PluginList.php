@@ -2,40 +2,71 @@
 
 use Illuminate\Console\Command;
 use System\Models\PluginVersion;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Helper\TableSeparator;
 
 /**
- * PluginList lists existing plugins
+ * Console command to list existing plugins.
  *
  * @package october\system
- * @author Alexey Bobkov, Samuel Georges
+ * @author Lucas Zamora
  */
 class PluginList extends Command
 {
     /**
-     * @var string name of console command
+     * The console command name.
+     * @var string
      */
     protected $name = 'plugin:list';
 
     /**
-     * @var string description of the console command
+     * The console command description.
+     * @var string
      */
-    protected $description = 'List plugins available in the system';
+    protected $description = 'List existing plugins.';
 
     /**
-     * handle executes the console command
+     * Execute the console command.
+     * @return void
      */
     public function handle()
     {
-        $tableRows = [];
+        $allPlugins  = PluginVersion::all();
+        $pluginsCount = count($allPlugins);
 
-        foreach (PluginVersion::all() as $plugin) {
-            $tableRows[] = [
-                $plugin->code,
-                $plugin->version,
-                (!$plugin->is_disabled) ? 'Yes': 'No'
-            ];
+        if ($pluginsCount <= 0) {
+            $this->info('No plugin found');
+            return;
         }
 
-        $this->output->table(['Plugin', 'Version', 'Plugin Enabled'], $tableRows);
+        // Create a new Table instance.
+        $table = new Table($this->output);
+
+        // Set the table headers.
+        $table->setHeaders([
+            'Plugin name', 'Version', 'Updates enabled', 'Plugin enabled'
+        ]);
+
+        // Create a new TableSeparator instance.
+        $separator = new TableSeparator;
+
+        $pluginTable = [];
+
+        $row = 0;
+        foreach ($allPlugins as $plugin) {
+            $row++;
+
+            $pluginTable[] = [$plugin->code, $plugin->version, (!$plugin->is_frozen) ? 'Yes': 'No', (!$plugin->is_disabled) ? 'Yes': 'No'];
+
+            if ($row < $pluginsCount) {
+                $pluginTable[] = $separator;
+            }
+        }
+
+        // Set the contents of the table.
+        $table->setRows($pluginTable);
+
+        // Render the table to the output.
+        $table->render();
     }
 }

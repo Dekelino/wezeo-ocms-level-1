@@ -1,19 +1,19 @@
 <?php namespace Backend\Controllers;
 
 use View;
-use Backend;
 use Response;
-use BackendAuth;
-use Backend\Classes\SettingsController;
+use BackendMenu;
+use Backend\Classes\Controller;
+use System\Classes\SettingsManager;
 
 /**
- * UserRoles controller
+ * Backend user groups controller
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  *
  */
-class UserRoles extends SettingsController
+class UserRoles extends Controller
 {
     /**
      * @var array Extensions implemented by this controller.
@@ -39,16 +39,14 @@ class UserRoles extends SettingsController
     public $requiredPermissions = ['backend.manage_users'];
 
     /**
-     * @var string settingsItemCode determines the settings code
-     */
-    public $settingsItemCode = 'adminroles';
-
-    /**
-     * __construct the controller
+     * Constructor.
      */
     public function __construct()
     {
         parent::__construct();
+
+        BackendMenu::setContext('October.System', 'system', 'users');
+        SettingsManager::setContext('October.System', 'administrators');
 
         /*
          * Only super users can access
@@ -61,7 +59,7 @@ class UserRoles extends SettingsController
     }
 
     /**
-     * formExtendFields adds available permission fields to the Role form.
+     * Add available permission fields to the Role form.
      */
     public function formExtendFields($form)
     {
@@ -72,28 +70,17 @@ class UserRoles extends SettingsController
     }
 
     /**
-     * generatePermissionsField adds the permissions editor widget to the form.
+     * Adds the permissions editor widget to the form.
+     * @return array
      */
-    protected function generatePermissionsField(): array
+    protected function generatePermissionsField()
     {
         return [
             'permissions' => [
                 'tab' => 'backend::lang.user.permissions',
-                'type' => \Backend\FormWidgets\PermissionEditor::class,
+                'type' => 'Backend\FormWidgets\PermissionEditor',
                 'mode' => 'checkbox'
             ]
         ];
-    }
-
-    /**
-     * onImpersonateRole
-     */
-    public function onImpersonateRole($roleId = null)
-    {
-        if ($role = $this->formFindModelObject($roleId)) {
-            BackendAuth::impersonateRole($role);
-        }
-
-        return Backend::redirect('');
     }
 }

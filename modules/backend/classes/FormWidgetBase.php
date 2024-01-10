@@ -3,44 +3,41 @@
 use October\Rain\Html\Helper as HtmlHelper;
 
 /**
- * FormWidgetBase class contains widgets used specifically for forms
+ * Form Widget base class
+ * Widgets used specifically for forms
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  */
 abstract class FormWidgetBase extends WidgetBase
 {
+
     //
     // Configurable properties
     //
 
     /**
-     * @var \October\Rain\Database\Model model object for the form.
+     * @var \October\Rain\Database\Model Form model object.
      */
     public $model;
 
     /**
-     * @var array data containing field values, if none supplied model should be used.
+     * @var array Dataset containing field values, if none supplied model should be used.
      */
     public $data;
 
     /**
-     * @var string sessionKey for the active session, used for editing forms and deferred bindings.
+     * @var string Active session key, used for editing forms and deferred bindings.
      */
     public $sessionKey;
 
     /**
-     * @var string sessionKeySuffix adds some extra uniqueness to the session key.
-     */
-    public $sessionKeySuffix;
-
-    /**
-     * @var bool previewMode renders this form with uneditable preview data.
+     * @var bool Render this form with uneditable preview data.
      */
     public $previewMode = false;
 
     /**
-     * @var bool showLabels determines if this form field should display comments and labels.
+     * @var bool Determines if this form field should display comments and labels.
      */
     public $showLabels = true;
 
@@ -49,7 +46,7 @@ abstract class FormWidgetBase extends WidgetBase
     //
 
     /**
-     * @var FormField formField object containing general form field information.
+     * @var FormField Object containing general form field information.
      */
     protected $formField;
 
@@ -69,7 +66,7 @@ abstract class FormWidgetBase extends WidgetBase
     protected $valueFrom;
 
     /**
-     * __construct
+     * Constructor
      * @param $controller Controller Active controller object.
      * @param $formField FormField Object containing general form field information.
      * @param $configuration array Configuration the relates to this widget.
@@ -86,7 +83,6 @@ abstract class FormWidgetBase extends WidgetBase
             'model',
             'data',
             'sessionKey',
-            'sessionKeySuffix',
             'previewMode',
             'showLabels',
             'parentForm',
@@ -96,7 +92,8 @@ abstract class FormWidgetBase extends WidgetBase
     }
 
     /**
-     * getParentForm retrieves the parent form for this formwidget
+     * Retrieve the parent form for this formwidget
+     *
      * @return Backend\Widgets\Form|null
      */
     public function getParentForm()
@@ -105,8 +102,8 @@ abstract class FormWidgetBase extends WidgetBase
     }
 
     /**
-     * getFieldName returns the HTML element field name for this widget, used for
-     * capturing user input, passed back to the getSaveValue method when saving.
+     * Returns the HTML element field name for this widget, used for capturing
+     * user input, passed back to the getSaveValue method when saving.
      * @return string HTML element name
      */
     public function getFieldName()
@@ -115,7 +112,7 @@ abstract class FormWidgetBase extends WidgetBase
     }
 
     /**
-     * getId returns a unique ID for this widget. Useful in creating HTML markup.
+     * Returns a unique ID for this widget. Useful in creating HTML markup.
      */
     public function getId($suffix = null)
     {
@@ -125,8 +122,8 @@ abstract class FormWidgetBase extends WidgetBase
     }
 
     /**
-     * getSaveValue processes the postback value for this widget. If the value is omitted from
-     * postback data, the form widget will be skipped.
+     * Process the postback value for this widget. If the value is omitted from
+     * postback data, it will be NULL, otherwise it will be an empty string.
      * @param mixed $value The existing value for this widget.
      * @return string The new value for this widget.
      */
@@ -136,7 +133,7 @@ abstract class FormWidgetBase extends WidgetBase
     }
 
     /**
-     * getLoadValue returns the value for this form field,
+     * Returns the value for this form field,
      * supports nesting via HTML array.
      * @return string
      */
@@ -146,27 +143,10 @@ abstract class FormWidgetBase extends WidgetBase
             return $this->formField->value;
         }
 
-        $defaultValue = $this->model && !$this->model->exists
+        $defaultValue = !$this->model->exists
             ? $this->formField->getDefaultFromData($this->data ?: $this->model)
             : null;
 
         return $this->formField->getValueFromData($this->data ?: $this->model, $defaultValue);
-    }
-
-    /**
-     * resetFormValue from the form field, triggered by the parent form calling `setFormValues`
-     * and the new value is in the formField object `value` property.
-     */
-    public function resetFormValue()
-    {
-    }
-
-    /**
-     * getSessionKey returns the active session key, including suffix.
-     * @return string
-     */
-    public function getSessionKey()
-    {
-        return $this->sessionKey . $this->sessionKeySuffix;
     }
 }

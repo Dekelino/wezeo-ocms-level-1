@@ -1,42 +1,40 @@
 <?php namespace Backend\Traits;
 
 use Lang;
+use Request;
 use ApplicationException;
 
 /**
- * InspectableContainer is an extension for controllers that can host
- * inspectable widgets (Components, etc.)
+ * Inspectable Container Trait
+ * Extension for controllers that can host inspectable widgets (Components, etc.)
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
  */
+
 trait InspectableContainer
 {
-    /**
-     * onInspectableGetOptions
-     */
     public function onInspectableGetOptions()
     {
         // Disable asset broadcasting
         $this->flushAssets();
 
-        $property = trim(post('inspectorProperty'));
+        $property = trim(Request::input('inspectorProperty'));
         if (!$property) {
             throw new ApplicationException('The property name is not specified.');
         }
 
-        $className = trim(post('inspectorClassName'));
+        $className = trim(Request::input('inspectorClassName'));
         if (!$className) {
             throw new ApplicationException('The inspectable class name is not specified.');
         }
 
-        $traitFound = in_array(\System\Traits\PropertyContainer::class, class_uses_recursive($className));
+        $traitFound = in_array('System\Traits\PropertyContainer', class_uses_recursive($className));
         if (!$traitFound) {
-            throw new ApplicationException('Dynamic Inspector control options cannot be loaded for the specified class.');
+            throw new ApplicationException('The options cannot be loaded for the specified class.');
         }
 
         $obj = new $className(null);
-        $obj->setProperties(post());
 
         // Nested properties have names like object.property.
         // Convert them to Object.Property.

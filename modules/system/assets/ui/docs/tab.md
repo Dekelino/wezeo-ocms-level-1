@@ -58,7 +58,7 @@ These modifiers can be added in addition to the `control-tabs` class:
         </div>
     </div>
 
-> **Note**: Primary tabs in the October backend are inset by default and you should use `.tabs-no-inset` to disable this.
+> **Note**: Primary tabs in the October back-end are inset by default and you should use `.tabs-no-inset` to disable this.
 
 ### Secondary tabs
 
@@ -67,48 +67,6 @@ These modifiers can be added in addition to the `control-tabs` class:
             <li class="active"><a href="#secondaryTabOne">One</a></li>
             <li><a href="#secondaryTabTwo">Two</a></li>
             <li><a href="#secondaryTabThree">Three</a></li>
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane active">
-                Tab one content
-            </div>
-            <div class="tab-pane">
-                Tab two content
-            </div>
-            <div class="tab-pane">
-                Tab three content
-            </div>
-        </div>
-    </div>
-
-### Auxiliary tabs
-
-    <div class="control-tabs auxiliary-tabs" data-control="tab">
-        <ul class="nav nav-tabs">
-            <li class="active"><a href="#primaryTabOne">One</a></li>
-            <li><a href="#primaryTabTwo">Two</a></li>
-            <li><a href="#primaryTabThree">Three</a></li>
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane active">
-                Tab one content
-            </div>
-            <div class="tab-pane">
-                Tab two content
-            </div>
-            <div class="tab-pane">
-                Tab three content
-            </div>
-        </div>
-    </div>
-
-### Pill tabs
-
-    <div class="control-tabs pill-tabs" data-control="tab">
-        <ul class="nav nav-tabs">
-            <li class="active"><a href="#primaryTabOne">One</a></li>
-            <li><a href="#primaryTabTwo">Two</a></li>
-            <li><a href="#primaryTabThree">Three</a></li>
         </ul>
         <div class="tab-content">
             <div class="tab-pane active">
@@ -132,20 +90,20 @@ These modifiers can be added in addition to the `control-tabs` class:
             <li><a href="#contentTabThree">Three</a></li>
         </ul>
         <div class="tab-content">
-            <div class="tab-pane pane-bordered active">
+            <div class="tab-pane active">
                 Tab one content
             </div>
-            <div class="tab-pane pane-bordered">
+            <div class="tab-pane">
                 Tab two content
             </div>
-            <div class="tab-pane pane-bordered">
+            <div class="tab-pane">
                 Tab three content
             </div>
         </div>
     </div>
 
 
-### Supported Data Attributes
+### Supported data attributes:
 
 - data-control="tab" - creates the tab control from an element
 - data-closable - enables the Close Tab feature
@@ -173,10 +131,10 @@ Example with data attributes (data-control="tab"):
 - $('#mytabs').ocTab('goTo', 'someidentifier') - Finds a tab by it's identifier and opens it.
 - $('#mytabs').ocTab('goToPane', '.tab-content .tab-pane:first') - Opens a tab in context of it's content (pane element)
 
-### Supported Options
+### Supported options:
 
  - closable - adds the "close" icon to the tab and lets users to close tabs. Corresponds the data-closable attribute.
- - closeConfirmation - a confirmation to show when a user tries to close a modified tab. Corresponds the data-close-confirmation
+ - closeConfirmation - a confirmation to show when a user tries to close a modified tab. Corresponds the data-close-confirmation 
    attribute. The confirmation is displayed only if the tab was modified.
  - slidable - allows the tabs to be switched with the swipe gesture on touch devices. Corresponds the data-slidable attribute.
  - paneClasses - a list of CSS classes to apply new pane elements. Corresponds to the data-pane-classes attribute.
@@ -184,8 +142,8 @@ Example with data attributes (data-control="tab"):
  - titleAsFileNames - treat tab titles as file names. In this mode only the file name part is displayed in the tab, and the directory part
    is hidden.
 
-### Supported Events
+### Supported events:
 
-- beforeClose.oc.tab - triggered on a tab pane element before tab is closed by the user. Call the event's
+- beforeClose.oc.tab - triggered on a tab pane element before tab is closed by the user. Call the event's 
   preventDefault() method to cancel the action.
 - afterAllClosed.oc.tab - triggered after all tabs have been closed

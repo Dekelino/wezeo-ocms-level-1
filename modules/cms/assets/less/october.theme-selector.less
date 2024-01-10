@@ -12,7 +12,7 @@
         border-top: 1px solid #e3e7e9;
 
         img {
-            opacity: .6;
+            .opacity(0.6);
             width: 240px;
         }
     }
@@ -21,7 +21,7 @@
         border-top: 1px solid #f2f3f4;
 
         h3, p {
-            opacity: .6;
+            .opacity(0.6);
         }
 
         h3 {
@@ -85,13 +85,13 @@
         &.active, &:hover {
             .theme-description {
                 h3, p {
-                    opacity: 1;
+                    .opacity(1);
                 }
             }
 
             .theme-thumbnail {
                 img {
-                    opacity: 1;
+                    .opacity(1);
                 }
             }
         }

@@ -6,14 +6,13 @@
     var Base = $.oc.foundation.base,
         BaseProto = Base.prototype
 
-    // FLYOUT CLASS DEFINITION
+    // SCROLLPAD CLASS DEFINITION
     // ============================
 
     var Flyout = function(element, options) {
         this.$el = $(element)
         this.$overlay = null
         this.options = options
-        this.$proxyContainer = $('#layout-sidenav-responsive');
 
         Base.call(this)
 
@@ -33,15 +32,6 @@
         }
 
         BaseProto.dispose.call(this)
-    }
-
-    Flyout.prototype.toggle = function() {
-        if ($(document.body).hasClass('flyout-visible')) {
-            this.hide();
-        }
-        else {
-            this.show();
-        }
     }
 
     Flyout.prototype.show = function() {
@@ -102,12 +92,6 @@
 
         $toggle.on('click', this.proxy(this.show))
         $toggleContainer.append($toggle)
-
-        // Build proxy for responsive menu
-        var $proxyToggle = $('<div class="flyout-toggle"><i class="icon-chevron-right"></i></div>');
-        $proxyToggle.on('click', this.proxy(this.toggle));
-        this.$proxyContainer.append($proxyToggle);
-        this.$proxyContainer.addClass('has-toggle');
     }
 
     Flyout.prototype.removeToggle = function() {
@@ -115,10 +99,6 @@
 
         $toggle.off('click', this.proxy(this.show))
         $toggle.remove()
-
-        var $proxyToggle = this.getProxyToggle()
-        $proxyToggle.off('click', this.proxy(this.show))
-        $proxyToggle.remove()
     }
 
     Flyout.prototype.hideToggle = function() {
@@ -127,7 +107,6 @@
         }
 
         this.getToggle().hide()
-        // this.getProxyToggle().hide()
     }
 
     Flyout.prototype.showToggle = function() {
@@ -136,17 +115,12 @@
         }
 
         this.getToggle().show()
-        this.getProxyToggle().show()
     }
 
     Flyout.prototype.getToggle = function() {
         var $toggleContainer = $(this.options.flyoutToggle)
 
         return $toggleContainer.find('.flyout-toggle')
-    }
-
-    Flyout.prototype.getProxyToggle = function() {
-        return this.$proxyContainer.find('.flyout-toggle')
     }
 
     Flyout.prototype.setBodyClass = function() {
@@ -214,7 +188,7 @@
     var old = $.fn.flyout
 
     $.fn.flyout = function (option) {
-        var args = Array.prototype.slice.call(arguments, 1),
+        var args = Array.prototype.slice.call(arguments, 1), 
             result = undefined
 
         this.each(function () {
@@ -225,7 +199,7 @@
             if (typeof option == 'string') result = data[option].apply(data, args)
             if (typeof result != 'undefined') return false
         })
-
+        
         return result ? result : this
     }
 

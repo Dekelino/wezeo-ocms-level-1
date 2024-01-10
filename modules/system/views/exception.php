@@ -18,7 +18,7 @@
 
             <div class="exception-name-block">
                 <div><?= e($exception->getMessage()) ?></div>
-                <p><?= $exception->getNiceFile() ?> <span>line</span> <?= $exception->getLine() ?></p>
+                <p><?= $exception->getFile() ?> <span>line</span> <?= $exception->getLine() ?></p>
             </div>
 
             <ul class="indicators">

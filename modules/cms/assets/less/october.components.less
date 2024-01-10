@@ -13,6 +13,8 @@
 @color-group-bg:                #f1f3f4;
 @color-error-component-bg:      #ab2a1c;
 @color-error-component-text:    #ffffff;
+@color-warning-component-bg:    #ffc107;
+@color-warning-component-text:  #343a40;
 
 .component-lego-icon() {
     position: absolute;
@@ -52,13 +54,13 @@ div.control-componentlist div.components div.layout-cell {
             font-size: 16px;
             left: 15px;
             top: 7px;
-            opacity: .7;
+            .opacity(0.7);
         }
 
         &:hover {
             color: @color-component-hover-text;
             &:before {
-                opacity: 1;
+                .opacity(1);
             }
         }
 
@@ -139,6 +141,18 @@ div.control-componentlist {
                 }
             }
 
+            &.warning-component {
+                background: @color-warning-component-bg;
+
+                > div {
+                    color: @color-warning-component-text;
+
+                    &:after {
+                        color: @color-warning-component-bg;
+                    }
+                }
+            }
+
             &:first-child {
                 .border-left-radius(3px);
             }
@@ -185,7 +199,7 @@ div.control-componentlist {
                     background: @color-component-bg!important;
                     color: @color-component-text!important;
                     &:before {
-                        opacity: .7;
+                        .opacity(0.7);
                     }
 
                     &:after {
@@ -219,7 +233,7 @@ div.control-componentlist {
 
                         &:before {
                             margin-right: 4px;
-                            opacity: .55;
+                            .opacity(0.55);
                         }
                     }
                 }
@@ -232,10 +246,10 @@ div.control-componentlist {
                     color: @close-color;
                     font-size: 17px;
                     font-weight: @close-font-weight;
-                    opacity: .3;
+                    .opacity(.3);
 
                     &:hover {
-                        opacity: .5;
+                        .opacity(.5);
                         text-decoration: none;
                     }
                 }
@@ -249,7 +263,7 @@ div.control-componentlist {
 }
 
 .draggable-component-item {
-    opacity: .6;
+    .opacity(.6);
     span.alias { display: none; }
     a.remove { display: none; }
 }
@@ -273,7 +287,7 @@ div.control-componentlist {
                     &:before {
                         .component-lego-icon();
                         .rotate(-90deg);
-                        opacity: 1;
+                        .opacity(1);
                         left: auto;
                         top: -17px;
                         right: 15px;
@@ -346,7 +360,7 @@ div.control-componentlist {
                 left: 22px;
                 top: 21px;
                 font-size: 16px;
-                opacity: .7;
+                .opacity(0.7);
                 color: @color-text-title;
             }
         }

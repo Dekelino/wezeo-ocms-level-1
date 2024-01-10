@@ -9,8 +9,9 @@
         <div class="container">
             <h1><i class="icon-lock warning"></i> <?= Lang::get('backend::lang.page.access_denied.label') ?></h1>
             <p class="lead"><?= Lang::get('backend::lang.page.access_denied.help') ?></p>
-            <p><a href="javascript:history.go(-1)"><?= Lang::get('backend::lang.page.not_found.back_link') ?></a></p>
-            <p><a href="<?= Backend::url('') ?>"><?= Lang::get('backend::lang.page.access_denied.cms_link') ?></a></p>
+            <a href="javascript:;" onclick="history.go(-1); return false;"><?= Lang::get('backend::lang.page.404.back_link') ?></a>
+            <br><br>
+            <a href="<?= Backend::url('') ?>"><?= Lang::get('backend::lang.page.access_denied.cms_link') ?></a>
         </div>
     </body>
 </html>

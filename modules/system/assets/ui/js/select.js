@@ -13,31 +13,25 @@
      */
     $(document).render(function(){
         var formatSelectOption = function(state) {
-            // Escape HTML
-            var text = $('<span>').text(state.text).html();
+            var text = $('<span>').text(state.text).html()
 
             if (!state.id) {
-                return text; // optgroup
+                return text // optgroup
             }
 
             var $option = $(state.element),
-                statusColor = state.status ? state.status : $option.data('status'),
                 iconClass = state.icon ? state.icon : $option.data('icon'),
-                imageSrc = state.image ? state.image : $option.data('image');
-
-            if (statusColor) {
-                return '<span class="select-status status-indicator" style="background:'+statusColor+'"></span> ' + text;
-            }
+                imageSrc = state.image ? state.image : $option.data('image')
 
             if (iconClass) {
-                return '<i class="select-icon '+iconClass+'"></i> ' + text;
+                return '<i class="select-icon '+iconClass+'"></i> ' + text
             }
 
             if (imageSrc) {
-                return '<img class="select-image" src="'+imageSrc+'" alt="" /> ' + text;
+                return '<img class="select-image" src="'+imageSrc+'" alt="" /> ' + text
             }
 
-            return text;
+            return text
         }
 
         var selectOptions = {
@@ -82,18 +76,6 @@
             }
 
             /*
-             * Language
-             */
-            var language = $element.data('language');
-            if (!language) {
-                language = $('meta[name="backend-locale"]').attr('content');
-            }
-
-            if (language) {
-                extraOptions.language = language;
-            }
-
-            /*
              * October AJAX
              */
             var source = $element.data('handler');
@@ -114,25 +96,21 @@
                             options = []
 
                         delete(data.result)
-
-                        // Select2 format
-                        if (results[0] && typeof(results[0]) === 'object') {
+                        if (results[0] && typeof(results[0]) === 'object') { // Pass through Select2 format
                             options = results
                         }
-                        // Build key-value map
-                        else {
+                        else { // Key-value map
                             for (var i in results) {
                                 if (results.hasOwnProperty(i)) {
                                     options.push({
                                         id: i,
-                                        text: results[i]
+                                        text: results[i],
                                     })
                                 }
                             }
                         }
 
                         data.results = options
-
                         return data
                     },
                     dataType: 'json'
@@ -149,13 +127,12 @@
                  */
                 if ($element.hasClass('select-no-dropdown')) {
                     extraOptions.selectOnClose = true
-                    extraOptions.closeOnSelect = false
+                    extraOptions.closeOnSelect = true
                     extraOptions.minimumInputLength = 1
 
                     $element.on('select2:closing', function() {
-                        var highlightedEls = $('.select2-dropdown.select-no-dropdown:first .select2-results__option--highlighted')
-                        if (highlightedEls.length > 0) {
-                            highlightedEls.removeClass('select2-results__option--highlighted')
+                        if ($('.select2-dropdown.select-no-dropdown:first .select2-results__option--highlighted').length > 0) {
+                            $('.select2-dropdown.select-no-dropdown:first .select2-results__option--highlighted').removeClass('select2-results__option--highlighted')
                             $('.select2-dropdown.select-no-dropdown:first .select2-results__option:first').addClass('select2-results__option--highlighted')
                         }
                     })
@@ -169,13 +146,6 @@
             }
 
             $element.select2($.extend({}, selectOptions, extraOptions))
-
-            // Workaround for search not auto focusing (https://github.com/select2/select2/issues/5993)
-            $element.on('select2:open', function() {
-                setTimeout(function() {
-                    document.querySelector('.select2-container--open .select2-search__field').focus();
-                }, 100);
-            });
         })
     })
 

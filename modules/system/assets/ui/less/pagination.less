@@ -28,7 +28,7 @@
 
     .page-iteration {
         margin-right: 4px;
-        font-size: @font-size-base;
+        font-size: @font-size-base - 1;
         color: @color-pagination;
         display: block;
         @media (min-width: @screen-sm-min) {
@@ -90,7 +90,6 @@
         }
     }
     a.page-next, a.page-back, a.page-last, a.page-first {
-        text-decoration: none;
         &:hover:before {
             color: @color-pagination-hover;
         }

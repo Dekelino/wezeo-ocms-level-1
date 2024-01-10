@@ -38,18 +38,18 @@ body.oc-loading, body.oc-loading * {
     .stripe-loaded {
         width: 100%;
         transform: translate3d(-100%, 0, 0);
-        opacity: 0;
+        .opacity(0);
     }
 
     &.loaded {
-        opacity: 0;
+        .opacity(0);
         .transition(opacity .4s linear);
         .transition-delay(.3s);
         .stripe {
             animation-play-state: paused;
         }
         .stripe-loaded {
-            opacity: 1;
+            .opacity(1);
             transform: translate3d(0, 0, 0);
             .transition(transform .3s linear);
         }
@@ -87,13 +87,13 @@ body > p.flash-message {
     .border-radius(@border-radius-base);
 
     &.fade {
-        opacity: 0;
+        .opacity(0);
         .transition(~'all 0.5s, width 0s');
         .transform(~'scale(0.9)');
     }
 
     &.fade.in {
-        opacity: 1;
+        .opacity(1);
         .transform( ~'scale(1)');
     }
 
@@ -111,7 +111,7 @@ body > p.flash-message {
         font-size: 21px;
         line-height: 1;
         font-weight: bold;
-        opacity: .2;
+        .opacity(.2);
 
         padding: 0;
         cursor: pointer;
@@ -125,7 +125,7 @@ body > p.flash-message {
             color: white;
             text-decoration: none;
             cursor: pointer;
-            opacity: .5;
+            .opacity(.5);
         }
     }
 }
@@ -167,7 +167,7 @@ a.oc-loading, button.oc-loading, span.oc-loading {
         border: .2em solid currentColor;
         border-right-color: transparent;
         border-radius: 50%;
-        opacity: .5;
+        .opacity(.5);
     }
 }
 

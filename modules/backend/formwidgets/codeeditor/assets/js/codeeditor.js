@@ -164,6 +164,7 @@
         editor.setOptions({
             enableEmmet: options.enableEmmet,
             enableBasicAutocompletion: options.autocompletion === 'basic',
+            enableSnippets: options.enableSnippets,
             enableLiveAutocompletion: options.autocompletion === 'live'
         })
 

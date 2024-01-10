@@ -1,26 +1,26 @@
 <?php namespace Cms\Twig;
 
+use System\Classes\CombineAssets;
 use Twig\Node\Node as TwigNode;
 use Twig\Compiler as TwigCompiler;
 
 /**
- * FrameworkNode represents a "framework" node
+ * Represents a "framework" node
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class FrameworkNode extends TwigNode
 {
-    /**
-     * __construct
-     */
     public function __construct($name, $lineno, $tag = 'framework')
     {
         parent::__construct([], ['name' => $name], $lineno, $tag);
     }
 
     /**
-     * compile the node to PHP.
+     * Compiles the node to PHP.
+     *
+     * @param TwigCompiler $compiler A TwigCompiler instance
      */
     public function compile(TwigCompiler $compiler)
     {
@@ -29,7 +29,7 @@ class FrameworkNode extends TwigNode
 
         $compiler
             ->addDebugInfo($this)
-            ->write("\$_minify = System\Classes\CombineAssets::instance()->useMinify;" . PHP_EOL);
+            ->write("\$_minify = ".CombineAssets::class."::instance()->useMinify;" . PHP_EOL);
 
         if ($includeExtras) {
             $compiler
@@ -44,7 +44,7 @@ class FrameworkNode extends TwigNode
                     ->write("echo '<script src=\"' . Request::getBasePath() . '/modules/system/assets/js/framework.extras.js\"></script>'.PHP_EOL;" . PHP_EOL)
                 ->outdent()
                 ->write("}" . PHP_EOL)
-                ->write("echo '<link rel=\"stylesheet\" property=\"stylesheet\" href=\"' . Request::getBasePath() .'/modules/system/assets/css/framework.extras.css\">'.PHP_EOL;" . PHP_EOL)
+                ->write("echo '<link rel=\"stylesheet\" property=\"stylesheet\" href=\"' . Request::getBasePath() .'/modules/system/assets/css/framework.extras'.(\$_minify ? '-min' : '').'.css\">'.PHP_EOL;" . PHP_EOL)
             ;
         }
         else {

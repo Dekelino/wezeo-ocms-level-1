@@ -1,12 +1,13 @@
 <?php namespace Backend\FormWidgets;
 
-use Backend\Classes\FormWidgetBase;
-use BackendAuth;
+use Html;
 use Markdown;
-use Request;
+use BackendAuth;
+use Backend\Classes\FormWidgetBase;
 
 /**
- * MarkdownEditor renders a markdown editor field.
+ * Code Editor
+ * Renders a code editor field.
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -28,55 +29,39 @@ class MarkdownEditor extends FormWidgetBase
     public $safe = false;
 
     /**
-     * @var bool The Legacy mode disables the Vue integration.
+     * @var bool If true, the editor is set to read-only mode
      */
-    public $legacyMode = false;
+    public $readOnly = false;
 
     /**
-     * @var string Defines a mount point for the editor toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::stateElementName
-     * Only works in Vue applications and form document layouts.
+     * @var bool If true, the editor is set to read-only mode
      */
-    public $externalToolbarAppState = null;
-
-    /**
-     * @var string Defines an event bus for an external toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::eventBus
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarEventBus = null;
+    public $disabled = false;
 
     //
     // Object properties
     //
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     protected $defaultAlias = 'markdown';
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function init()
     {
         $this->fillFromConfig([
             'mode',
             'safe',
-            'legacyMode',
-            'externalToolbarAppState',
-            'externalToolbarEventBus'
+            'readOnly',
+            'disabled',
         ]);
-
-        if (!$this->legacyMode) {
-            $this->controller->registerVueComponent(\Backend\VueComponents\DocumentMarkdownEditor::class);
-        }
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function render()
     {
@@ -85,25 +70,22 @@ class MarkdownEditor extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the widget data
      */
     public function prepareVars()
     {
         $this->vars['mode'] = $this->mode;
-        $this->vars['legacyMode'] = $this->legacyMode;
         $this->vars['stretch'] = $this->formField->stretch;
         $this->vars['size'] = $this->formField->size;
         $this->vars['name'] = $this->getFieldName();
         $this->vars['value'] = $this->getLoadValue();
-        $this->vars['useMediaManager'] = BackendAuth::userHasAccess('media.manage_media');
-        $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
-
-        $this->vars['isAjax'] = Request::ajax();
+        $this->vars['readOnly'] = $this->readOnly;
+        $this->vars['disabled'] = $this->disabled;
+        $this->vars['useMediaManager'] = BackendAuth::getUser()->hasAccess('media.manage_media');
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     protected function loadAssets()
     {
@@ -112,12 +94,44 @@ class MarkdownEditor extends FormWidgetBase
         $this->addJs('/modules/backend/formwidgets/codeeditor/assets/js/build-min.js', 'core');
     }
 
+    /**
+     * Check to see if the generated HTML should be cleaned to remove any potential XSS
+     *
+     * @return boolean
+     */
+    protected function shouldCleanHtml()
+    {
+        $user = BackendAuth::getUser();
+        return !$user || !$user->hasAccess('backend.allow_unsafe_markdown');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getSaveValue($value)
+    {
+        if ($this->shouldCleanHtml()) {
+            $value = Html::clean($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * AJAX handler to render the markdown as HTML
+     *
+     * @return array ['preview' => $generatedHTML]
+     */
     public function onRefresh()
     {
-        $value = (string) post($this->getFieldName());
+        $value = post($this->getFieldName());
         $previewHtml = $this->safe
             ? Markdown::parseSafe($value)
             : Markdown::parse($value);
+
+        if ($this->shouldCleanHtml()) {
+            $previewHtml = Html::clean($previewHtml);
+        }
 
         return [
             'preview' => $previewHtml

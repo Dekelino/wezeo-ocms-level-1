@@ -9,7 +9,7 @@
 // Flash Messages
 // --------------------------------------------------
 
-@color-flash-success-bg:                     @brand-success;
+@color-flash-success-bg:                     #8da85e;
 @color-flash-error-bg:                       #cc3300;
 @color-flash-warning-bg:                     #f0ad4e;
 @color-flash-info-bg:                        #5fb6f5;
@@ -30,18 +30,18 @@
     padding: 10px 30px 10px 15px;
     z-index: @zindex-flashmessage;
     word-wrap: break-word;
-    text-align: left;
-    .box-shadow(@box-shadow-z1);
+    text-align: center;
+    .box-shadow(@overlay-box-shadow);
     .border-radius(@border-radius-base);
 
     &.fade {
-        opacity: 0;
+        .opacity(0);
         .transition(~'all 0.5s, width 0s');
         .transform(~'scale(0.9)');
     }
 
     &.fade.in {
-        opacity: 1;
+        .opacity(1);
         .transform( ~'scale(1)');
     }
 
@@ -54,22 +54,13 @@
         float: none;
         position: absolute;
         right: 10px;
-        top: 12px;
+        top: 8px;
         color: white;
-        .hide-text();
-        opacity: 1;
+
         outline: none;
 
-        &:before {
-            .icon-OctoFont();
-            content: @octo-icon-cross;
-            color: white;
-            font-size: 16px;
-            position: relative;
-        }
-
         &:hover {
-            opacity: 1;
+            color: white
         }
     }
 

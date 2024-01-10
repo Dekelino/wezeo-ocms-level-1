@@ -1,6 +1,6 @@
 <?php namespace Cms\FormWidgets;
 
-use Media\FormWidgets\MediaFinder as MediaMediaFinder;
+use Backend\FormWidgets\MediaFinder as BackendMediaFinder;
 
 /**
  * Media Finder
@@ -13,19 +13,19 @@ use Media\FormWidgets\MediaFinder as MediaMediaFinder;
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
- * @deprecated Use Media\FormWidgets\MediaFinder. Remove if year >= 2023.
+ * @deprecated Use Backend\FormWidgets\MediaFinder. Remove if year >= 2020.
  */
-class MediaFinder extends MediaMediaFinder
+class MediaFinder extends BackendMediaFinder
 {
     /**
      * Constructor.
      */
     public function __construct()
     {
-        traceLog('FormWidget Cms\FormWidgets\MediaFinder has been deprecated, use ' . MediaMediaFinder::class . ' instead.');
+        traceLog('FormWidget Cms\FormWidgets\MediaFinder has been deprecated, use ' . BackendMediaFinder::class . ' instead.');
 
-        $this->assetPath = '/modules/media/formwidgets/mediafinder/assets';
-        $this->viewPath = base_path('/modules/media/formwidgets/mediafinder/partials');
+        $this->assetPath = '/modules/backend/formwidgets/mediafinder/assets';
+        $this->viewPath = base_path('/modules/backend/formwidgets/mediafinder/partials');
 
         parent::__construct(...func_get_args());
     }

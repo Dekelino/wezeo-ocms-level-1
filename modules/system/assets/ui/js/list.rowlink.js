@@ -19,90 +19,70 @@
     // ============================
 
     var RowLink = function(element, options) {
-        var self       = this;
-        this.options   = options;
-        this.$el       = $(element);
+        var self       = this
+        this.options   = options
+        this.$el       = $(element)
 
         var tr = this.$el.prop('tagName') == 'TR'
             ? this.$el
-            : this.$el.find('tr:has(td)');
+            : this.$el.find('tr:has(td)')
 
-        tr.each(function() {
-            var link = $(this)
-                .find(options.target)
-                .filter(function(){
-                    return !$(this).closest('td').hasClass(options.excludeClass) &&
-                        !$(this).hasClass(options.excludeClass)
-                })
-                .first();
+        tr.each(function(){
 
-            if (!link.length) {
-                return;
-            }
+            var link = $(this).find(options.target).filter(function(){
+                return !$(this).closest('td').hasClass(options.excludeClass) && !$(this).hasClass(options.excludeClass)
+            }).first()
+
+            if (!link.length) return
 
             var href = link.attr('href'),
                 onclick = (typeof link.get(0).onclick == "function") ? link.get(0).onclick : null,
                 popup = link.is('[data-control=popup]'),
-                request = link.is('[data-request]'),
-                skipNextBubble = false;
+                request = link.is('[data-request]')
 
             function handleClick(e) {
-                if (skipNextBubble) {
-                    skipNextBubble = false;
-                    return;
-                }
-
                 if ($(document.body).hasClass('drag')) {
-                    return;
+                    return
                 }
 
                 if (onclick) {
-                    onclick.apply(link.get(0));
+                    onclick.apply(link.get(0))
                 }
                 else if (request) {
-                    link.request();
+                    link.request()
                 }
                 else if (popup) {
-                    link.popup();
+                    link.popup()
                 }
                 else if (e.ctrlKey || e.metaKey) {
-                    window.open(href);
+                    window.open(href)
                 }
                 else {
-                    window.location = href;
+                    window.location = href
                 }
             }
 
-            var $row = $(this).not('.' + options.excludeClass)
-
-            $row.on('click', 'td:not(.'+options.excludeClass+') > .'+options.excludeClass, function(e) {
-                skipNextBubble = true;
-            });
-
-            $row.on('click', 'td:not(.'+options.excludeClass+')', function(e) {
-                handleClick(e);
-            })
-
-            $row.on('mousedown', 'td:not(.'+options.excludeClass+')', function(e) {
+            $(this).not('.' + options.excludeClass).find('td').not('.' + options.excludeClass).click(function (e) {
+                handleClick(e)
+            }).mousedown(function (e) {
                 if (e.which == 2) {
-                    window.open(href);
+                    window.open(href)
                 }
             })
 
-            $row.on('keypress', function(e) {
+            $(this).not('.' + options.excludeClass).on('keypress', function(e) {
                 if (e.key === '(Space character)' || e.key === 'Spacebar' || e.key === ' ') {
-                    handleClick(e);
-                    return false;
+                    handleClick(e)
+                    return false
                 }
             })
 
-            $(this).addClass(options.linkedClass);
-
-            link.hide().after(link.contents());
+            $(this).addClass(options.linkedClass)
+            link.hide().after(link.html())
         })
 
         // Add Keyboard Navigation to list rows
-        $('tr.rowlink').attr('tabindex', 0);
+        $('tr.rowlink').attr('tabindex', 0)
     }
 
     RowLink.DEFAULTS = {

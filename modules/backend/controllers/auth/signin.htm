@@ -1,44 +1,38 @@
 <h2><?= e(Backend\Models\BrandSetting::get('app_tagline')) ?></h2>
 
-<p><?= e(trans('backend::lang.account.login_prompt')) ?></p>
-
 <?= Form::open() ?>
     <input type="hidden" name="postback" value="1" />
 
     <div class="form-elements" role="form">
-        <div class="form-group text-field">
-            <label for="login-input">
-                <?= e(trans('backend::lang.account.input_username')) ?>
-            </label>
+        <div class="form-group text-field horizontal-form october">
 
             <!-- Login -->
             <input
                 type="text"
                 name="login"
                 value="<?= e(post('login')) ?>"
-                class="form-control"
-                id="login-input"
+                class="form-control icon user"
+                placeholder="<?= e(trans('backend::lang.account.login_placeholder')) ?>"
                 autocomplete="off"
                 maxlength="255" />
-        </div>
-
-        <div class="form-group text-field">
-            <label for="Form-ThemeDuplicate-newDirName">
-                <?= e(trans('backend::lang.account.input_password')) ?>
-            </label>
 
             <!-- Password -->
             <input
                 type="password"
                 name="password"
                 value=""
-                id="password-input"
-                class="form-control"
+                class="form-control icon lock"
+                placeholder="<?= e(trans('backend::lang.account.password_placeholder')) ?>"
                 autocomplete="off"
                 maxlength="255" />
+
+            <!-- Submit Login -->
+            <button type="submit" class="btn btn-primary login-button">
+                <?= e(trans('backend::lang.account.login')) ?>
+            </button>
         </div>
 
-        <?php if (Config::get('backend.force_remember', true) === null): ?>
+        <?php if (is_null(config('cms.backendForceRemember', true))) : ?>
             <!-- Remember checkbox -->
             <div class="form-group checkbox-field horizontal-form remember">
                 <div class="checkbox custom-checkbox">
@@ -46,21 +40,16 @@
                         type="checkbox"
                         id="remember"
                         name="remember" />
-                    <label class="storm-icon-pseudo" for="remember">
+                    <label for="remember">
                         <?= e(trans('backend::lang.account.remember_me')) ?>
                     </label>
                 </div>
             </div>
-        <?php endif ?>
+        <?php endif; ?>
 
-        <!-- Submit Login -->
-        <button type="submit" class="btn btn-primary login-button">
-            <?= e(trans('backend::lang.account.login')) ?>
-        </button>
-
-        <p class="pull-right forgot-password">
+        <p class="oc-icon-lock pull-right forgot-password">
             <!-- Forgot your password? -->
-            <a href="<?= Backend::url('backend/auth/restore') ?>">
+            <a href="<?= Backend::url('backend/auth/restore') ?>" class="text-muted">
                 <?= e(trans('backend::lang.account.forgot_password')) ?>
             </a>
         </p>

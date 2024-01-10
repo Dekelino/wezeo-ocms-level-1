@@ -10,7 +10,7 @@
     <?php Block::put('form-contents') ?>
         <?php if ($formModel->trashed()): ?>
             <?= $this->makePartial('hint_trashed') ?>
-        <?php endif ?>
+        <?php endif; ?>
 
         <div class="layout">
 
@@ -24,6 +24,7 @@
                     <button
                         type="submit"
                         data-request="onSave"
+                        data-browser-validate
                         data-request-data="redirect:0"
                         data-hotkey="ctrl+s, cmd+s"
                         data-load-indicator="<?= e(trans('backend::lang.form.saving')) ?>"
@@ -33,6 +34,7 @@
                     <button
                         type="button"
                         data-request="onSave"
+                        data-browser-validate
                         data-request-data="close:1"
                         data-hotkey="ctrl+enter, cmd+enter"
                         data-load-indicator="<?= e(trans('backend::lang.form.saving')) ?>"
@@ -42,7 +44,7 @@
                     <span class="btn-text">
                         <?= e(trans('backend::lang.form.or')) ?> <a href="<?= Backend::url('backend/users') ?>"><?= e(trans('backend::lang.form.cancel')) ?></a>
                     </span>
-                    <?php if ($formModel->trashed()): ?>
+                    <?php if ($formModel->trashed()) : ?>
                         <button
                             type="button"
                             class="oc-icon-user-plus btn-icon info pull-right"
@@ -58,7 +60,7 @@
                             data-load-indicator="<?= e(trans('backend::lang.form.deleting')) ?>"
                             data-request-confirm="<?= e(trans('backend::lang.user.delete_confirm')) ?>">
                         </button>
-                    <?php endif ?>
+                    <?php endif; ?>
                 </div>
             </div>
 

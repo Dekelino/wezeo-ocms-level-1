@@ -1,17 +1,14 @@
 <?php namespace System\Console;
 
-use Config;
-use System;
+use File;
 use Illuminate\Console\Command;
 use System\Classes\UpdateManager;
 use System\Classes\PluginManager;
-use System\Helpers\Cache as CacheHelper;
-use October\Rain\Process\Composer as ComposerProcess;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
- * PluginRemove removes a plugin.
+ * Console command to remove a plugin.
  *
  * This completely deletes an existing plugin, including database tables, files
  * and directories.
@@ -21,99 +18,57 @@ use Symfony\Component\Console\Input\InputArgument;
  */
 class PluginRemove extends Command
 {
+
     use \Illuminate\Console\ConfirmableTrait;
 
     /**
-     * @var string name of console command
+     * The console command name.
+     * @var string
      */
     protected $name = 'plugin:remove';
 
     /**
-     * @var string description of the console command
+     * The console command description.
+     * @var string
      */
     protected $description = 'Removes an existing plugin.';
 
     /**
-     * handle executes the console command
+     * Execute the console command.
+     * @return void
      */
     public function handle()
     {
-        $this->output->writeln('<info>Removing Plugin...</info>');
+        $pluginManager = PluginManager::instance();
+        $pluginName = $this->argument('name');
+        $pluginName = $pluginManager->normalizeIdentifier($pluginName);
 
-        if ($this->handleComposer() === true) {
+        if (!$pluginManager->hasPlugin($pluginName)) {
+            return $this->error(sprintf('Unable to find a registered plugin called "%s"', $pluginName));
+        }
+
+        if (!$this->confirmToProceed(sprintf('This will DELETE plugin "%s" from the filesystem and database.', $pluginName))) {
             return;
         }
 
-        $manager = PluginManager::instance();
-        $name = $manager->normalizeIdentifier($this->argument('name'));
+        /*
+         * Rollback plugin
+         */
+        $manager = UpdateManager::instance()->setNotesOutput($this->output);
+        $manager->rollbackPlugin($pluginName);
 
-        // Lookup
-        if (!$manager->hasPlugin($name)) {
-            return $this->output->error("Unable to find plugin '${name}'");
+        /*
+         * Delete from file system
+         */
+        if ($pluginPath = $pluginManager->getPluginPath($pluginName)) {
+            File::deleteDirectory($pluginPath);
+            $this->output->writeln(sprintf('<info>Deleted: %s</info>', $pluginName));
         }
-
-        if (!$this->confirmToProceed(sprintf('This will DELETE plugin "%s" from the filesystem and database.', $name))) {
-            return;
-        }
-
-        // Remove via composer
-        if ($composerCode = $manager->getComposerCode($name)) {
-            UpdateManager::instance()->setNotesOutput($this->output)->rollbackPlugin($name);
-
-            // Composer remove
-            $this->comment("Executing: composer remove {$composerCode}");
-            $this->output->newLine();
-
-            $composer = new ComposerProcess;
-            $composer->setCallback(function($message) { echo $message; });
-            $composer->remove($composerCode);
-
-            if ($composer->lastExitCode() !== 0) {
-                $this->output->error('Remove failed. Check output above');
-                exit(1);
-            }
-        }
-
-        $manager->deletePlugin($name);
-
-        $this->output->success("Plugin '${name}' removed");
     }
 
     /**
-     * handleComposer is internally used by composer
-     */
-    protected function handleComposer(): bool
-    {
-        // Called internally via composer
-        if (!$this->option('composer')) {
-            return false;
-        }
-
-        // Clear meta cache
-        CacheHelper::instance()->clearMeta();
-
-        // Disabled by config
-        if (Config::get('system.auto_rollback_plugins') !== true) {
-            return true;
-        }
-
-        $manager = PluginManager::instance();
-        $name = $manager->normalizeIdentifier($this->argument('name'));
-        $name = System::composerToOctoberCode($name);
-
-        // Lookup
-        if (!$manager->hasPlugin($name)) {
-            return true;
-        }
-
-        // Rollback plugin
-        UpdateManager::instance()->setNotesOutput($this->output)->rollbackPlugin($name);
-
-        return true;
-    }
-
-    /**
-     * getArguments get the console command arguments
+     * Get the console command arguments.
+     * @return array
      */
     protected function getArguments()
     {
@@ -123,18 +78,19 @@ class PluginRemove extends Command
     }
 
     /**
-     * getOptions get the console command options
+     * Get the console command options.
+     * @return array
      */
     protected function getOptions()
     {
         return [
-            ['composer', null, InputOption::VALUE_NONE, 'Command triggered from composer.'],
-            ['force', 'f', InputOption::VALUE_NONE, 'Force the operation to run.'],
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run.'],
         ];
     }
 
     /**
-     * getDefaultConfirmCallback specifies the default confirmation callback
+     * Get the default confirmation callback.
+     * @return \Closure
      */
     protected function getDefaultConfirmCallback()
     {

@@ -2,6 +2,7 @@
 
 use File;
 use Cms\Classes\ComponentBase;
+use System\Classes\CombineAssets;
 
 /**
  * Resources component
@@ -9,187 +10,181 @@ use Cms\Classes\ComponentBase;
 class Resources extends ComponentBase
 {
     /**
-     * @var string jsDir for JavaScript files.
+     * @var string The default JavaScript directory
      */
     public $jsDir = 'js';
 
     /**
-     * @var string cssDir for CSS files.
+     * @var string The default CSS directory
      */
     public $cssDir = 'css';
 
     /**
-     * @var string lessDir for LESS files.
+     * @var string The default LESS directory
      */
     public $lessDir = 'less';
 
     /**
-     * @var string sassDir for SASS files.
+     * @var string The default SASS directory
      */
     public $sassDir = 'sass';
 
     /**
-     * componentDetails
      * @return array
      */
     public function componentDetails()
     {
         return [
-            'name' => 'Resources',
-            'description' => 'Reference assets and variables included on this page.',
+            'name'           => 'Resources',
+            'description'    => 'Easily reference theme assets for inclusion on a page.',
         ];
     }
 
     /**
-     * defineProperties
      * @return array
      */
     public function defineProperties()
     {
         return [
             'js' => [
-                'title' => 'JavaScript',
-                'description' => 'JavaScript file(s) in the assets/js folder',
-                'type' => 'stringList',
+                'title'             => 'JavaScript',
+                'description'       => 'JavaScript file(s) in the assets/js folder',
+                'type'              => 'stringList',
                 'showExternalParam' => false
             ],
             'less' => [
-                'title' => 'LESS',
-                'description' => 'LESS file(s) in the assets/less folder',
-                'type' => 'stringList',
+                'title'             => 'LESS',
+                'description'       => 'LESS file(s) in the assets/less folder',
+                'type'              => 'stringList',
                 'showExternalParam' => false
             ],
             'sass' => [
-                'title' => 'SASS',
-                'description' => 'SASS file(s) in the assets/sass folder',
-                'type' => 'stringList',
+                'title'             => 'SASS',
+                'description'       => 'SASS file(s) in the assets/sass folder',
+                'type'              => 'stringList',
                 'showExternalParam' => false
             ],
             'css' => [
-                'title' => 'CSS',
-                'description' => 'Stylesheet file(s) in the assets/css folder',
-                'type' => 'stringList',
+                'title'             => 'CSS',
+                'description'       => 'Stylesheet file(s) in the assets/css folder',
+                'type'              => 'stringList',
                 'showExternalParam' => false
             ],
             'vars' => [
-                'title' => 'Variables',
-                'description' => 'Page variables name(s) and value(s)',
-                'type' => 'dictionary',
-                'showExternalParam' => false
-            ],
-            'headers' => [
-                'title' => 'Headers',
-                'description' => 'Page header name(s) and value(s)',
-                'type' => 'dictionary',
+                'title'             => 'Variables',
+                'description'       => 'Page variables name(s) and value(s)',
+                'type'              => 'dictionary',
                 'showExternalParam' => false
             ]
         ];
     }
 
-    /**
-     * init
-     */
     public function init()
     {
-        $this->assetPath = $this->controller->assetPath;
-        $this->assetLocalPath = $this->controller->assetLocalPath;
+        $this->assetPath = $this->guessAssetPath();
         $this->jsDir = $this->guessAssetDirectory(['js', 'javascript'], $this->jsDir);
         $this->sassDir = $this->guessAssetDirectory(['sass', 'scss'], $this->sassDir);
     }
 
-    /**
-     * onRun
-     */
     public function onRun()
     {
-        // JavaScript
+        /*
+         * JavaScript
+         */
+        $js = [];
         if ($assets = $this->property('js')) {
-            foreach ((array) $assets as $asset) {
-                $this->controller->addJsBundle($this->prefixJs($asset), 'cms-js');
-            }
+            $js += array_map([$this, 'prefixJs'], (array) $assets);
         }
 
-        // LESS
+        /*
+         * LESS
+         */
+        $less = [];
         if ($assets = $this->property('less')) {
-            foreach ((array) $assets as $asset) {
-                $this->controller->addCssBundle($this->prefixLess($asset), 'cms-less');
-            }
+            $less += array_map([$this, 'prefixLess'], (array) $assets);
         }
 
-        // SASS
+        /*
+         * SASS
+         */
+        $sass = [];
         if ($assets = $this->property('sass')) {
-            foreach ((array) $assets as $asset) {
-                $this->controller->addCssBundle($this->prefixSass($asset), 'cms-sass');
-            }
+            $sass += array_map([$this, 'prefixSass'], (array) $assets);
         }
 
-        // CSS
+        /*
+         * CSS
+         */
+        $css = [];
         if ($assets = $this->property('css')) {
-            foreach ((array) $assets as $asset) {
-                $this->controller->addCssBundle($this->prefixCss($asset), 'cms-css');
-            }
+            $css += array_map([$this, 'prefixCss'], (array) $assets);
         }
 
-        // Variables and Headers
-        $this->controller->bindEvent('page.beforeRenderPage', function ($page) {
-            if ($vars = $this->property('vars')) {
-                foreach ((array) $vars as $key => $value) {
-                    $this->page[$key] = $value;
-                }
-            }
+        if (count($js)) {
+            $this->addJs(CombineAssets::combine($js, $this->assetPath));
+        }
 
-            if ($headers = $this->property('headers')) {
-                foreach ((array) $headers as $key => $value) {
-                    $this->controller->setResponseHeader($key, $value);
-                }
+        if (count($less)) {
+            $this->addCss(CombineAssets::combine($less, $this->assetPath));
+        }
+
+        if (count($sass)) {
+            $this->addCss(CombineAssets::combine($sass, $this->assetPath));
+        }
+
+        if (count($css)) {
+            $this->addCss(CombineAssets::combine($css, $this->assetPath));
+        }
+
+        /*
+         * Variables
+         */
+        if ($vars = $this->property('vars')) {
+            foreach ((array) $vars as $key => $value) {
+                $this->page[$key] = $value;
             }
-        });
+        }
     }
 
-    /**
-     * prefixJs
-     */
     protected function prefixJs($value)
     {
-        return 'assets/'.$this->jsDir.'/'.trim($value);
+        return $this->jsDir.'/'.trim($value);
     }
 
-    /**
-     * prefixCss
-     */
     protected function prefixCss($value)
     {
-        return 'assets/'.$this->cssDir.'/'.trim($value);
+        return $this->cssDir.'/'.trim($value);
     }
 
-    /**
-     * prefixLess
-     */
     protected function prefixLess($value)
     {
-        return 'assets/'.$this->lessDir.'/'.trim($value);
+        return $this->lessDir.'/'.trim($value);
     }
 
-    /**
-     * prefixSass
-     */
     protected function prefixSass($value)
     {
-        return 'assets/'.$this->sassDir.'/'.trim($value);
+        return $this->sassDir.'/'.trim($value);
     }
 
-    /**
-     * guessAssetDirectory determines an inner asset directory, eg: sass or scss
-     */
     protected function guessAssetDirectory(array $possible, $default = null)
     {
-        $themeDir = $this->getTheme()->getDirName();
         foreach ($possible as $option) {
-            if (File::isDirectory(themes_path($themeDir.'/assets/'.$option))) {
+            if (File::isDirectory($this->assetPath.'/'.$option)) {
                 return $option;
             }
         }
 
         return $default;
+    }
+
+    protected function guessAssetPath()
+    {
+        $baseTheme = themes_path().'/'.$this->getTheme()->getDirName();
+
+        if (File::isDirectory($baseTheme.'/assets')) {
+            return $baseTheme.'/assets';
+        }
+
+        return $baseTheme.'/resources';
     }
 }

@@ -72,10 +72,10 @@
                     .append($('<td>').html(label))
                     .append($('<td>').addClass('value').html($('span', this).html()))
             )
-        });
+        })
 
-        $legend.insertAfter($list);
-        $list.remove();
+        $legend.insertAfter($list)
+        $list.remove()
 
         return $legend;
     }

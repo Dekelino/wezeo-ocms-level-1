@@ -6,13 +6,13 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 use Twig\Error\SyntaxError as TwigErrorSyntax;
 
 /**
- * PartialTokenParser for the `{% partial %}` Twig tag.
+ * Parser for the `{% partial %}` Twig tag.
  *
  *     {% partial "sidebar" %}
  *
  *     {% partial "sidebar" name='John' %}
  *
- *     {% partial "sidebar" name='John' year=2013 %}
+ *     {% partial "sidebar" name='John', year=2013 %}
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
@@ -20,7 +20,9 @@ use Twig\Error\SyntaxError as TwigErrorSyntax;
 class PartialTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
      * @return TwigNode A TwigNode instance
      */
     public function parse(TwigToken $token)
@@ -31,20 +33,10 @@ class PartialTokenParser extends TwigTokenParser
         $name = $this->parser->getExpressionParser()->parseExpression();
         $paramNames = [];
         $nodes = [$name];
-        $hasBody = false;
-        $body = null;
 
         $end = false;
         while (!$end) {
             $current = $stream->next();
-
-            if (
-                $current->test(TwigToken::NAME_TYPE, 'body') &&
-                !$stream->test(TwigToken::OPERATOR_TYPE, '=')
-            ) {
-                $hasBody = true;
-                $current = $stream->next();
-            }
 
             switch ($current->getType()) {
                 case TwigToken::NAME_TYPE:
@@ -67,24 +59,13 @@ class PartialTokenParser extends TwigTokenParser
             }
         }
 
-        if ($hasBody) {
-            $body = $this->parser->subparse([$this, 'decidePartialEnd'], true);
-            $stream->expect(TwigToken::BLOCK_END_TYPE);
-        }
-
-        return new PartialNode(new TwigNode($nodes), $paramNames, $body, $token->getLine(), $this->getTag());
+        return new PartialNode(new TwigNode($nodes), $paramNames, $token->getLine(), $this->getTag());
     }
 
     /**
-     * decidePartialEnd
-     */
-    public function decidePartialEnd(TwigToken $token)
-    {
-        return $token->test('endpartial');
-    }
-
-    /**
-     * getTag name associated with this token parser
+     * Gets the tag name associated with this token parser.
+     *
+     * @return string The tag name
      */
     public function getTag()
     {

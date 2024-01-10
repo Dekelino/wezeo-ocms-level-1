@@ -4,20 +4,18 @@ use Str;
 use Lang;
 use Config;
 use October\Rain\Extension\Extendable;
-use October\Contracts\Twig\CallsAnyMethod;
 use BadMethodCallException;
 
 /**
- * ComponentBase class
+ * Component base class
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
-abstract class ComponentBase extends Extendable implements CallsAnyMethod
+abstract class ComponentBase extends Extendable
 {
     use \System\Traits\AssetMaker;
     use \System\Traits\EventEmitter;
-    use \System\Traits\DependencyMaker;
     use \System\Traits\PropertyContainer;
 
     /**
@@ -95,26 +93,18 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
 
         $className = Str::normalizeClassName(get_called_class());
         $this->dirName = strtolower(str_replace('\\', '/', $className));
-        $this->assetPath = $this->getComponentAssetPath();
+        $this->assetPath = Config::get('cms.pluginsPath', '/plugins').dirname(dirname($this->dirName));
 
         parent::__construct();
     }
 
     /**
-     * componentDetails returns information about this component, including name and description
+     * Returns information about this component, including name and description.
      */
     abstract public function componentDetails();
 
     /**
-     * makePrimaryAccessor returns the PHP object variable for the Twig view layer.
-     */
-    public function makePrimaryAccessor()
-    {
-        return $this;
-    }
-
-    /**
-     * getPath returns the absolute component path
+     * Returns the absolute component path.
      */
     public function getPath()
     {
@@ -171,7 +161,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
          *
          *     Event::listen('cms.component.beforeRunAjaxHandler', function ((\Cms\Classes\ComponentBase) $component, (string) $handler) {
          *         if (strpos($handler, '::')) {
-         *             [$componentAlias, $handlerName] = explode('::', $handler);
+         *             list($componentAlias, $handlerName) = explode('::', $handler);
          *             if ($componentAlias === $this->getBackendWidgetAlias()) {
          *                 return $this->backendControllerProxy->runAjaxHandler($handler);
          *             }
@@ -182,7 +172,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
          *
          *     $this->controller->bindEvent('component.beforeRunAjaxHandler', function ((string) $handler) {
          *         if (strpos($handler, '::')) {
-         *             [$componentAlias, $handlerName] = explode('::', $handler);
+         *             list($componentAlias, $handlerName) = explode('::', $handler);
          *             if ($componentAlias === $this->getBackendWidgetAlias()) {
          *                 return $this->backendControllerProxy->runAjaxHandler($handler);
          *             }
@@ -194,7 +184,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
             return $event;
         }
 
-        $result = $this->makeCallMethod($this, $handler);
+        $result = $this->$handler();
 
         /**
          * @event cms.component.runAjaxHandler
@@ -266,11 +256,11 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
      * Sets an external property name.
      * @param string $name Property name
      * @param string $extName External property name
-     * @return void
+     * @return string
      */
     public function setExternalPropertyName($name, $extName)
     {
-        array_set($this->externalPropertyNames, $name, $extName);
+        return $this->externalPropertyNames[$name] = $extName;
     }
 
     /**
@@ -294,7 +284,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
      */
     public function paramName($name, $default = null)
     {
-        if (($extName = $this->propertyName($name)) && substr($extName, 0, 1) === ':') {
+        if (($extName = $this->propertyName($name)) && substr($extName, 0, 1) == ':') {
             return substr($extName, 1);
         }
 
@@ -335,23 +325,5 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     public function __toString()
     {
         return $this->alias;
-    }
-
-    //
-    // Internals
-    //
-
-    /**
-     * getComponentAssetPath returns the public directory for the component assets
-     */
-    protected function getComponentAssetPath(): string
-    {
-        $assetUrl = Config::get('system.plugins_asset_url');
-
-        if (!$assetUrl) {
-            $assetUrl = Config::get('app.asset_url').'/plugins';
-        }
-
-        return $assetUrl . dirname(dirname($this->dirName));
     }
 }

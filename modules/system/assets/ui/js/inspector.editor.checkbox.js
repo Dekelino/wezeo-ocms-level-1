@@ -40,7 +40,6 @@
         editor.setAttribute('id', id)
 
         label.setAttribute('for', id)
-        label.setAttribute('class', 'storm-icon-pseudo')
         label.textContent = this.propertyDefinition.title
 
         container.appendChild(editor)

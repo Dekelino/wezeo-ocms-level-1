@@ -1,11 +1,10 @@
 <?php namespace System\Models;
 
 use Cache;
-use System;
 use October\Rain\Database\Model;
 
 /**
- * Parameter model
+ * Parameters model
  * Used for storing internal application parameters.
  *
  * @package october\system
@@ -16,27 +15,21 @@ class Parameter extends Model
     use \October\Rain\Support\Traits\KeyParser;
 
     /**
-     * @var string table associated with the model
+     * @var string The database table used by the model.
      */
     protected $table = 'system_parameters';
 
-    /**
-     * @var bool timestamps enabled
-     */
     public $timestamps = false;
 
-    /**
-     * @var array cache
-     */
     protected static $cache = [];
 
     /**
-     * @var array jsonable attribute names that are json encoded and decoded from the database
+     * @var array List of attribute names which are json encoded and decoded from the database.
      */
     protected $jsonable = ['value'];
 
     /**
-     * afterSave clears the cache after saving.
+     * Clear the cache after saving.
      */
     public function afterSave()
     {
@@ -81,7 +74,7 @@ class Parameter extends Model
         $record = static::findRecord($key);
         if (!$record) {
             $record = new static;
-            [$namespace, $group, $item] = $record->parseKey($key);
+            list($namespace, $group, $item) = $record->parseKey($key);
             $record->namespace = $namespace;
             $record->group = $group;
             $record->item = $item;
@@ -118,19 +111,14 @@ class Parameter extends Model
      */
     public static function findRecord($key)
     {
-        if (!System::hasDatabase()) {
-            return null;
-        }
-
         $record = new static;
 
-        [$namespace, $group, $item] = $record->parseKey($key);
+        list($namespace, $group, $item) = $record->parseKey($key);
 
         return $record
             ->applyKey($key)
             ->remember(5, implode('-', [$record->getTable(), $namespace, $group, $item]))
-            ->first()
-        ;
+            ->first();
     }
 
     /**
@@ -141,13 +129,12 @@ class Parameter extends Model
      */
     public function scopeApplyKey($query, $key)
     {
-        [$namespace, $group, $item] = $this->parseKey($key);
+        list($namespace, $group, $item) = $this->parseKey($key);
 
         $query = $query
             ->where('namespace', $namespace)
             ->where('group', $group)
-            ->where('item', $item)
-        ;
+            ->where('item', $item);
 
         return $query;
     }

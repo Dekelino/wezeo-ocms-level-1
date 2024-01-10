@@ -38,15 +38,21 @@
             list-style: none;
 
             a:hover {
-                background: @color-filelist-hover;
+                background: @color-list-hover;
             }
 
             &.active > a {
-                background: @color-filelist-active;
+                background: @color-list-active;
                 position: relative;
-
-                span.title, span.description {
-                    color: @color-filelist-active-text;
+                &:after {
+                    position: absolute;
+                    height: 100%;
+                    width: 4px;
+                    left: 0;
+                    top: 0;
+                    background: @color-list-active-border;
+                    display: block;
+                    content: ' ';
                 }
             }
 
@@ -57,7 +63,7 @@
 
                 &:hover, &:focus, &:active {text-decoration: none;}
 
-                span {
+                span { 
                     display: block;
 
                     &.title {
@@ -158,7 +164,7 @@
                     height: 21px;
 
                     &.open a.control {
-                        display: block!important;
+                        display: block!important; 
                         &:before {
                             visibility: visible;
                             display: block;
@@ -177,7 +183,7 @@
                     text-decoration: none;
                     cursor: pointer;
                     padding: 0;
-                    opacity: 0.5;
+                    .opacity(0.5);
                     &:before {
                         visibility: visible;
                         display: block;
@@ -185,7 +191,7 @@
                     }
 
                     &:hover {
-                        opacity: 1;
+                        .opacity(1);
                     }
                 }
             }
@@ -293,16 +299,18 @@
                 }
 
                 .checkbox {
-                    top: -4px;
+                    top: -2px;
                     right: 0;
                 }
 
                 &.active {
                     > a {
-                        border-bottom: 1px solid @color-filelist-active;
+                        border-bottom: 1px solid @color-list-active;
 
                         &:after {
-                            display: none;
+                            top: -1px;
+                            bottom: -1px;
+                            height: auto;
                         }
 
                         > span.borders {
@@ -313,7 +321,7 @@
                                 height: 1px;
                                 display: block;
                                 left: 0;
-                                background-color: @color-filelist-active;
+                                background-color: @color-list-active;
                             }
 
                             &:before {top: -1px;}
@@ -325,14 +333,6 @@
 
                         &:active > span.borders:before {
                             background-color: @color-filelist-hero-active-bg;
-                        }
-
-                        span.title, span.description {
-                            color: @color-filelist-hero-active-text !important;
-                        }
-
-                        .list-icon {
-                            color: @color-filelist-hero-active-text !important;
                         }
                     }
                 }

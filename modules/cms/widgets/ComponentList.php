@@ -102,7 +102,7 @@ class ComponentList extends WidgetBase
                     'description'    => ComponentHelpers::getComponentDescription($component),
                     'plugin'         => $pluginName,
                     'propertyConfig' => ComponentHelpers::getComponentsPropertyConfig($component),
-                    'propertyValues' => ComponentHelpers::getComponentPropertyValues($component),
+                    'propertyValues' => ComponentHelpers::getComponentPropertyValues($component, $alias),
                     'className'      => get_class($component),
                     'pluginIcon'     => $pluginIcon,
                     'alias'          => $alias,

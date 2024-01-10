@@ -4,7 +4,8 @@ use Backend\Models\Preference as BackendPreference;
 use Backend\Classes\FormWidgetBase;
 
 /**
- * CodeEditor renders a field for editing code
+ * Code Editor
+ * Renders a code editor field.
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -152,7 +153,7 @@ class CodeEditor extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the widget data
      */
     public function prepareVars()
     {
@@ -210,6 +211,7 @@ class CodeEditor extends FormWidgetBase
         $this->useSoftTabs = !$preferences->editor_use_hard_tabs;
         $this->showGutter = $preferences->editor_show_gutter;
         $this->autocompletion = $preferences->editor_autocompletion;
+        $this->enableSnippets = $preferences->editor_enable_snippets;
         $this->displayIndentGuides = $preferences->editor_display_indent_guides;
         $this->showPrintMargin = $preferences->editor_show_print_margin;
     }

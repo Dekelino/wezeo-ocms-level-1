@@ -93,7 +93,7 @@
                     height: 19px;
                     cursor: move;
                     color: @color-treeview-control;
-                    opacity: 0;
+                    .opacity(0);
 
                     &:before {
                         .icon(@bars);
@@ -108,20 +108,33 @@
                 > ul.submenu {
                     position: absolute;
                     left: 20px;
-                    bottom: -26.9px;
+                    bottom: -36.9px;
                     padding: 0;
                     list-style: none;
                     z-index: 200;
-                    height: 27px;
+                    height: 37px;
                     display: none;
                     margin-left: 15px;
-                    background-color: lighten(@color-treeview-hover-bg, 2%);
-                    .border-bottom-radius(8px);
-                    .box-shadow(~"inset 0 3px 3px -3px rgba(0, 0, 0, 0.2)");
 
-                    [data-control="create-object"] {
-                        padding-left: 15px;
-                        padding-right: 15px;
+                    background: transparent url(../images/treeview-submenu-tabs.png) repeat-x left -39px;
+
+                    &:before, &:after {
+                        background: transparent url(../images/treeview-submenu-tabs.png) no-repeat left top;
+                        content: ' ';
+                        display: block;
+                        width: 20px;
+                        height: 37px;
+                        position: absolute;
+                        top: 0;
+                    }
+
+                    &:before {
+                        left: -20px;
+                    }
+
+                    &:after {
+                        background-position: -100px top;
+                        right: -20px;
                     }
 
                     li {
@@ -130,7 +143,7 @@
                         a {
                             display: block;
                             padding: 4px 3px 0 3px;
-                            color: #fff;
+                            color: @color-treeview-submenu-text;
                             text-decoration: none;
                             outline: none;
 
@@ -149,7 +162,14 @@
 
                 &:active {
                     > ul.submenu {
-                        background-color: @color-treeview-active-bg;
+                        background-position: left -116px;
+
+                        &:before {
+                            background-position: left -77px;
+                        }
+                        &:after {
+                            background-position: -100px -77px;
+                        }
                     }
                 }
 
@@ -210,7 +230,7 @@
 
                     &.drag-handle {
                         cursor: move;
-                        opacity: 1;
+                        .opacity(1);
                     }
 
                     &.borders {
@@ -229,8 +249,8 @@
 
             &[data-no-drag-mode] div:hover {
                 span.drag-handle {
-                    cursor: default !important;
-                    opacity: .3 !important;
+                    cursor: default!important;
+                    .opacity(.3)!important;
                 }
             }
 
@@ -276,13 +296,13 @@
 
             &.placeholder {
                 position: relative;
-                opacity: .5;
+                .opacity(.5);
             }
 
             &.dragged {
                 position: absolute;
                 z-index: 2000;
-                opacity: .25;
+                .opacity(.25);
 
                 > div {
                     .border-radius(3px);
@@ -321,17 +341,20 @@
 
             &.active {
                 > div {
-                    background: @color-filelist-active;
+                    background: @color-list-active;
 
-                    > a {
-                        color: @color-treeview-item-active-comment;
-
-                        > span.comment, > span.expand {
-                            color: @color-treeview-item-active-comment;
-                        }
+                    &:after {
+                        position: absolute;
+                        width: 4px;
+                        left: 0;
+                        top: -1px;
+                        bottom: -1px;
+                        background: @color-list-active-border;
+                        display: block;
+                        content: ' ';
                     }
 
-                    > span.expand {
+                    > span.comment, > span.expand {
                         color: @color-treeview-item-active-comment;
                     }
 
@@ -343,20 +366,12 @@
                             height: 1px;
                             display: block;
                             left: 0;
-                            background-color: @color-filelist-active;
+                            background-color: @color-list-active;
                         }
 
                         &:before {top: -1px;}
                         &:after {bottom: -1px;}
                     }
-
-                    &:before {
-                        background-position: 0px -80px;
-                    }
-                }
-
-                &.has-subitems > div:before {
-                    background-position: 0px -52px;
                 }
             }
 
@@ -542,8 +557,8 @@ body.dragging .control-treeview {
                 .transition(margin 1s);
 
                 .custom-checkbox {
-                    transition: opacity .5s;
-                    opacity: 0;
+                    .transition(opacity .5s);
+                    .opacity(0);
                 }
             }
         }
@@ -573,20 +588,14 @@ body.dragging .control-treeview {
                     }
                 }
 
-                &.has-subitems {
-                    > div {
-                        &:before {background-position: 0px -52px;}
-                        &:hover, &.popover-highlight {
-                            &:before {background-position: 0px -102px;}
-                        }
-                    }
-
-                    &.active > div {
+                &.has-subitems > div {
+                    &:before {background-position: 0px -52px;}
+                    &:hover, &.popover-highlight {
                         &:before {background-position: 0px -102px;}
                     }
                 }
 
-                &.dragged > div, &.dragged li > div, > div:hover, &.active > div, > div.popover-highlight {
+                &.dragged > div, &.dragged li > div, > div:hover, > div.popover-highlight {
                     &:before {background-position: 0px -129px;}
                 }
 

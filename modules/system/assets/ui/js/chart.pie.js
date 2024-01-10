@@ -1,6 +1,6 @@
 /*
  * The pie chart plugin.
- *
+ * 
  * Data attributes:
  * - data-control="chart-pie" - enables the pie chart plugin
  * - data-size="200" - optional, size of the graph
@@ -18,7 +18,7 @@
     var PieChart = function (element, options) {
         this.options = options || {}
 
-        var
+        var 
             $el = this.$el = $(element),
             size = this.size = (this.options.size !== undefined ? this.options.size : $el.height()),
             outerRadius = size/2 - 1,
@@ -26,40 +26,37 @@
             values = $.oc.chartUtils.loadListValues($('ul', $el)),
             $legend = $.oc.chartUtils.createLegend($('ul', $el)),
             indicators = $.oc.chartUtils.initLegendColorIndicators($legend),
-            self = this;
+            self = this
 
-        var $canvas = $('<div/>').addClass('canvas').width(size).height(size);
-        $el.prepend($canvas);
-
-        // Truncate scoreboard in cases where there are more than 3 items
-        $legend.height(size).css('overflow-y', 'auto');
+        var $canvas = $('<div/>').addClass('canvas').width(size).height(size)
+        $el.prepend($canvas)
 
         Raphael($canvas.get(0), size, size, function(){
-            self.paper = this;
-            self.segments = this.set();
+            self.paper = this
+            self.segments = this.set()
 
             self.paper.customAttributes.segment = function (startAngle, endAngle) {
-                var
+                var 
                     p1 = self.arcCoords(outerRadius, startAngle),
                     p2 = self.arcCoords(outerRadius, endAngle),
                     p3 = self.arcCoords(innerRadius, endAngle),
                     p4 = self.arcCoords(innerRadius, startAngle),
                     flag = (endAngle - startAngle) > 180,
                     path = [
-                        ["M", p1.x, p1.y],
+                        ["M", p1.x, p1.y], 
                         ["A", outerRadius, outerRadius, 0, +flag, 0, p2.x, p2.y],
                         ["L", p3.x, p3.y],
                         ["A", innerRadius, innerRadius, 0, +flag, 1, p4.x, p4.y],
                         ["Z"]
-                    ];
+                    ]
 
-                return {path: path};
-            };
+                return {path: path}
+            }
 
             // Draw the background
             self.paper.circle(size/2, size/2, innerRadius + (outerRadius - innerRadius)/2)
                 .attr({"stroke-width": outerRadius - innerRadius - 0.5})
-                .attr({stroke: $.oc.chartUtils.defaultValueColor});
+                .attr({stroke: $.oc.chartUtils.defaultValueColor})
 
             // Add segments
             $.each(values.values, function(index, valueInfo) {
@@ -70,12 +67,12 @@
                 indicators[index].css('background-color', color)
 
                 path.hover(function(ev){
-                    $.oc.chartUtils.showTooltip(ev.pageX, ev.pageY,
+                    $.oc.chartUtils.showTooltip(ev.pageX, ev.pageY, 
                         $.trim($.oc.chartUtils.getLegendLabel($legend, index)) + ': <strong>'+valueInfo.value+'</stong>')
                 }, function() {
                     $.oc.chartUtils.hideTooltip()
                 })
-            });
+            })
 
             // Animate segments
             var start = self.options.startAngle
@@ -86,22 +83,22 @@
 
                 self.segments[index].animate({segment: [start, start + length]}, 1000, "bounce")
                 start += length
-            });
+            })
         })
 
         if (this.options.centerText !== undefined) {
-            var $text = $('<span>').addClass('center').html(this.options.centerText);
-            $canvas.append($text);
+            var $text = $('<span>').addClass('center').html(this.options.centerText)
+            $canvas.append($text)
         }
     }
 
     PieChart.prototype.arcCoords = function(radius, angle) {
-      var
+      var 
         a = Raphael.rad(angle),
         x = this.size/2 + radius * Math.cos(a),
-        y = this.size/2 - radius * Math.sin(a);
+        y = this.size/2 - radius * Math.sin(a)
 
-        return {'x': x, 'y': y};
+        return {'x': x, 'y': y}
     }
 
     PieChart.DEFAULTS = {
@@ -119,7 +116,7 @@
             var data  = $this.data('oc.pieChart')
             var options = $.extend({}, PieChart.DEFAULTS, $this.data(), typeof option == 'object' && option)
 
-            if (!data)
+            if (!data) 
                 $this.data('oc.pieChart', new PieChart(this, options))
         })
     }
@@ -141,4 +138,4 @@
         $('[data-control=chart-pie]').pieChart()
     })
 
-}(window.jQuery);
+}(window.jQuery)

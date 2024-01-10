@@ -8,11 +8,11 @@ class DbFailedJobs extends Migration
     public function up()
     {
         Schema::create($this->getTableName(), function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->increments('id');
             $table->text('connection');
             $table->text('queue');
             $table->text('payload');
-            $table->longText('exception')->nullable();
             $table->timestamp('failed_at')->nullable();
         });
     }

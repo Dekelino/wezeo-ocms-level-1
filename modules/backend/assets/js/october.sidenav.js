@@ -1,6 +1,6 @@
 /*
  * Side Navigation
- *
+ * 
  * Data attributes:
  * - data-control="sidenav" - enables the side navigation plugin
  *
@@ -10,7 +10,7 @@
  * $.oc.sideNav.increaseCounter('cms/partials', 5); - increases the counter value for a particular menu item
  * $.oc.sideNav.dropCounter('cms/partials'); - drops the counter value for a particular menu item
  *
- * Dependences:
+ * Dependences: 
  * - Drag Scroll (october.dragscroll.js)
  */
 
@@ -28,7 +28,6 @@
         this.$items    = $('li', this.$list)
 
         this.init();
-        this.initResponsive();
     }
 
     SideNav.DEFAULTS = {
@@ -40,8 +39,7 @@
 
         this.$list.dragScroll({
             vertical: true,
-            useNative: false,
-            useDrag: true,
+            useNative: true,
             start: function() { self.$list.addClass('drag') },
             stop: function() { self.$list.removeClass('drag') },
             scrollClassContainer: self.$el,
@@ -55,31 +53,6 @@
             }
         })
     }
-
-    // Proxy responsive menu to desktop menu
-    SideNav.prototype.initResponsive = function (){
-        var $sideNav = $('#layout-sidenav-responsive'),
-            $items = $('ul li', $sideNav),
-            self = this;
-
-        $items.click(function() {
-            var itemId = $(this).data('menu-item');
-            if (!itemId) {
-                return;
-            }
-
-            if ($(this).data('no-side-panel')) {
-                return
-            }
-
-            $items
-                .removeClass(self.options.activeClass)
-                .filter('[data-menu-item='+itemId+']')
-                .addClass(self.options.activeClass);
-
-            $('[data-menu-item='+itemId+']:first', self.$list).trigger('click');
-        });
-    };
 
     SideNav.prototype.unsetActiveItem = function (itemId){
         this.$items.removeClass(this.options.activeClass)
@@ -96,19 +69,12 @@
             .addClass(this.options.activeClass)
     }
 
-    function setCounterValue($counter, value){
+    SideNav.prototype.setCounter = function (itemId, value){
+        var $counter = $('span.counter[data-menu-id="'+itemId+'"]', this.$el)
+
+        $counter.removeClass('empty')
         $counter.toggleClass('empty', value == 0)
         $counter.text(value)
-    }
-
-    function setCountersValue(itemId, $el, value) {
-        setCounterValue($('span.counter[data-menu-id="'+itemId+'"]', $el), value)
-        setCounterValue($('span.counter[data-menu-id="'+itemId+'"]', '#layout-sidenav-responsive'), value)
-        setCounterValue($('span.counter[data-menu-id="'+itemId+'"]', '#layout-mainmenu'), value)
-    }
-
-    SideNav.prototype.setCounter = function (itemId, value){
-        setCountersValue(itemId, this.$el, value)
 
         return this
     }
@@ -121,8 +87,8 @@
             originalValue = 0
 
         var newValue = value + originalValue
-
-        setCountersValue(itemId, this.$el, newValue)
+        $counter.toggleClass('empty', newValue == 0)
+        $counter.text(newValue)
         return this
     }
 

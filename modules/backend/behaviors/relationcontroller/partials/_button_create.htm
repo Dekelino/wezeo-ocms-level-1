@@ -3,7 +3,6 @@
     data-size="huge"
     data-handler="onRelationButtonCreate"
     href="javascript:;"
-    class="btn btn-sm btn-secondary"
->
-    <i class="octo-icon-create"></i> <?= e($this->relationGetMessage('buttonCreate')) ?>
+    class="btn btn-sm btn-secondary oc-icon-file">
+    <?= e(trans($text, ['name' => trans($relationLabel)])) ?>
 </a>

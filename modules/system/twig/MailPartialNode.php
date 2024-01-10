@@ -4,7 +4,7 @@ use Twig\Node\Node as TwigNode;
 use Twig\Compiler as TwigCompiler;
 
 /**
- * MailPartialNode
+ * Represents a partial node
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges

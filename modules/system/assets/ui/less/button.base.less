@@ -15,10 +15,6 @@
     .button-size(@padding-base-vertical; @padding-base-horizontal; @font-size-base; @line-height-base; @border-radius-base);
     .user-select(none);
 
-    &.btn-default-action {
-        font-weight: 500;
-    }
-
     &,
     &:active,
     &.active {
@@ -44,8 +40,8 @@
     fieldset[disabled] & {
         cursor: not-allowed;
         pointer-events: none; // Future-proof disabling of clicks
-        opacity: .5;
-        box-shadow: none;
+        .opacity(.65);
+        .box-shadow(none);
     }
 }
 
@@ -78,7 +74,7 @@
 }
 // Danger and error appear as red
 .btn-danger {
-    .button-variant(@btn-danger-color; @btn-danger-bg; @btn-danger-border; darken(@btn-danger-bg, 10%); @btn-danger-bg);
+    .button-variant(@btn-danger-color; @btn-default-bg; @btn-danger-border; @btn-danger-bg; @btn-danger-bg);
 }
 
 
@@ -115,14 +111,8 @@
 .btn-link {
     color: @link-color;
     font-weight: normal;
-    font-size: @font-size-base;
     cursor: pointer;
     border-radius: 0;
-    text-decoration: underline;
-
-    &.text-muted {
-        color: @text-muted;
-    }
 
     &,
     &:active,
@@ -153,22 +143,6 @@
     }
 }
 
-.btn.btn-link {
-    font-size: @font-size-base;
-}
-
-.button-separator {
-    color: @text-muted;
-    display: inline-block;
-    margin: 0 10px;
-    padding-top: @padding-base-vertical;
-    font-size: @font-size-base;
-
-    + .btn-link {
-        padding-left: 10px;
-        margin-left: -10px;
-    }
-}
 
 // Button Sizes
 // --------------------------------------------------
@@ -189,8 +163,7 @@
 // Block button
 // --------------------------------------------------
 
-.btn.btn-block {
-    text-align: center;
+.btn-block {
     display: block;
     width: 100%;
     padding-left: 0;

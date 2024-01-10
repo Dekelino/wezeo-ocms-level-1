@@ -4,10 +4,9 @@ use Illuminate\Console\Command;
 use System\Classes\UpdateManager;
 use System\Classes\PluginManager;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 
 /**
- * PluginRefresh refreshes a plugin.
+ * Console command to refresh a plugin.
  *
  * This destroys all database tables for a specific plugin, then builds them up again.
  * It is a great way for developers to debug and develop new plugins.
@@ -17,113 +16,56 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class PluginRefresh extends Command
 {
+
     /**
-     * @var string name of console command
+     * The console command name.
+     * @var string
      */
     protected $name = 'plugin:refresh';
 
     /**
-     * @var string description of the console command
+     * The console command description.
+     * @var string
      */
-    protected $description = 'Rollback and migrate database tables for a plugin.';
+    protected $description = 'Removes and re-adds an existing plugin.';
 
     /**
-     * handle executes the console command
+     * Execute the console command.
+     * @return void
      */
     public function handle()
     {
-        $manager = PluginManager::instance();
-        $name = $manager->normalizeIdentifier($this->argument('name'));
-
-        if (!$manager->hasPlugin($name)) {
-            return $this->output->error("Unable to find plugin '${name}'");
+        /*
+         * Lookup plugin
+         */
+        $pluginName = $this->argument('name');
+        $pluginName = PluginManager::instance()->normalizeIdentifier($pluginName);
+        if (!PluginManager::instance()->exists($pluginName)) {
+            throw new \InvalidArgumentException(sprintf('Plugin "%s" not found.', $pluginName));
         }
 
-        if ($this->userAbortedFromWarning($name)) {
-            return;
-        }
-
-        if ($this->option('rollback') !== false) {
-            return $this->handleRollback($name);
-        }
-        else {
-            return $this->handleRefresh($name);
-        }
-    }
-
-    /**
-     * handleRollback performs a database rollback
-     */
-    protected function handleRefresh($name)
-    {
-        // Rollback plugin migration
         $manager = UpdateManager::instance()->setNotesOutput($this->output);
-        $manager->rollbackPlugin($name);
 
-        // Rerun migration
+        /*
+         * Rollback plugin
+         */
+        $manager->rollbackPlugin($pluginName);
+
+        /*
+         * Update plugin
+         */
         $this->output->writeln('<info>Reinstalling plugin...</info>');
-        $manager->updatePlugin($name);
+        $manager->updatePlugin($pluginName);
     }
 
     /**
-     * handleRollback performs a database rollback
-     */
-    protected function handleRollback($name)
-    {
-        // Rollback plugin migration
-        $manager = UpdateManager::instance()->setNotesOutput($this->output);
-
-        if ($toVersion = $this->option('rollback')) {
-            $manager->rollbackPluginToVersion($name, $toVersion);
-        }
-        else {
-            $manager->rollbackPlugin($name);
-        }
-    }
-
-    /**
-     * userAbortedFromWarning
-     */
-    protected function userAbortedFromWarning($name): bool
-    {
-        // Bypass from force
-        if ($this->option('force', false)) {
-            return false;
-        }
-
-        // Warn user
-        if ($toVersion = $this->option('rollback')) {
-            if (!$this->confirm("This will DESTROY database tables for plugin '${name}' up to version '${toVersion}'.")) {
-                return true;
-            }
-        }
-        else {
-            if (!$this->confirm("This will DESTROY database tables for plugin '${name}'.")) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * getArguments get the console command arguments
+     * Get the console command arguments.
+     * @return array
      */
     protected function getArguments()
     {
         return [
             ['name', InputArgument::REQUIRED, 'The name of the plugin. Eg: AuthorName.PluginName'],
-        ];
-    }
-
-    /**
-     * getOptions get the console command options
-     */
-    protected function getOptions()
-    {
-        return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Force the operation to run.'],
-            ['rollback', 'r', InputOption::VALUE_OPTIONAL, 'Specify a version to rollback to, otherwise rollback to the beginning.', false],
         ];
     }
 }

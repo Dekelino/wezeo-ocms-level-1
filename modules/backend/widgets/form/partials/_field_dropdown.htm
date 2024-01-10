@@ -5,21 +5,19 @@
 ?>
 <!-- Dropdown -->
 <?php if ($this->previewMode || $field->readOnly): ?>
-    <?php
-        $fieldValue = $fieldOptions[$field->value] ?? '';
-    ?>
-    <div class="form-control" <?= $field->readOnly ? 'disabled="disabled"' : '' ?>>
-        <?php if (is_array($fieldValue)): ?>
-            <?php if (substr($fieldValue[1], 0, 1) === '#'): ?>
-                <span class="status-indicator" style="background:<?= $fieldValue[1] ?>"></span>
-            <?php elseif (strpos($fieldValue[1], '.')): ?>
-                <img src="<?= $fieldValue[1] ?>" alt="" />
+    <div class="form-control" <?= $field->readOnly ? 'disabled="disabled"' : ''; ?>>
+        <?php if (isset($fieldOptions[$field->value]) && is_array($fieldOptions[$field->value])): ?>
+            <?php if (strpos($fieldOptions[$field->value][1], '.')): ?>
+                <img src="<?= $fieldOptions[$field->value][1] ?>" alt="">
+                <?= e(trans($fieldOptions[$field->value][0])) ?>
             <?php else: ?>
-                <i class="<?= $fieldValue[1] ?>"></i>
+                <i class="<?= $fieldOptions[$field->value][1] ?>"></i>
+                <?= e(trans($fieldOptions[$field->value][0])) ?>
             <?php endif ?>
-            <?= e(trans($fieldValue[0])) ?>
+        <?php elseif (isset($fieldOptions[$field->value]) && !is_array($fieldOptions[$field->value])): ?>
+            <?= e(trans($fieldOptions[$field->value])) ?>
         <?php else: ?>
-            <?= e(trans($fieldValue)) ?>
+            <?= '' ?>
         <?php endif ?>
     </div>
     <?php if ($field->readOnly): ?>
@@ -27,7 +25,7 @@
              type="hidden"
              name="<?= $field->getName() ?>"
              value="<?= $field->value ?>">
-    <?php endif ?>
+    <?php endif; ?>
 <?php else: ?>
     <select
         id="<?= $field->getId() ?>"
@@ -35,7 +33,7 @@
         class="form-control custom-select <?= $useSearch ? '' : 'select-no-search' ?>"
         <?= $field->getAttributes() ?>
         <?= $field->placeholder ? 'data-placeholder="'.e(trans($field->placeholder)).'"' : '' ?>
-    >
+        >
         <?php if ($emptyOption): ?>
             <option value=""><?= e(trans($emptyOption)) ?></option>
         <?php endif ?>
@@ -45,15 +43,7 @@
             ?>
             <option
                 <?= $field->isSelected($value) ? 'selected="selected"' : '' ?>
-                <?php if (isset($option[1])): ?>
-                    <?php if (substr($option[1], 0, 1) === '#'): ?>
-                        data-status="<?= $option[1] ?>"
-                    <?php elseif (strpos($option[1], '.')): ?>
-                        data-image="<?= $option[1] ?>"
-                    <?php else: ?>
-                        data-icon="<?= $option[1] ?>"
-                    <?php endif ?>
-                <?php endif ?>
+                <?php if (isset($option[1])): ?>data-<?=strpos($option[1],'.')?'image':'icon'?>="<?= $option[1] ?>"<?php endif ?>
                 value="<?= e($value) ?>"
             ><?= e(trans($option[0])) ?></option>
         <?php endforeach ?>

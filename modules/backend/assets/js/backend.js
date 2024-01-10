@@ -16,51 +16,22 @@ $.ajaxPrefilter(function(options) {
 })
 
 /*
- * Security helper
- * Prevents front end service workers from leaking in to the backend
- */
-function unregisterServiceWorkers() {
-    if (location.protocol === 'https:') {
-        navigator.serviceWorker.getRegistrations().then(
-            function(registrations) {
-                for (var index=0; index<registrations.length; index++) {
-                    registrations[index].unregister({ immediate: true })
-                }
-            }
-        );
-    }
-}
-
-/*
  * Path helpers
  */
 
-if ($.oc === undefined) {
-    $.oc = {};
-}
+if ($.oc === undefined)
+    $.oc = {}
 
 $.oc.backendUrl = function(url) {
-    var backendBasePath = $('meta[name="backend-base-path"]').attr('content');
+    var backendBasePath = $('meta[name="backend-base-path"]').attr('content')
 
-    if (!backendBasePath) {
-        return url;
-    }
+    if (!backendBasePath)
+        return url
 
-    if (url.substr(0, 1) == '/') {
-        url = url.substr(1);
-    }
+    if (url.substr(0, 1) == '/')
+        url = url.substr(1)
 
-    return backendBasePath + '/' + url;
-}
-
-$.oc.backendCalculateTopContainerOffset = function() {
-    var height = $('#layout-mainmenu > .main-menu-container').outerHeight();
-
-    if ($('#layout-banner-area').length) {
-        height += $('#layout-banner-area').outerHeight();
-    }
-
-    return height;
+    return backendBasePath + '/' + url
 }
 
 /*
@@ -69,7 +40,7 @@ $.oc.backendCalculateTopContainerOffset = function() {
  * Usage: assetManager.load({ css:[], js:[], img:[] }, onLoadedCallback)
  */
 
-var AssetManager = function() {
+AssetManager = function() {
 
     var o = {
 
@@ -188,7 +159,7 @@ var AssetManager = function() {
     return o;
 };
 
-var assetManager = new AssetManager();
+assetManager = new AssetManager();
 
 /*
  * String escape
@@ -212,28 +183,56 @@ $.oc.escapeHtmlString = function(string) {
     })
 }
 
-$.oc.isTouchEnabled = function() {
-    return document.documentElement.classList &&
-        document.documentElement.classList.contains('user-touch');
+/*
+ * Inverse Click Event (not used)
+ *
+ * Calls the handler function if the user has clicked outside the object 
+ * and not on any of the elements in the exception list.
+ */
+/*
+$.fn.extend({
+    clickOutside: function(handler, exceptions) {
+        var $this = this;
+
+        $('body').on('click', function(event) {
+            if (exceptions && $.inArray(event.target, exceptions) > -1) {
+                return;
+            } else if ($.contains($this[0], event.target)) {
+                return;
+            } else {
+                handler(event, $this);
+            }
+        });
+
+        return this;
+    }
+})
+*/
+
+/*
+ * Browser Fixes
+ * - If another fix using JS is necessary, move this logic to backend.fixes.js
+ */
+
+/*
+ * Internet Explorer v11
+ * - IE11 will not honor height 100% when overflow is used on the Y axis.
+ */
+if (!!window.MSInputMethodContext && !!document.documentMode) {
+    $(window).on('resize', function() {
+        fixMediaManager()
+        fixSidebar()
+    })
+
+    function fixMediaManager() {
+        var $el = $('div[data-control="media-manager"] .control-scrollpad')
+        $el.height($el.parent().height())
+    }
+
+    function fixSidebar() {
+        $('#layout-sidenav').height(Math.max(
+            $('#layout-body').innerHeight(),
+            $(window).height() - $('#layout-mainmenu').height()
+        ))
+    }
 }
-
-;(function() {
-    // Look if user is touching, not if device is capable
-    window.addEventListener('touchstart', function onFirstTouch() {
-        document.documentElement.classList.add('user-touch');
-        $.cookie('oc-user-touch', 1, { expires: 365, path: '/' });
-    }, { once: true });
-
-    // Cookie is found on a non-touch device (cookie was from debugging)
-    if ($.oc.isTouchEnabled() && !isTouchEnabledBrowser()) {
-        document.documentElement.classList.remove('user-touch');
-        $.removeCookie('oc-user-touch', { path: '/' });
-    }
-
-    // Private
-    function isTouchEnabledBrowser() {
-        return ('ontouchstart' in window) ||
-            (navigator.maxTouchPoints > 0) ||
-            (navigator.msMaxTouchPoints > 0);
-    }
-})();

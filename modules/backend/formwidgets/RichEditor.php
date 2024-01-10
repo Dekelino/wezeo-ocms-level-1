@@ -2,12 +2,14 @@
 
 use App;
 use File;
-use Event;
 use Lang;
+use Event;
+use Config;
 use Request;
+use Backend;
 use BackendAuth;
-use Backend\Classes\FormWidgetBase;
 use Backend\Models\EditorSetting;
+use Backend\Classes\FormWidgetBase;
 
 /**
  * Rich Editor
@@ -18,6 +20,8 @@ use Backend\Models\EditorSetting;
  */
 class RichEditor extends FormWidgetBase
 {
+    use \Backend\Traits\UploadableWidget;
+
     //
     // Configurable properties
     //
@@ -38,31 +42,9 @@ class RichEditor extends FormWidgetBase
     public $readOnly = false;
 
     /**
-     * @var bool The Legacy mode disables the Vue integration.
+     * @var string|null Path in the Media Library where uploaded files should be stored. If null it will be pulled from Request::input('path');
      */
-    public $legacyMode = false;
-
-    /**
-     * @var bool Makes the field resizable.
-     * Only works in Vue applications and form document layouts.
-     */
-    public $resizable = false;
-
-    /**
-     * @var string Defines a mount point for the editor toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::stateElementName
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarAppState = null;
-
-    /**
-     * @var string Defines an event bus for an external toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::eventBus
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarEventBus = null;
+    public $uploadPath = '/uploaded-files';
 
     //
     // Object properties
@@ -86,15 +68,7 @@ class RichEditor extends FormWidgetBase
             'fullPage',
             'readOnly',
             'toolbarButtons',
-            'legacyMode',
-            'resizable',
-            'externalToolbarAppState',
-            'externalToolbarEventBus'
         ]);
-
-        if (!$this->legacyMode) {
-            $this->controller->registerVueComponent(\Backend\VueComponents\RichEditorDocumentConnector::class);
-        }
     }
 
     /**
@@ -107,7 +81,7 @@ class RichEditor extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the list data
      */
     public function prepareVars()
     {
@@ -117,19 +91,14 @@ class RichEditor extends FormWidgetBase
         $this->vars['stretch'] = $this->formField->stretch;
         $this->vars['size'] = $this->formField->size;
         $this->vars['readOnly'] = $this->readOnly;
-        $this->vars['resizable'] = $this->resizable;
-        $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
         $this->vars['name'] = $this->getFieldName();
         $this->vars['value'] = $this->getLoadValue();
         $this->vars['toolbarButtons'] = $this->evalToolbarButtons();
-        $this->vars['useMediaManager'] = BackendAuth::userHasAccess('media.manage_media');
-        $this->vars['legacyMode'] = $this->legacyMode;
+        $this->vars['useMediaManager'] = BackendAuth::getUser()->hasAccess('media.manage_media');
 
         $this->vars['globalToolbarButtons'] = EditorSetting::getConfigured('html_toolbar_buttons');
         $this->vars['allowEmptyTags'] = EditorSetting::getConfigured('html_allow_empty_tags');
         $this->vars['allowTags'] = EditorSetting::getConfigured('html_allow_tags');
-        $this->vars['allowAttrs'] = EditorSetting::getConfigured('html_allow_attrs');
         $this->vars['noWrapTags'] = EditorSetting::getConfigured('html_no_wrap_tags');
         $this->vars['removeTags'] = EditorSetting::getConfigured('html_remove_tags');
         $this->vars['lineBreakerTags'] = EditorSetting::getConfigured('html_line_breaker_tags');
@@ -140,8 +109,6 @@ class RichEditor extends FormWidgetBase
         $this->vars['paragraphFormats'] = EditorSetting::getConfiguredFormats('html_paragraph_formats');
         $this->vars['tableStyles'] = EditorSetting::getConfiguredStyles('html_style_table');
         $this->vars['tableCellStyles'] = EditorSetting::getConfiguredStyles('html_style_table_cell');
-
-        $this->vars['isAjax'] = Request::ajax();
     }
 
     /**
@@ -174,7 +141,16 @@ class RichEditor extends FormWidgetBase
     {
         $this->addCss('css/richeditor.css', 'core');
         $this->addJs('js/build-min.js', 'core');
-        $this->addJs('js/build-plugins-min.js', 'core');
+
+        if (Config::get('develop.decompileBackendAssets', false)) {
+            $scripts = Backend::decompileAsset($this->getAssetPath('js/build-plugins.js'));
+            foreach ($scripts as $script) {
+                $this->addJs($script, 'core');
+            }
+        } else {
+            $this->addJs('js/build-plugins-min.js', 'core');
+        }
+
         $this->addJs('/modules/backend/formwidgets/codeeditor/assets/js/build-min.js', 'core');
 
         if ($lang = $this->getValidEditorLang()) {
@@ -210,6 +186,19 @@ class RichEditor extends FormWidgetBase
     {
         $result = [];
 
+        /**
+         * @event backend.richeditor.listTypes
+         * Register additional "page link types" to the RichEditor FormWidget
+         *
+         * Example usage:
+         *
+         *     Event::listen('backend.richeditor.listTypes', function () {
+         *          return [
+         *              'my-identifier' => 'author.plugin::lang.richeditor.link_types.my_identifier',
+         *          ];
+         *     });
+         *
+         */
         $apiResult = Event::fire('backend.richeditor.listTypes');
         if (is_array($apiResult)) {
             foreach ($apiResult as $typeList) {
@@ -229,6 +218,28 @@ class RichEditor extends FormWidgetBase
     protected function getPageLinks($type)
     {
         $result = [];
+
+        /**
+         * @event backend.richeditor.getTypeInfo
+         * Register additional "page link types" to the RichEditor FormWidget
+         *
+         * Example usage:
+         *
+         *     Event::listen('backend.richeditor.getTypeInfo', function ($type) {
+         *          if ($type === 'my-identifier') {
+         *              return [
+         *                  'https://example.com/page1' => 'Page 1',
+         *                  'https://example.com/parent-page' => [
+         *                      'title' => 'Parent Page',
+         *                      'links' => [
+         *                          'https://example.com/child-page' => 'Child Page',
+         *                      ],
+         *                  ],
+         *              ];
+         *          }
+         *     });
+         *
+         */
         $apiResult = Event::fire('backend.richeditor.getTypeInfo', [$type]);
         if (is_array($apiResult)) {
             foreach ($apiResult as $typeInfo) {

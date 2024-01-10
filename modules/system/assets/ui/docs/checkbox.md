@@ -6,7 +6,7 @@ Allows a user to select from a small set of binary options.
 
     <div class="checkbox custom-checkbox">
         <input name="checkbox" value="1" type="checkbox" id="checkbox1" />
-        <label for="checkbox1" class="storm-icon-pseudo">Checkbox</label>
+        <label for="checkbox1">Checkbox</label>
     </div>
 
 ### Checkbox lists
@@ -30,36 +30,45 @@ Allows a user to select from a list of binary options.
                 <p class="help-block before-field">What cars would you like in your garage?</p>
                 <div class="checkbox custom-checkbox" tabindex="0">
                     <input id="checkbox-example1" name="checkbox" value="1" type="checkbox" checked="checked" aria-checked="true" />
-                    <label for="checkbox-example1" class="storm-icon-pseudo"> Dodge Viper </label>
+                    <label for="checkbox-example1"> Dodge Viper </label>
                     <p class="help-block">Do not send new comment notifications.</p>
                 </div>
                 <div class="checkbox custom-checkbox" tabindex="0">
                     <input id="checkbox-example2" name="checkbox" value="2" type="checkbox" aria-checked="false" />
-                    <label for="checkbox-example2" class="storm-icon-pseudo"> GM Corvette </label>
+                    <label for="checkbox-example2"> GM Corvette </label>
                     <p class="help-block">Send new comment notifications only to post author.</p>
                 </div>
                 <div class="checkbox custom-checkbox" tabindex="0">
                     <input id="checkbox-example3" name="checkbox" value="3" type="checkbox" aria-checked="mixed" />
-                    <label for="checkbox-example3"  class="storm-icon-pseudo"> Porsche Boxter </label>
+                    <label for="checkbox-example3"> Porsche Boxter </label>
                     <p class="help-block">Notify all users who have permissions to receive blog notifications.</p>
                 </div>
             </div>
         </div>
     </div>
 
+### Indeterminate checkboxes
+
+    <div class="checkbox custom-checkbox is-indeterminate">
+        <input name="checkbox" value="1" type="checkbox" id="checkbox1" data-checked="1" />
+        <label for="checkbox1">Checkbox</label>
+    </div>
+
+The `data-checked` attribute may have one of three values: 0 (off), 1 (indeterminate) or 2 (on).
+
 ### Radio
 
     <div class="radio custom-radio">
         <input name="radio" value="1" type="radio" id="radio_1" />
-        <label for="radio_1" class="storm-icon-pseudo">Paris</label>
+        <label for="radio_1">Paris</label>
     </div>
     <div class="radio custom-radio">
         <input checked="checked" name="radio" value="2" type="radio" id="radio_2" />
-        <label for="radio_2" class="storm-icon-pseudo">Dubai</label>
+        <label for="radio_2">Dubai</label>
     </div>
     <div class="radio custom-radio">
         <input name="radio" value="3" type="radio" id="radio_3" />
-        <label for="radio_3" class="storm-icon-pseudo">New Zealand</label>
+        <label for="radio_3">New Zealand</label>
     </div>
 
 ### Slider

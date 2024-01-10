@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response as BaseResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
- * SecurityController Trait
+ * Security Controller Trait
  * Adds cross-site scripting protection methods to a controller based class
  *
  * @package october\system
@@ -18,10 +18,12 @@ use Symfony\Component\HttpFoundation\Cookie;
 trait SecurityController
 {
     /**
-     * makeXsrfCookie adds anti-CSRF cookie.
+     * Adds anti-CSRF cookie.
      * Adds a cookie with a token for CSRF checks to the response.
+     *
+     * @return \Symfony\Component\HttpFoundation\Cookie
      */
-    protected function makeXsrfCookie(): Cookie
+    protected function makeXsrfCookie()
     {
         $config = Config::get('session');
 
@@ -39,14 +41,14 @@ trait SecurityController
     }
 
     /**
-     * verifyCsrfToken checks if the request requires verification first (not GET, HEAD, OPTIONS) and
-     * then the request data / headers for a valid CSRF token. Returns false if a valid token is not
-     * found. Override this method to disable the check.
+     * Checks the request data / headers for a valid CSRF token.
+     * Returns false if a valid token is not found. Override this
+     * method to disable the check.
      * @return bool
      */
-    protected function verifyCsrfToken(): bool
+    protected function verifyCsrfToken()
     {
-        if (!Config::get('system.enable_csrf_protection', true)) {
+        if (!Config::get('cms.enableCsrfProtection', true)) {
             return true;
         }
 
@@ -71,16 +73,15 @@ trait SecurityController
     }
 
     /**
-     * verifyForceSecure checks if the back-end should force a secure protocol
-     * (HTTPS) enabled by config.
+     * Checks if the back-end should force a secure protocol (HTTPS) enabled by config.
      * @return bool
      */
-    protected function verifyForceSecure(): bool
+    protected function verifyForceSecure()
     {
         if (Request::secure() || Request::ajax()) {
             return true;
         }
 
-        return !Config::get('backend.force_secure', false);
+        return !Config::get('cms.backendForceSecure', false);
     }
 }

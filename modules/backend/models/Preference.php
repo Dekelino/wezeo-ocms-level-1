@@ -6,11 +6,12 @@ use Model;
 use Config;
 use Session;
 use BackendAuth;
+use DirectoryIterator;
 use DateTime;
 use DateTimeZone;
 
 /**
- * Preference model for the backend user
+ * Backend preferences for the backend user
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -44,7 +45,7 @@ class Preference extends Model
     public $rules = [];
 
     /**
-     * initSettingsData for this model. This only executes when the
+     * Initialize the seed data for this model. This only executes when the
      * model is first created or reset to default.
      * @return void
      */
@@ -53,20 +54,21 @@ class Preference extends Model
         $config = App::make('config');
         $this->locale = $config->get('app.locale', 'en');
         $this->fallback_locale = $this->getFallbackLocale($this->locale);
-        $this->timezone = $config->get('backend.timezone', $config->get('app.timezone'));
+        $this->timezone = $config->get('cms.backendTimezone', $config->get('app.timezone'));
 
-        $this->editor_theme = $config->get('editor.theme', static::DEFAULT_THEME);
-        $this->editor_word_wrap = $config->get('editor.word_wrap', 'off');
         $this->editor_font_size = $config->get('editor.font_size', 12);
-        $this->editor_tab_size = $config->get('editor.tab_size', 4);
+        $this->editor_word_wrap = $config->get('editor.word_wrap', 'fluid');
         $this->editor_code_folding = $config->get('editor.code_folding', 'manual');
-        $this->editor_autocompletion = $config->get('editor.editor_autocompletion', 'manual');
-        $this->editor_show_gutter = $config->get('editor.show_gutter', true);
-        $this->editor_highlight_active_line = $config->get('editor.highlight_active_line', true);
-        $this->editor_auto_closing = $config->get('editor.auto_closing', true);
-        $this->editor_use_hard_tabs = $config->get('editor.use_hard_tabs', false);
-        $this->editor_display_indent_guides = $config->get('editor.display_indent_guides', false);
+        $this->editor_tab_size = $config->get('editor.tab_size', 4);
+        $this->editor_theme = $config->get('editor.theme', static::DEFAULT_THEME);
         $this->editor_show_invisibles = $config->get('editor.show_invisibles', false);
+        $this->editor_highlight_active_line = $config->get('editor.highlight_active_line', true);
+        $this->editor_use_hard_tabs = $config->get('editor.use_hard_tabs', false);
+        $this->editor_show_gutter = $config->get('editor.show_gutter', true);
+        $this->editor_auto_closing = $config->get('editor.auto_closing', false);
+        $this->editor_autocompletion = $config->get('editor.editor_autocompletion', 'manual');
+        $this->editor_enable_snippets = $config->get('editor.enable_snippets', false);
+        $this->editor_display_indent_guides = $config->get('editor.display_indent_guides', false);
         $this->editor_show_print_margin = $config->get('editor.show_print_margin', false);
     }
 
@@ -208,6 +210,7 @@ class Preference extends Model
             'pt-br' => [Lang::get('system::lang.locale.pt-br'), 'flag-br'],
             'pt-pt' => [Lang::get('system::lang.locale.pt-pt'), 'flag-pt'],
             'ro'    => [Lang::get('system::lang.locale.ro'),    'flag-ro'],
+            'rs'    => [Lang::get('system::lang.locale.rs'),    'flag-rs'],
             'ru'    => [Lang::get('system::lang.locale.ru'),    'flag-ru'],
             'sk'    => [Lang::get('system::lang.locale.sk'),    'flag-sk'],
             'sl'    => [Lang::get('system::lang.locale.sl'),    'flag-si'],
@@ -270,10 +273,26 @@ class Preference extends Model
      */
     public function getEditorThemeOptions()
     {
-        return [
-            static::DEFAULT_THEME => 'Dark',
-            'sqlserver' => 'Light',
-            'merbivore' => 'High Contrast',
-        ];
+        $themeDir = new DirectoryIterator("modules/backend/formwidgets/codeeditor/assets/vendor/ace/");
+        $themes = [];
+
+        // Iterate through the themes
+        foreach ($themeDir as $node) {
+            // If this file is a theme (starting by "theme-")
+            if (!$node->isDir() && substr($node->getFileName(), 0, 6) == 'theme-') {
+                // Remove the theme- prefix and the .js suffix, create an user friendly and capitalized name
+                $themeId = substr($node->getFileName(), 6, -3);
+                $themeName = ucwords(str_replace("_", " ", $themeId));
+
+                // Add the values to the themes array
+                if ($themeId != static::DEFAULT_THEME) {
+                    $themes[$themeId] = $themeName;
+                }
+            }
+        }
+
+        // Sort the theme alphabetically, and push the default theme
+        asort($themes);
+        return [static::DEFAULT_THEME => ucwords(static::DEFAULT_THEME)] + $themes;
     }
 }

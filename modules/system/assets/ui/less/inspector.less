@@ -142,8 +142,8 @@
 
         &.autocomplete {
             padding: 0;
-            position: relative;
             overflow: visible;
+            position: relative;
 
             .autocomplete-container {
                 input[type=text] {
@@ -311,12 +311,12 @@
                     width: 10px;
                     height: 12px;
                     line-height: 80%;
-                    opacity: .4;
+                    .opacity(0.4);
                     &:before {
                         margin-left: 3px;
                     }
                     &:hover {
-                        opacity: 1;
+                        .opacity(1);
                     }
                 }
             }
@@ -602,9 +602,9 @@ div.inspector-dictionary-container {
         cursor: pointer;
         line-height: 1;
 
-        opacity: .4;
+        .opacity(0.4);
         &:hover {
-            opacity: 1;
+            .opacity(1);
             color: @close-color;
         }
     }

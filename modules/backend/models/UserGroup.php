@@ -3,7 +3,7 @@
 use October\Rain\Auth\Models\Group as GroupBase;
 
 /**
- * UserGroup for an administrator
+ * Administrator group
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -13,27 +13,25 @@ class UserGroup extends GroupBase
     const CODE_OWNERS = 'owners';
 
     /**
-     * @var string table associated with the model
+     * @var string The database table used by the model.
      */
     protected $table = 'backend_user_groups';
 
     /**
-     * @var array rules for validation
+     * @var array Validation rules
      */
     public $rules = [
         'name' => 'required|between:2,128|unique:backend_user_groups',
     ];
 
     /**
-     * @var array belongsToMany relationship
+     * @var array Relations
      */
     public $belongsToMany = [
-        'users' => [User::class, 'table' => 'backend_users_groups']
+        'users' => [User::class, 'table' => 'backend_users_groups'],
+        'users_count' => [User::class, 'table' => 'backend_users_groups', 'count' => true]
     ];
 
-    /**
-     * afterCreate event
-     */
     public function afterCreate()
     {
         if ($this->is_new_user_default) {
@@ -41,9 +39,6 @@ class UserGroup extends GroupBase
         }
     }
 
-    /**
-     * addAllUsersToGroup adds everyone to this group
-     */
     public function addAllUsersToGroup()
     {
         $this->users()->sync(User::lists('id'));

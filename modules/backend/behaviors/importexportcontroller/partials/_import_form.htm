@@ -11,7 +11,7 @@
 
                     <div class="loading-indicator-container">
                         <p>&nbsp;</p>
-                        <div class="loading-indicator is-transparent">
+                        <div class="loading-indicator transparent">
                             <div><?= e(trans('backend::lang.import_export.processing')) ?></div>
                             <span></span>
                         </div>
@@ -24,8 +24,8 @@
 
         <script>
             $('#importFormPopup').on('popupComplete', function() {
-                $.oc.importBehavior.processImport();
-            });
+                $.oc.importBehavior.processImport()
+            })
         </script>
 
     <?php else: ?>

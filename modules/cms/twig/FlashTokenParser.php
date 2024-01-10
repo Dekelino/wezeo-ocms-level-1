@@ -5,7 +5,7 @@ use Twig\Token as TwigToken;
 use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 
 /**
- * FlashTokenParser for the `{% flash %}` Twig tag.
+ * Parser for the {% flash %} Twig tag.
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
@@ -13,7 +13,10 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 class FlashTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
+     *
      * @return TwigNode A TwigNode instance
      */
     public function parse(TwigToken $token)
@@ -35,16 +38,14 @@ class FlashTokenParser extends TwigTokenParser
         return new FlashNode($name, $body, $lineno, $this->getTag());
     }
 
-    /**
-     * decideIfEnd
-     */
     public function decideIfEnd(TwigToken $token)
     {
         return $token->test(['endflash']);
     }
 
     /**
-     * getTag name associated with this token parser.
+     * Gets the tag name associated with this token parser.
+     *
      * @return string The tag name
      */
     public function getTag()

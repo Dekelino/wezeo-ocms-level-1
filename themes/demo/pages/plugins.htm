@@ -1,48 +1,30 @@
-title = "Plugin Components"
+title = "Plugin components"
 url = "/demo/plugins"
 layout = "default"
 
 [demoTodo]
 max = 3
-addDefault = 1
-
-[resources]
-less[] = "pages/plugins.less"
 ==
-<div class="jumbotron">
+<div class="jumbotron title-js">
     <div class="container">
         <div class="row">
-            <div class="col-xl-10 col-lg-12">
-                <div class="row">
-                    <div class="col-xl-5">
-                        <h1>CMS Components</h1>
-                    </div>
-
-                    <div class="col-xl-7">
-                        <div class="plugins-component-container">
-                            <p>Plugins can provide CMS components, simple building blocks that can enrich pages, layouts, and partials. Check out the To Do example below.</p>
-
-                            {% component 'demoTodo' %}
-                        </div>
-                    </div>
-                </div>
+            <div class="col-8">
+                <h1>Plugin components</h1>
+                <p>Plugins can provide components, simple building blocks that enrich any page or layout. Check out the todo example below.</p>
             </div>
         </div>
     </div>
 </div>
 
+<div class="container">
+    {% component 'demoTodo' %}
+</div>
+
 <!-- Page Explanation -->
+<div class="container">{% partial "explain/plugins.htm" %}</div>
 
-<div class="home-container">
-    <div class="container">
-        <div class="row">
-            <div class="col-xl-10 col-lg-12">
-                {% partial "explain/plugins.htm" %}
+<br />
 
-                <div class="py-3">
-                    <p><a href="https://docs.octobercms.com/2.x/setup/installation.html" class="btn btn-primary btn-cta">Learn more at October CMS Documentation ⟶</a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="text-center">
+    <p><a target="_blank" href="http://octobercms.com/docs" class="btn btn-lg btn-default">Learn more at October's Documentation</a></p>
 </div>

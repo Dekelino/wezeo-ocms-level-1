@@ -5,7 +5,6 @@
         $cssClasses[] = 'callout-'.$type;
         if (empty($icon)) $cssClasses[] = 'no-icon';
         if (empty($subtitle)) $cssClasses[] = 'no-subheader';
-        if (empty($title)) $cssClasses[] = 'no-title';
         if (!empty($cssClass)) $cssClasses[] = $cssClass;
     ?>
     <div class="<?= implode(' ', $cssClasses) ?>">

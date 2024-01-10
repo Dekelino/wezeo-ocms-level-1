@@ -1,11 +1,12 @@
 <?php namespace Cms\Helpers;
 
-use Cms\Classes\Theme;
+use Config;
+use File as Filesystem;
 
 /**
- * File defines some file-system helpers for the CMS system
+ * Defines some file-system helpers for the CMS system.
  *
- * @package october\cms
+ * @package october\system
  * @author Alexey Bobkov, Samuel Georges
  */
 class File
@@ -19,7 +20,7 @@ class File
      */
     public static function validateName($fileName)
     {
-        return preg_match('/^[a-z0-9\_\s\-\.\/]+$/i', $fileName) ? true : false;
+        return preg_match('/^[a-z0-9\_\-\.\/]+$/i', $fileName) ? true : false;
     }
 
     /**
@@ -40,14 +41,14 @@ class File
     }
 
     /**
-     * validatePath of a CMS object.
+     * Validates a CMS object path.
      * CMS object directory and file names can contain only alphanumeric symbols, dashes and dots.
      * CMS objects support only a single level of subdirectories.
      * @param string $filePath Specifies a path to validate
      * @param integer $maxNesting Specifies the maximum allowed nesting level
-     * @return bool Returns true if the file name is valid. Otherwise returns false.
+     * @return boolean Returns true if the file name is valid. Otherwise returns false.
      */
-    public static function validatePath($filePath, $maxNesting = 2): bool
+    public static function validatePath($filePath, $maxNesting = 2)
     {
         if (strpos($filePath, '..') !== false) {
             return false;
@@ -66,22 +67,6 @@ class File
             if (!self::validateName($segment)) {
                 return false;
             }
-        }
-
-        return true;
-    }
-
-    /**
-     * validateInTheme checks object lives within the theme directory
-     */
-    public static function validateInTheme(Theme $theme, string $filePath): bool
-    {
-        $directory = realpath($theme->getPath());
-
-        $path = realpath($filePath);
-
-        if ($path !== false && !starts_with($path, $directory)) {
-            return false;
         }
 
         return true;

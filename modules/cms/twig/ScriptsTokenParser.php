@@ -4,7 +4,7 @@ use Twig\Token as TwigToken;
 use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 
 /**
- * ScriptsTokenParser for the `{% scripts %}` Twig tag.
+ * Parser for the `{% scripts %}` Twig tag.
  *
  *     {% scripts %}
  *
@@ -14,8 +14,10 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 class ScriptsTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
-     * @return \Twig\Node\Node A Twig\Node\Node instance
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
+     * @return Twig\Node\Node A Twig\Node\Node instance
      */
     public function parse(TwigToken $token)
     {
@@ -25,7 +27,8 @@ class ScriptsTokenParser extends TwigTokenParser
     }
 
     /**
-     * getTag name associated with this token parser.
+     * Gets the tag name associated with this token parser.
+     *
      * @return string The tag name
      */
     public function getTag()

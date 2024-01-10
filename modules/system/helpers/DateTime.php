@@ -28,6 +28,8 @@ class DateTime
     public static function timeTense($datetime)
     {
         $datetime = self::makeCarbon($datetime);
+        $yesterday = $datetime->subDays(1);
+        $tomorrow = $datetime->addDays(1);
         $time = $datetime->format('H:i');
         $date = $datetime->format('j M Y');
 
@@ -66,9 +68,7 @@ class DateTime
         else {
             try {
                 $value = Carbon::parse($value);
-            }
-            catch (Exception $ex) {
-                // Do nothing
+            } catch (Exception $ex) {
             }
         }
 

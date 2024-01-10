@@ -6,7 +6,7 @@ use Twig\TokenParser\AbstractTokenParser as TwigTokenParser;
 use Twig\Error\SyntaxError as TwigErrorSyntax;
 
 /**
- * ComponentTokenParser for the `{% component %}` Twig tag.
+ * Parser for the `{% component %}` Twig tag.
  *
  *     {% component "pluginComponent" %}
  *
@@ -16,7 +16,9 @@ use Twig\Error\SyntaxError as TwigErrorSyntax;
 class ComponentTokenParser extends TwigTokenParser
 {
     /**
-     * parse a token and returns a node.
+     * Parses a token and returns a node.
+     *
+     * @param TwigToken $token A TwigToken instance
      * @return TwigNode A TwigNode instance
      */
     public function parse(TwigToken $token)
@@ -57,7 +59,8 @@ class ComponentTokenParser extends TwigTokenParser
     }
 
     /**
-     * getTag name associated with this token parser.
+     * Gets the tag name associated with this token parser.
+     *
      * @return string The tag name
      */
     public function getTag()

@@ -2,19 +2,11 @@
 
 namespace App\Arrival;
 
-use Backend;
+use Backend\Facades\Backend;
 use System\Classes\PluginBase;
 
-/**
- * Arrival Plugin Information File
- */
 class Plugin extends PluginBase
 {
-    /**
-     * Returns information about this plugin.
-     *
-     * @return array
-     */
     public function pluginDetails()
     {
         return [
@@ -27,30 +19,6 @@ class Plugin extends PluginBase
             'order'       => 500,
         ];
     }
-
-    /**
-     * Register method, called when the plugin is first registered.
-     *
-     * @return void
-     */
-    public function register()
-    {
-    }
-
-    /**
-     * Boot method, called right before the request route.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-    }
-
-    /**
-     * Registers any front-end components implemented in this plugin.
-     *
-     * @return array
-     */
     public function registerComponents()
     {
 
@@ -58,12 +26,6 @@ class Plugin extends PluginBase
             'App\Arrival\Components\MyComponent' => 'myComponent',
         ];
     }
-
-    /**
-     * Registers any back-end permissions used by this plugin.
-     *
-     * @return array
-     */
     public function registerPermissions()
     {
 
@@ -75,11 +37,6 @@ class Plugin extends PluginBase
         ];
     }
 
-    /**
-     * Registers back-end navigation items for this plugin.
-     *
-     * @return array
-     */
     public function registerNavigation()
     {
 

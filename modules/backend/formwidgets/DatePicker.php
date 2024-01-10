@@ -1,13 +1,14 @@
 <?php namespace Backend\FormWidgets;
 
+use Config;
 use Carbon\Carbon;
 use Backend\Classes\FormField;
 use Backend\Classes\FormWidgetBase;
 use System\Helpers\DateTime as DateTimeHelper;
-use Backend\Models\Preference as BackendPreference;
 
 /**
- * DatePicker renders a date picker field
+ * Date picker
+ * Renders a date picker field.
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -19,54 +20,48 @@ class DatePicker extends FormWidgetBase
     //
 
     /**
-     * @var bool mode for display. Values: datetime, date, time
+     * @var bool Display mode: datetime, date, time.
      */
     public $mode = 'datetime';
 
     /**
-     * @var string format provides an explicit date display format
+     * @var string Provide an explicit date display format.
      */
     public $format;
 
     /**
-     * @var string minDate the minimum/earliest date that can be selected.
+     * @var string the minimum/earliest date that can be selected.
      * eg: 2000-01-01
      */
     public $minDate;
 
     /**
-     * @var string maxDate the maximum/latest date that can be selected.
+     * @var string the maximum/latest date that can be selected.
      * eg: 2020-12-31
      */
     public $maxDate;
 
     /**
-     * @var string yearRange number of years either side or array of upper/lower range
+     * @var string number of years either side or array of upper/lower range
      * eg: 10 or [1900,1999]
      */
     public $yearRange;
 
     /**
-     * @var int firstDay of the week
+     * @var int first day of the week
      * eg: 0 (Sunday), 1 (Monday), 2 (Tuesday), etc.
      */
     public $firstDay = 0;
 
     /**
-     * @var bool showWeekNumber at head of row
+     * @var bool show week numbers at head of row
      */
     public $showWeekNumber = false;
 
     /**
-     * @var bool useTimezone will convert the date and time to the user preference
+     * @var bool change datetime exactly as is in database
      */
-    public $useTimezone = true;
-
-    /**
-     * @var bool defaultTimeMidnight If the time picker is enabled but the time value is not provided fallback to 00:00.
-     * If this option is disabled, the default time is the current time.
-     */
-    public $defaultTimeMidnight = false;
+    public $ignoreTimezone = false;
 
     //
     // Object properties
@@ -90,20 +85,10 @@ class DatePicker extends FormWidgetBase
             'yearRange',
             'firstDay',
             'showWeekNumber',
-            'useTimezone',
-            'defaultTimeMidnight'
+            'ignoreTimezone',
         ]);
 
         $this->mode = strtolower($this->mode);
-
-        // @deprecated API
-        if ($this->getConfig('ignoreTimezone', false)) {
-            $this->useTimezone = false;
-        }
-
-        if ($this->mode === 'time' || $this->mode === 'date') {
-            $this->useTimezone = false;
-        }
 
         if ($this->minDate !== null) {
             $this->minDate = is_int($this->minDate)
@@ -128,13 +113,19 @@ class DatePicker extends FormWidgetBase
     }
 
     /**
-     * prepareVars for display
+     * Prepares the list data
      */
     public function prepareVars()
     {
         if ($value = $this->getLoadValue()) {
             $value = DateTimeHelper::makeCarbon($value, false);
-            $value = $value instanceof Carbon ? $value->toDateTimeString() : $value;
+            if ($this->mode === 'date' && !$this->ignoreTimezone) {
+                $backendTimeZone = \Backend\Models\Preference::get('timezone');
+                $value->setTimezone($backendTimeZone);
+                $value->setTime(0, 0, 0);
+                $value->setTimezone(Config::get('app.timezone'));
+            }
+            $value = $value->toDateTimeString();
         }
 
         $this->vars['name'] = $this->getFieldName();
@@ -146,11 +137,10 @@ class DatePicker extends FormWidgetBase
         $this->vars['yearRange'] = $this->yearRange;
         $this->vars['firstDay'] = $this->firstDay;
         $this->vars['showWeekNumber'] = $this->showWeekNumber;
-        $this->vars['useTimezone'] = $this->useTimezone;
+        $this->vars['ignoreTimezone'] = $this->ignoreTimezone;
         $this->vars['format'] = $this->format;
         $this->vars['formatMoment'] = $this->getDateFormatMoment();
         $this->vars['formatAlias'] = $this->getDateFormatAlias();
-        $this->vars['defaultTimeMidnight'] = $this->defaultTimeMidnight;
     }
 
     /**
@@ -158,6 +148,10 @@ class DatePicker extends FormWidgetBase
      */
     public function getSaveValue($value)
     {
+        if ($this->formField->disabled || $this->formField->hidden) {
+            return FormField::NO_SAVE_DATA;
+        }
+
         if (!strlen($value)) {
             return null;
         }
@@ -166,7 +160,7 @@ class DatePicker extends FormWidgetBase
     }
 
     /**
-     * getDateFormatMoment converts PHP format to JS format
+     * Convert PHP format to JS format
      */
     protected function getDateFormatMoment()
     {
@@ -176,7 +170,7 @@ class DatePicker extends FormWidgetBase
     }
 
     /*
-     * getDateFormatAlias displays alias, used by preview mode
+     * Display alias, used by preview mode
      */
     protected function getDateFormatAlias()
     {

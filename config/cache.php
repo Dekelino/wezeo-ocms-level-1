@@ -34,7 +34,6 @@ return [
 
         'array' => [
             'driver' => 'array',
-            'serialize' => false,
         ],
 
         'database' => [
@@ -45,23 +44,15 @@ return [
 
         'file' => [
             'driver' => 'file',
-            'path' => storage_path('framework/cache/data'),
+            'path' => storage_path('framework/cache'),
         ],
 
         'memcached' => [
             'driver' => 'memcached',
-            'persistent_id' => env('MEMCACHED_PERSISTENT_ID'),
-            'sasl' => [
-                env('MEMCACHED_USERNAME'),
-                env('MEMCACHED_PASSWORD'),
-            ],
-            'options' => [
-                // Memcached::OPT_CONNECT_TIMEOUT => 2000,
-            ],
             'servers' => [
                 [
-                    'host' => env('MEMCACHED_HOST', '127.0.0.1'),
-                    'port' => env('MEMCACHED_PORT', 11211),
+                    'host' => '127.0.0.1',
+                    'port' => 11211,
                     'weight' => 100,
                 ],
             ],
@@ -69,16 +60,7 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'cache',
-        ],
-
-        'dynamodb' => [
-            'driver' => 'dynamodb',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'table' => env('DYNAMODB_CACHE_TABLE', 'cache'),
-            'endpoint' => env('DYNAMODB_ENDPOINT'),
+            'connection' => 'default',
         ],
 
     ],
@@ -94,6 +76,41 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', 'october_cache'),
+    'prefix' => 'october',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Key for the CMS' PHP code parser cache
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the cache key used by the CMS when storing generated
+    | PHP from the theme PHP sections. Recommended to change this when multiple
+    | servers running OctoberCMS are connected to the same cache server to
+    | prevent conflicts.
+    |
+    */
+
+    'codeParserDataCacheKey' => 'cms-php-file-data',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disable Request Cache
+    |--------------------------------------------------------------------------
+    |
+    | The request cache stores cache retrievals from the cache store
+    | in memory to speed up consecutive retrievals within the same request.
+    |
+    | true  - always disable this in-memory request cache
+    |
+    | false - always enable; be aware that long-running console commands
+    |         (including queue workers) may retain cache entries in memory that
+    |         have been changed in other processes or would have otherwise
+    |         expired, causing issues with the `queue:restart` command, for
+    |         example
+    |
+    | null  - enable for HTTP requests, disable when running in CLI
+    |
+    */
+
+    'disableRequestCache' => null,
 ];

@@ -66,7 +66,6 @@
     font-size: 13px;
     padding: 20px 20px 2px 20px;
     margin-bottom: @padding-standard;
-    border: 1px solid @input-border;
     background: @color-form-checkboxlist-background;
     .border-radius(@border-radius-base);
 
@@ -90,19 +89,9 @@
         }
     }
 
-    &.with-icons {
-        li > i {
-            margin-right: 5px;
-        }
-    }
-
     &.with-checkboxes {
         li {
             margin-top: -5px;
-
-            div.custom-checkbox {
-                display: inline-block;
-            }
 
             &:first-child {
                 margin-top: 0;
@@ -121,23 +110,6 @@
     }
 
     &.is-sortable {
-        li .drag-handle {
-            width: 22px;
-            height: 19px;
-            cursor: move;
-            color: @input-border;
-            margin-left: -5px;
-
-            &:hover {
-                color: darken(@input-border, 10%);
-            }
-
-            &:before {
-                .icon(@bars);
-                font-size: 14px;
-                padding: 0 5px;
-            }
-        }
 
         li.placeholder {
             position: relative;
@@ -150,7 +122,7 @@
 
         li.dragged {
             position: absolute;
-            opacity: .5;
+            .opacity(.5);
             z-index: 2000;
             color: @color-sortable-active;
 
@@ -203,7 +175,7 @@
                 color: @text-color;
             }
             &:hover {
-                background: @brand-selection;
+                background: @color-list-hover-bg;
                 cursor: pointer;
                 &, a { color: white; }
                 a { text-decoration: none; }
@@ -213,7 +185,7 @@
                 a {
                     background: #f0f0f0;
                     &:hover {
-                        background: @brand-selection;
+                        background: @color-list-hover-bg;
                     }
                 }
             }
@@ -223,13 +195,6 @@
     &.is-selectable-box {
         padding-top: 15px;
         margin-bottom: 0;
-        background: transparent;
-
-        &.is-flush {
-            padding: 0;
-            margin-left: -8px;
-            ul { padding-left: 0; }
-        }
 
         li {
             width: 155px;
@@ -249,7 +214,6 @@
                     height: 155px;
                     border: 3px solid rgba(0,0,0,.1);
                     position: relative;
-                    background: @color-form-checkboxlist-background;
                     .transition(border .3s ease);
                 }
 
@@ -287,16 +251,6 @@
                         color: rgba(0,0,0,.45);
                     }
                 }
-            }
-        }
-
-        li.active a {
-            .box {
-                border-color: @brand-selection;
-            }
-
-            .image > i {
-                color: rgba(0,0,0,.45);
             }
         }
     }
