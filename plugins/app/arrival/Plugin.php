@@ -4,6 +4,7 @@ namespace App\Arrival;
 
 use Backend\Facades\Backend;
 use System\Classes\PluginBase;
+use RainLab\User\Models\User as RainLabUser;
 
 class Plugin extends PluginBase
 {
@@ -19,6 +20,14 @@ class Plugin extends PluginBase
             'order'       => 500,
         ];
     }
+
+    public function boot()
+    {
+        ExtendedUser::extend(function ($model) {
+            $model->implement[] = 'RainLab.User.Behaviors.UserPreferencesModel';
+        });
+    }
+
     public function registerComponents()
     {
 
