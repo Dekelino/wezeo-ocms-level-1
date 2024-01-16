@@ -4,9 +4,11 @@ namespace App\Arrival;
 
 use RainLab\User\Models\User as RainLabUser;
 
-class ExtendedUser extends RainLabUser
+class ExtendedUser
 {
-    public $hasMany = [
-        'arrivals' => ['App\Arrival\Models\Arrival', 'key' => 'user_id']
-    ];
+    public static function extendUser(){
+        RainLabUser::extend(function($model) {
+            $model->hasMany['arrivals'] = ['App\Arrival\Models\Arrival'];
+        });
+    }
 }

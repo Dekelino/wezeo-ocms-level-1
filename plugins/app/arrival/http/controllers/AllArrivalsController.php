@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Arrival\Http\Resources\ArrivalResource;
 use LibUser\Userapi\Http\Resources\UserResource;
 use Carbon\Carbon;
-use LibUser\Userapi\Models\User;
 
 class AllArrivalsController extends Controller
 {
@@ -35,6 +34,6 @@ class AllArrivalsController extends Controller
         $arrival->userName = $user->name . ' ' . $user->surname;
         $arrival->timestamp = Carbon::now('Europe/Bratislava');
         $arrival->save();
-        return ArrivalResource::make($arrival);
+        return new ArrivalResource($arrival);
     }
 }

@@ -9,8 +9,6 @@ class CreateArrivalsTable extends Migration
 {
     public function up()
     {
-        dump('Before creating table');  // Debug statement
-        
         Schema::create('app_arrivals', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             $table->increments('id')->unsigned();
@@ -20,16 +18,10 @@ class CreateArrivalsTable extends Migration
             $table->timestamp('timestamp')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamps();
         });
-
-        dump('After creating table');  // Debug statement
     }
 
     public function down()
     {
-        dump('Before dropping table');  // Debug statement
-
         Schema::dropIfExists('app_arrivals');
-
-        dump('After dropping table');  // Debug statement
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Arrival\Models;
-use App\Arrival\ExtendedUser;
 
 use Model;
 
@@ -22,15 +21,7 @@ class Arrival extends Model
         'updated_at'
     ];
 
-    public $hasOne = [];
-    public $hasMany = [];
     public $belongsTo = [
-        'user' => [ExtendedUser::class, 'key' => 'user_id']
+        'user' => ['RainLab\User\Models\User']
     ];
-    public $belongsToMany = [];
-    public $morphTo = [];
-    public $morphOne = [];
-    public $morphMany = [];
-    public $attachOne = [];
-    public $attachMany = [];
 }
